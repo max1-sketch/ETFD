@@ -657,6 +657,11 @@
         if (chatMessagesList.length > 200) chatMessagesList.pop();
         renderChatStream();
       });
+
+      socket.on('playersUpdate', (players) => {
+        const countEl = document.getElementById('statLivePlayers');
+        if (countEl && Array.isArray(players)) countEl.innerText = players.length;
+      });
     }
 
     function notify(title, message, type = 'success') {
@@ -846,7 +851,7 @@
       renderChatStream();
     }
 
-    // DISCORD-STYLE MESSAGE GROUPING & RENDERER
+    // DISCORD-STYLE MESSAGE GROUPING & RENDERER WITH FIXED AVATAR HEADSHOTS
     function renderChatStream() {
       const stream = document.getElementById('chatFeedStream');
       const searchRaw = (document.getElementById('chatSearchInput')?.value || '').trim();
@@ -875,7 +880,7 @@
       
       for (let i = 0; i < filtered.length; i++) {
         const m = filtered[i];
-        const prevMsg = filtered[i - 1]; // Message above (newer) or below depending on order
+        const prevMsg = filtered[i - 1];
         const tox = analyzeMessageToxicity(m.msg);
 
         // Track Risk Score per User
@@ -920,12 +925,12 @@
                 ${tox.badgeText && !m.redacted ? `
                   <div class="flex items-center gap-2 mt-0.5">
                     <span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>
-                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono">🛡️ Auto-Mod: Warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>` : ''}
+                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono">🛡️ Auto-Mod: User warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>` : ''}
                   </div>
                 ` : ''}
               </div>
 
-              <!-- ACTION BUTTONS ON HOVER -->
+              <!-- ACTION BUTTONS WITH HOVER CIRCLES -->
               <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
                 <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
                   <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
@@ -940,11 +945,12 @@
             </div>
           `;
         } else {
-          // FULL HEADERED MESSAGE
+          // FULL HEADERED MESSAGE WITH AVATAR HEADSHOT
           htmlBuffer += `
             <div class="group relative p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
               <div class="flex items-start gap-3 min-w-0 flex-1">
                 <img src="${avatarUrl}" 
+                     referrerpolicy="no-referrer"
                      onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';" 
                      class="w-8 h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
                      onclick="navigateToUserLookup('${m.userId}')" 
@@ -1013,6 +1019,7 @@
           <div class="p-2.5 bg-[#0e131f] card-border rounded flex items-center justify-between text-xs cursor-pointer hover:border-slate-700 transition-colors" onclick="navigateToUserLookup('${c.userId}')">
             <div class="flex items-center gap-2.5 min-w-0">
               <img src="${avatarUrl}" 
+                   referrerpolicy="no-referrer"
                    onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';"
                    class="w-7 h-7 rounded-full bg-slate-800 card-border shrink-0 object-cover" />
               <div class="truncate">
@@ -1054,7 +1061,7 @@
       activeChatTarget = { userId, username };
       const modal = document.getElementById('chatActionModal');
       document.getElementById('chatActionUserDetails').innerHTML = `
-        <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
+        <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
         <div>
           <div class="font-bold text-slate-200">${username}</div>
           <div class="text-slate-400 font-mono text-[10px]">UserID: ${userId}</div>
@@ -1130,7 +1137,7 @@
                 ${players.map((p, i) => `
                   <tr class="${i % 2 === 0 ? 'bg-[#121722]' : 'bg-[#0e131f]'} hover:bg-slate-800/30">
                     <td class="p-2.5 font-semibold text-slate-200 flex items-center gap-2">
-                      <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${p.userId}&width=150&height=150&format=png" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
+                      <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${p.userId}&width=150&height=150&format=png" referrerpolicy="no-referrer" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
                       <span>${p.displayName} <span class="text-slate-500 font-normal">(@${p.username})</span></span>
                     </td>
                     <td class="p-2.5 font-mono text-slate-400">${p.userId}</td>
@@ -1171,7 +1178,7 @@
           badge.classList.remove('hidden');
           badge.classList.add('flex');
           badge.innerHTML = `
-            <img src="${data.avatarUrl}" class="w-8 h-8 rounded-full bg-slate-800 card-border object-cover" />
+            <img src="${data.avatarUrl}" referrerpolicy="no-referrer" class="w-8 h-8 rounded-full bg-slate-800 card-border object-cover" />
             <div class="text-xs">
               <div class="font-bold text-slate-200">${data.displayName} <span class="text-slate-400 font-normal">(@${data.username})</span></div>
               <div class="text-[10px] text-slate-500">Joined: ${new Date(data.created).toLocaleDateString()}</div>
@@ -1364,7 +1371,7 @@
           <div class="space-y-4">
             <div class="p-5 bg-[#121722] card-border rounded flex gap-4 text-xs">
               <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 group">
-                <img src="${data.avatarUrl}" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
+                <img src="${data.avatarUrl}" referrerpolicy="no-referrer" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
                 <span class="text-[9px] text-blue-400 block text-center mt-1 group-hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Profile</span>
               </a>
               <div class="space-y-2 flex-1">

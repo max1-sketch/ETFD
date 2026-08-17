@@ -6,18 +6,11 @@ const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-
-// Socket.io initialization with graceful fallback
-let Server;
-try {
-  Server = require('socket.io').Server;
-} catch (e) {
-  console.warn("⚠️ 'socket.io' module not found. Installing via npm or falling back to HTTP polling.");
-}
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = Server ? new Server(server, { cors: { origin: "*" } }) : null;
+const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +22,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
+// NODEMAILER SMTP TRANSPORTER
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: Number(process.env.SMTP_PORT) || 587,
@@ -37,9 +31,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || ''
   },
-  tls: {
-    rejectUnauthorized: false
-  }
+  tls: { rejectUnauthorized: false }
 });
 
 async function sendInviteEmail(toEmail, username, password, role) {
@@ -138,6 +130,78 @@ async function sendDiscordLog(action, userId, reason, toolName, durationText, ad
   } catch (err) {}
 }
 
+// -----------------------------------------------------------------------------
+// TOXICITY DETECTION & OPEN CLOUD MESSAGING
+// -----------------------------------------------------------------------------
+function checkToxicity(msgText) {
+  if (!msgText) return { isBad: false };
+  const lower = msgText.toLowerCase();
+
+  const harassmentTriggers = ['fat', 'ugly', 'kys', 'kill yourself', 'trash player', 'loser', 'hate you', 'die', 'noob idiot'];
+  const profanityTriggers = ['fuck', 'shit', 'bitch', 'ass', 'bastard', 'crap', 'f*ck', 's*it', 'f u c k'];
+  const scamTriggers = ['discord.gg', 'discord.com/invite', '.com', '.gg/', 'free robux', 'robux.com'];
+
+  if (harassmentTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Harassment/Bullying' };
+  if (profanityTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Profanity' };
+  if (scamTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Unsafe Link/Scam' };
+
+  return { isBad: false };
+}
+
+async function sendModActionToRoblox(userId, action, reason, toolName = null, durationSeconds = 0, durationText = '', adminName = 'AI Auto-Mod') {
+  if (!process.env.UNIVERSE_ID || !process.env.ROBLOX_API_KEY) {
+    console.warn('⚠️ [OPEN CLOUD] Cannot send action: Missing UNIVERSE_ID or ROBLOX_API_KEY in .env');
+    return { success: false, error: 'Open Cloud credentials missing' };
+  }
+
+  const caseId = `#AM-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+  const url = `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/ModChannel`;
+
+  // Payload structure expected by Roblox game script
+  const dataForRoblox = JSON.stringify({
+    action,
+    userId: Number(userId),
+    reason: reason || 'Automated Auto-Mod Action',
+    toolName,
+    durationSeconds: Number(durationSeconds) || 0,
+    admin: adminName,
+    caseId
+  });
+
+  try {
+    // Open Cloud requires double-stringified message format: { message: "JSON_STRING" }
+    const response = await axios.post(url, 
+      { message: dataForRoblox },
+      {
+        headers: {
+          'x-api-key': process.env.ROBLOX_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
+      }
+    );
+
+    console.log(`✅ [OPEN CLOUD SUCCESS] Command '${action}' [${caseId}] dispatched for UserID ${userId}`);
+    return { success: true, caseId };
+
+  } catch (err) {
+    if (err.response) {
+      const status = err.response.status;
+      if (status === 403) {
+        console.error('❌ [ROBLOX API ERROR: 403 Forbidden] Check API Key permissions or IP Whitelist (set to 0.0.0.0/0 on Creator Dashboard).');
+      } else if (status === 401) {
+        console.error('❌ [ROBLOX API ERROR: 401 Unauthorized] ROBLOX_API_KEY is invalid or copied incorrectly.');
+      } else {
+        console.error(`❌ [ROBLOX API ERROR: ${status}]`, err.response.data);
+      }
+    } else {
+      console.error('❌ [OPEN CLOUD NETWORK ERROR]:', err.message);
+    }
+    return { success: false, error: err.message };
+  }
+}
+
+// AUTH MIDDLEWARE
 const requireAuth = (req, res, next) => {
   if (!req.session.isLoggedIn) {
     if (req.originalUrl.startsWith('/api/')) {
@@ -244,11 +308,7 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
     const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${targetUserId}`, { headers, timeout: 5000 });
     const details = detailsRes.data;
 
-    let avatarUrl = 'https://tr.rbxcdn.com/30day-avatar-headshot';
-    try {
-      const avatarRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${targetUserId}&size=150x150&format=Png&isCircular=false`, { headers, timeout: 5000 });
-      if (avatarRes.data?.data?.[0]?.imageUrl) avatarUrl = avatarRes.data.data[0].imageUrl;
-    } catch (e) {}
+    let avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${targetUserId}&width=150&height=150&format=png`;
 
     const createdDate = details.created ? new Date(details.created) : new Date();
     const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
@@ -268,8 +328,8 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   }
 });
 
-// ROBLOX CHAT INGESTION
-app.post('/api/roblox/chat', (req, res) => {
+// ROBLOX CHAT INGESTION & AUTOMATED MODERATION
+app.post('/api/roblox/chat', async (req, res) => {
   const secret = req.headers['x-server-secret'];
   if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
     return res.status(403).json({ error: 'Unauthorized secret' });
@@ -292,13 +352,20 @@ app.post('/api/roblox/chat', (req, res) => {
     liveChatMessages.unshift(chatEntry);
     if (liveChatMessages.length > 200) liveChatMessages.pop();
 
-    if (io) io.emit('newChatMessage', chatEntry);
+    // Broadcast message to Web UI Dashboard
+    io.emit('newChatMessage', chatEntry);
+
+    // AUTO-MOD ENGINE: Scan for toxic content and automatically trigger warn action via Open Cloud
+    const tox = checkToxicity(msg);
+    if (tox.isBad) {
+      console.log(`🚨 [AUTO-MOD FLAGGED] ${username} (${userId}): "${msg}" [Category: ${tox.category}]`);
+      await sendModActionToRoblox(userId, "WARN", `Automated Auto-Mod Flag: ${tox.category}`, null, 0, '', 'AI Auto-Mod');
+    }
   }
 
   res.json({ success: true, status: 'Received' });
 });
 
-// GET CHAT LOGS (Supporting /api/chat and /api/chat/logs)
 app.get(['/api/chat', '/api/chat/logs'], requireAuth, (req, res) => {
   res.json({ messages: liveChatMessages });
 });
@@ -314,6 +381,7 @@ app.post('/api/roblox/players', (req, res) => {
   if (Array.isArray(players)) {
     players.forEach(p => liveInGamePlayers.set(Number(p.userId), p));
   }
+  io.emit('playersUpdate', Array.from(liveInGamePlayers.values()));
   res.json({ success: true });
 });
 
@@ -321,7 +389,7 @@ app.get('/api/live-players', requireAuth, (req, res) => {
   res.json({ players: Array.from(liveInGamePlayers.values()) });
 });
 
-// AUDIT LOGS
+// AUDIT LOGS & BANS
 app.get('/api/logs', requireAuth, (req, res) => {
   res.json({ logs: actionLogs });
 });
@@ -343,15 +411,7 @@ app.post('/api/unban-all', requireAuth, async (req, res) => {
     bannedUsersMap.clear();
     saveBansToFile();
 
-    const topic = 'ModChannel';
-    const url = `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/${topic}`;
-    const payload = JSON.stringify({ action: 'UNBAN_ALL' });
-
-    if (process.env.ROBLOX_API_KEY && process.env.UNIVERSE_ID) {
-      await axios.post(url, { message: payload }, {
-        headers: { 'x-api-key': process.env.ROBLOX_API_KEY, 'Content-Type': 'application/json' }
-      });
-    }
+    await sendModActionToRoblox(0, 'UNBAN_ALL', 'Global administrative unban reset');
 
     const adminName = req.session.adminName || 'roblox';
     actionLogs.unshift({ id: Date.now(), action: 'UNBAN_ALL', userId: 0, admin: adminName, reason: 'Force unbanned all users', timestamp: new Date() });
@@ -381,51 +441,42 @@ app.post('/api/action', requireAuth, async (req, res) => {
   }
 
   lastActionTimestamp = now;
-  const caseId = `#WARN-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
   const adminName = req.session.adminName || 'roblox';
 
-  const payload = JSON.stringify({
-    action,
-    userId: numUserId,
-    reason: reason ? reason.trim() : 'No reason provided.',
-    toolName,
-    durationSeconds,
-    admin: adminName,
-    caseId
-  });
+  const modResult = await sendModActionToRoblox(numUserId, action, reason ? reason.trim() : 'No reason provided.', toolName, durationSeconds, durationText, adminName);
+  const caseId = modResult.caseId || `#WARN-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-  const topic = 'ModChannel';
-  const url = `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/${topic}`;
-
-  try {
-    if (process.env.ROBLOX_API_KEY && process.env.UNIVERSE_ID) {
-      await axios.post(url, { message: payload }, {
-        headers: { 'x-api-key': process.env.ROBLOX_API_KEY, 'Content-Type': 'application/json' }
-      });
-    }
-
-    if (action === 'BAN') {
-      bannedUsersMap.set(numUserId, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() });
-      saveBansToFile();
-    } else if (action === 'UNBAN') {
-      bannedUsersMap.delete(numUserId);
-      saveBansToFile();
-      await deleteRobloxDataStoreEntry(numUserId);
-    }
-
-    const logEntry = { id: Date.now(), caseId, action, userId: numUserId, reason: reason ? reason.trim() : 'No reason provided.', admin: adminName, toolName, timestamp: new Date() };
-    actionLogs.unshift(logEntry);
-    sendDiscordLog(action, numUserId, `${reason.trim()} (Case: ${caseId})`, toolName, durationText, adminName);
-
-    res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
-  } catch (err) {
-    actionLogs.unshift({ id: Date.now(), caseId, action, userId: numUserId, reason: reason ? reason.trim() : 'No reason provided.', admin: adminName, toolName, timestamp: new Date() });
-    res.json({ success: true, note: 'Logged locally', error: err.message });
+  if (action === 'BAN') {
+    bannedUsersMap.set(numUserId, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() });
+    saveBansToFile();
+  } else if (action === 'UNBAN') {
+    bannedUsersMap.delete(numUserId);
+    saveBansToFile();
+    await deleteRobloxDataStoreEntry(numUserId);
   }
+
+  const logEntry = { id: Date.now(), caseId, action, userId: numUserId, reason: reason ? reason.trim() : 'No reason provided.', admin: adminName, toolName, timestamp: new Date() };
+  actionLogs.unshift(logEntry);
+  sendDiscordLog(action, numUserId, `${reason.trim()} (Case: ${caseId})`, toolName, durationText, adminName);
+
+  res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
 });
 
 app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+});
+
+// SELF-PING KEEP-ALIVE (Prevents Render cold starts)
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://etfd.onrender.com';
+setInterval(async () => {
+  try {
+    await axios.get(`${RENDER_URL}/api/chat`);
+  } catch (err) {}
+}, 4 * 60 * 1000);
+
+// SOCKET.IO REAL-TIME CONNECT HANDLER
+io.on('connection', (socket) => {
+  socket.emit('initialChatLogs', liveChatMessages);
 });
 
 server.listen(process.env.PORT || 3000, () => console.log('🚀 ETFD Moderation Console Online on Port 3000!'));
