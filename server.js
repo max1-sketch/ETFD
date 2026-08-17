@@ -17,11 +17,10 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Configure SMTP Transporter
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: Number(process.env.SMTP_PORT) || 587,
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || ''
@@ -72,8 +71,9 @@ const USERS_FILE = path.join(__dirname, 'users.json');
 
 let bannedUsersMap = new Map();
 let usersMap = new Map();
-let pendingActionLocks = new Set();
 let liveInGamePlayers = new Map();
+let liveChatMessages = [];
+let actionLogs = [];
 let lastActionTimestamp = 0;
 
 if (fs.existsSync(BANS_FILE)) {
@@ -141,12 +141,10 @@ async function sendDiscordLog(action, userId, reason, toolName, durationText, ad
   } catch (err) { console.error('Webhook Error:', err.message); }
 }
 
-let actionLogs = [];
-
 const requireAuth = (req, res, next) => {
   if (!req.session.isLoggedIn) {
     if (req.originalUrl.startsWith('/api/')) {
-      return res.status(401).json({ success: false, error: 'Session expired. Please log in again.' });
+      return res.status(403).json({ success: false, error: 'Unauthorized session' });
     }
     return res.redirect('/login');
   }
@@ -346,8 +344,43 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/roblox/chat', (req, res) => {
+  const secret = req.headers['x-server-secret'];
+  if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
+    console.warn(`⚠️ Rejected Chat Request: Invalid x-server-secret header ('${secret}')`);
+    return res.status(403).json({ error: 'Unauthorized secret' });
+  }
+
+  const { userId, username, msg, ageDays, time } = req.body;
+
+  if (username && msg) {
+    console.log(`💬 [LIVE CHAT RECEIVED] ${username} (${userId}): "${msg}"`);
+    const chatEntry = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      time: time || new Date().toLocaleTimeString('en-US', { hour12: false }),
+      userId: String(userId),
+      username,
+      msg,
+      ageDays: Number(ageDays) || 0,
+      redacted: false
+    };
+
+    liveChatMessages.unshift(chatEntry);
+    if (liveChatMessages.length > 200) liveChatMessages.pop();
+  }
+
+  res.json({ success: true });
+});
+
+app.get('/api/chat', requireAuth, (req, res) => {
+  res.json({ messages: liveChatMessages });
+});
+
 app.post('/api/roblox/players', (req, res) => {
-  if (req.headers['x-server-secret'] !== 'ETFD23') return res.status(403).end();
+  const secret = req.headers['x-server-secret'];
+  if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
+    return res.status(403).end();
+  }
   const { players } = req.body;
   liveInGamePlayers.clear();
   if (Array.isArray(players)) {
@@ -360,8 +393,18 @@ app.get('/api/live-players', requireAuth, (req, res) => {
   res.json({ players: Array.from(liveInGamePlayers.values()) });
 });
 
-app.get('/api/logs', requireAuth, (req, res) => res.json({ logs: actionLogs }));
-app.get('/api/banned', requireAuth, (req, res) => res.json({ bannedUsers: Array.from(bannedUsersMap.values()) }));
+app.get('/api/logs', requireAuth, (req, res) => {
+  res.json({ logs: actionLogs });
+});
+
+app.delete('/api/logs', requireAuth, (req, res) => {
+  actionLogs = [];
+  res.json({ success: true });
+});
+
+app.get('/api/banned', requireAuth, (req, res) => {
+  res.json({ bannedUsers: Array.from(bannedUsersMap.values()) });
+});
 
 app.post('/api/unban-all', requireAuth, async (req, res) => {
   try {
@@ -458,7 +501,18 @@ app.post('/api/action', requireAuth, async (req, res) => {
 
     res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
   } catch (err) {
-    res.json({ success: true, note: 'Action applied locally', error: err.message });
+    actionLogs.unshift({
+      id: Date.now(),
+      caseId,
+      action,
+      userId: numUserId,
+      reason: reason ? reason.trim() : 'No reason provided.',
+      admin: adminName,
+      toolName,
+      timestamp: new Date()
+    });
+
+    res.json({ success: true, note: 'Logged locally', error: err.message });
   }
 });
 
@@ -466,7 +520,7 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ success: false, error: `API Route "${req.originalUrl}" not found.` });
 });
 
-app.get(['/', '/dashboard', '/banned', '/logs', '/system', '/lookup', '/management'], requireAuth, (req, res) => {
+app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
