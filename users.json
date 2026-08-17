@@ -1,0 +1,30 @@
+[
+  {
+    "username": "fartt",
+    "email": "max1@staffwaitrose.net",
+    "password": "6789",
+    "role": "mod",
+    "createdAt": "2026-08-17T05:21:53.315Z"
+  },
+  {
+    "username": "d",
+    "email": "max1@staffwaitrose.net",
+    "password": "s",
+    "role": "mod",
+    "createdAt": "2026-08-17T05:25:00.214Z"
+  },
+  {
+    "username": "s",
+    "email": "max1@staffwaitrose.net",
+    "password": "s",
+    "role": "mod",
+    "createdAt": "2026-08-17T05:26:40.772Z"
+  },
+  {
+    "username": "ss",
+    "email": "max1@staffwaitrose.net",
+    "password": "s",
+    "role": "mod",
+    "createdAt": "2026-08-17T05:28:14.438Z"
+  }
+]

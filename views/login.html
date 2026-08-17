@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0b0f17] text-slate-200">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Tsunami - Staff Command Center v2.4.0</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              bg: '#0b0f17',
+              panel: '#0e131f',
+              card: '#121722',
+              border: 'rgba(255, 255, 255, 0.08)',
+              accent: '#3b82f6',
+              danger: '#ef4444',
+            }
+          },
+          borderRadius: {
+            'DEFAULT': '6px',
+            'md': '6px',
+            'lg': '8px'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f17;
+      color: #cbd5e1;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .card-border {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .input-focus:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+
+    /* Wave Background Graphic Canvas */
+    #waveCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden select-none">
+
+  <div class="w-full h-full flex min-h-screen">
+
+    <!-- LEFT PANEL (60%): BRANDING & LIVE GAME TELEMETRY -->
+    <div class="hidden lg:flex lg:w-[58%] xl:w-[62%] relative bg-[#090d14] flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
+      
+      <!-- Canvas Graphics -->
+      <canvas id="waveCanvas"></canvas>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0b0f17] via-[#0b0f17]/60 to-transparent z-10"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent to-[#0b0f17] z-10"></div>
+
+      <!-- Top Left Brand Badge -->
+      <div class="relative z-20 flex items-center gap-3">
+        <div class="w-10 h-10 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <i class="fa-solid fa-shield-halved text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
+          <span class="text-[11px] font-mono text-blue-400 font-semibold tracking-wider uppercase mt-1 block">Staff Command Center v2.4.0</span>
+        </div>
+      </div>
+
+      <!-- Hero Middle Text -->
+      <div class="relative z-20 max-w-xl my-auto space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold rounded-full">
+          <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+          <span>Open Cloud Telemetry Active</span>
+        </div>
+        <h2 class="text-2xl xl:text-3xl font-semibold text-slate-100 tracking-tight leading-relaxed">
+          Enterprise Game Moderation & Staff Command Center
+        </h2>
+        <p class="text-xs text-slate-400 leading-relaxed font-normal">
+          Monitor active player instances, inspect inventory telemetry, dispatch global broadcast notices, and manage DataStore records across live game servers.
+        </p>
+      </div>
+
+      <!-- Bottom Live Stats Cards -->
+      <div class="relative z-20 grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80">
+        <div class="p-3.5 bg-[#121722]/80 backdrop-blur card-border rounded">
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Live Players</div>
+          <div class="text-base font-semibold text-slate-100 mt-1 flex items-center justify-between">
+            <span>1,248</span>
+            <span class="text-[10px] text-emerald-400 font-mono"><i class="fa-solid fa-arrow-up text-[8px]"></i> +12%</span>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-[#121722]/80 backdrop-blur card-border rounded">
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Instances</div>
+          <div class="text-base font-semibold text-slate-100 mt-1 flex items-center justify-between">
+            <span>8 Servers</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-[#121722]/80 backdrop-blur card-border rounded">
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">DataStore Sync</div>
+          <div class="text-xs font-semibold text-emerald-400 mt-1 flex items-center gap-1.5 font-mono">
+            <i class="fa-solid fa-circle-check"></i> WebBanList_v3
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL (40%): CLEAN AUTHENTICATION FORM -->
+    <div class="w-full lg:w-[42%] xl:w-[38%] bg-[#0e131f] flex flex-col justify-between p-8 sm:p-12 z-20 min-h-screen">
+      
+      <!-- Top Mobile Header (Shows only on small screens) -->
+      <div class="lg:hidden flex items-center gap-3 mb-8 pb-6 border-b border-slate-800/80">
+        <div class="w-9 h-9 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <i class="fa-solid fa-shield-halved text-base"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
+          <span class="text-[10px] font-mono text-blue-400 font-semibold tracking-wider uppercase mt-0.5 block">Staff Portal v2.4.0</span>
+        </div>
+      </div>
+
+      <div class="my-auto max-w-md w-full mx-auto space-y-6">
+        
+        <!-- Welcome Title -->
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <h2 class="text-xl font-bold text-slate-100">Welcome back</h2>
+            <span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-mono rounded card-border">v2.4.0</span>
+          </div>
+          <p class="text-xs text-slate-400">Authenticate with your staff account or owner key to access the console.</p>
+        </div>
+
+        <!-- Error Alert Container -->
+        <div id="errorAlert" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-400 flex items-start gap-2.5">
+          <i class="fa-solid fa-circle-exclamation text-sm mt-0.5 shrink-0"></i>
+          <span id="errorMessage">Invalid Credentials! Please check your access key.</span>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" class="space-y-4" onsubmit="handleAuth(event)">
+          
+          <!-- Username Field -->
+          <div class="space-y-1.5">
+            <label for="username" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Moderator / Admin Username *
+            </label>
+            <div class="relative">
+              <input 
+                type="text" 
+                id="username" 
+                name="username" 
+                placeholder="Enter assigned staff username..." 
+                class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none input-focus transition-colors"
+                autocomplete="username"
+              />
+            </div>
+          </div>
+
+          <!-- Password / Owner Code Field -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="password" class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+                Password or Access Key *
+              </label>
+              <button type="button" onclick="showOwnerCodeHelp()" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-circle-question"></i> Forgot Key?
+              </button>
+            </div>
+            <div class="relative flex items-center">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Enter password or secret code..." 
+                required
+                class="w-full pl-3.5 pr-10 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-100 placeholder:text-slate-600 font-mono focus:outline-none input-focus transition-colors"
+                autocomplete="current-password"
+              />
+              <button 
+                type="button" 
+                onclick="togglePasswordVisibility()" 
+                class="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                title="Toggle Password Visibility"
+              >
+                <i class="fa-solid fa-eye text-xs" id="toggleEyeIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Utilities Row: Remember Me -->
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="rememberMe" class="w-3.5 h-3.5 rounded bg-[#0b0f17] border-slate-700 text-blue-600 focus:ring-0 focus:ring-offset-0 cursor-pointer" />
+              <span class="text-xs text-slate-400">Remember session on this browser</span>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            id="submitBtn" 
+            class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer mt-2"
+          >
+            <span id="btnText"><i class="fa-solid fa-right-to-bracket"></i> Authenticate</span>
+            <i id="btnSpinner" class="fa-solid fa-circle-notch fa-spin hidden text-xs"></i>
+          </button>
+        </form>
+
+        <!-- Tooltip Help Modal for Access Key (SECURE NO KEYS EXPOSED) -->
+        <div id="helpModal" class="hidden p-4 bg-[#121722] card-border rounded text-xs space-y-2 border-l-2 border-l-blue-500">
+          <div class="font-bold text-slate-200 flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-user-shield text-blue-400"></i> Access Key Support</span>
+            <button onclick="hideOwnerCodeHelp()" class="text-slate-500 hover:text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <p class="text-slate-400 leading-relaxed text-[11px]">
+            Access keys and staff credentials are strictly confidential. If you forgot your passcode or need elevated owner permissions, please contact Ownership or a Lead Administrator directly via internal Discord channels.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Security Notice Footer -->
+      <div class="pt-6 border-t border-slate-800/80 text-center sm:text-left">
+        <div class="flex items-center justify-center sm:justify-start gap-2 text-[11px] text-slate-500 font-medium">
+          <i class="fa-solid fa-lock text-slate-600"></i>
+          <span>Authorized Access Only</span>
+        </div>
+        <p class="text-[10px] text-slate-600 mt-1 leading-normal">
+          All authentication attempts, IP addresses, and moderation actions are logged for security compliance.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('toggleEyeIcon');
+      
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+      } else {
+        passInput.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+      }
+    }
+
+    function showOwnerCodeHelp() {
+      document.getElementById('helpModal').classList.remove('hidden');
+    }
+
+    function hideOwnerCodeHelp() {
+      document.getElementById('helpModal').classList.add('hidden');
+    }
+
+    async function handleAuth(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const errorAlert = document.getElementById('errorAlert');
+      const errorMessage = document.getElementById('errorMessage');
+      const passInput = document.getElementById('password');
+
+      // UI Loading state
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+      btnText.innerHTML = 'Authenticating...';
+      btnSpinner.classList.remove('hidden');
+      errorAlert.classList.add('hidden');
+      passInput.classList.remove('border-red-500');
+
+      try {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          btnText.innerHTML = 'Access Granted...';
+          window.location.href = '/dashboard';
+        } else {
+          // Show error feedback
+          errorMessage.innerText = data.message || 'Invalid Username or Passcode!';
+          errorAlert.classList.remove('hidden');
+          passInput.classList.add('border-red-500');
+          
+          // Reset button state
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+          btnText.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Authenticate';
+          btnSpinner.classList.add('hidden');
+        }
+      } catch (err) {
+        errorMessage.innerText = 'Network connection failed. Please check server status.';
+        errorAlert.classList.remove('hidden');
+        
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+        btnText.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Authenticate';
+        btnSpinner.classList.add('hidden');
+      }
+    }
+
+    // Interactive Wave Animation for Left Hero Panel
+    const canvas = document.getElementById('waveCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = canvas.offsetWidth;
+      let height = canvas.height = canvas.offsetHeight;
+      
+      window.addEventListener('resize', () => {
+        width = canvas.width = canvas.offsetWidth;
+        height = canvas.height = canvas.offsetHeight;
+      });
+
+      let step = 0;
+      function drawWave() {
+        ctx.clearRect(0, 0, width, height);
+        step += 0.015;
+
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = i === 0 ? 'rgba(59, 130, 246, 0.4)' : i === 1 ? 'rgba(30, 64, 175, 0.25)' : 'rgba(147, 197, 253, 0.15)';
+
+          for (let x = 0; x <= width; x += 10) {
+            const y = Math.sin(x * 0.005 + step + (i * 1.5)) * 35 + (height * 0.5) + Math.cos(x * 0.002 + step) * 20;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        requestAnimationFrame(drawWave);
+      }
+      drawWave();
+    }
+  </script>
+</body>
+</html>
