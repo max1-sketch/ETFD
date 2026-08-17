@@ -5,8 +5,13 @@ const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const http = require('http'); // Added HTTP Server
+const { Server } = require('socket.io'); // Added Socket.IO
 
 const app = express();
+const server = http.createServer(app); // Wrap express in HTTP server
+const io = new Server(server, { cors: { origin: "*" } }); // Attach Socket.IO
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -25,9 +30,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || ''
   },
-  tls: {
-    rejectUnauthorized: false
-  }
+  tls: { rejectUnauthorized: false }
 });
 
 async function sendInviteEmail(toEmail, username, password, role) {
@@ -344,6 +347,9 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   }
 });
 
+// -----------------------------------------------------------------------------
+// REAL-TIME CHAT INGESTION ROUTE (SOCKET.IO BROADCASTING)
+// -----------------------------------------------------------------------------
 app.post('/api/roblox/chat', (req, res) => {
   if (req.headers['x-server-secret'] !== 'ETFD23') return res.status(403).end();
   const { userId, username, msg, ageDays, time } = req.body;
@@ -361,6 +367,11 @@ app.post('/api/roblox/chat', (req, res) => {
 
     liveChatMessages.unshift(chatEntry);
     if (liveChatMessages.length > 200) liveChatMessages.pop();
+
+    console.log(`💬 [ROBLOX LIVE CHAT] ${username}: ${msg}`);
+
+    // 🔥 REAL-TIME WEBSOCKET BROADCAST TO UI DASHBOARD
+    io.emit('newChatMessage', chatEntry);
   }
 
   res.json({ success: true });
@@ -377,6 +388,10 @@ app.post('/api/roblox/players', (req, res) => {
   if (Array.isArray(players)) {
     players.forEach(p => liveInGamePlayers.set(Number(p.userId), p));
   }
+  
+  // Real-time telemetry update to dashboard
+  io.emit('playersUpdate', Array.from(liveInGamePlayers.values()));
+
   res.json({ success: true });
 });
 
@@ -515,4 +530,11 @@ app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-app.listen(process.env.PORT || 3000, () => console.log('Mod Console Online on Port 3000!'));
+// Socket.IO Connection Handler
+io.on('connection', (socket) => {
+  console.log(`⚡ [WEBSOCKET] Client connected: ${socket.id}`);
+  socket.emit('initialChatLogs', liveChatMessages);
+});
+
+// Start HTTP Server with Socket.IO attached
+server.listen(process.env.PORT || 3000, () => console.log('Mod Console Online on Port 3000 with WebSockets!'));
