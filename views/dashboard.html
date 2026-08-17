@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="/socket.io/socket.io.js"></script>
 
   <script>
     tailwind.config = {
@@ -94,6 +95,7 @@
 </head>
 <body class="h-full flex overflow-hidden select-none">
 
+  <!-- SIDEBAR NAVIGATION -->
   <aside class="w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none">
     <div>
       <div class="px-5 py-4 border-b border-slate-800/80 flex items-center gap-3">
@@ -180,8 +182,10 @@
     </div>
   </aside>
 
+  <!-- MAIN WORKSPACE CONTAINER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0b0f17]">
     
+    <!-- TOP HEADER -->
     <header class="h-14 border-b border-slate-800/80 px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
       <div class="flex items-center gap-2 text-xs text-slate-400">
         <span class="hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
@@ -207,8 +211,10 @@
       </div>
     </header>
 
+    <!-- MAIN BODY CONTENT -->
     <main class="flex-1 overflow-y-auto p-6 space-y-6">
 
+      <!-- TOP METRIC CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
@@ -222,16 +228,6 @@
             <div class="w-7 h-7 rounded bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-1">
               <i class="fa-solid fa-users text-xs"></i>
             </div>
-            <svg class="w-20 h-7 opacity-80 overflow-visible" viewBox="0 0 50 20" fill="none">
-              <defs>
-                <linearGradient id="sparkline-green" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <polygon points="0,20 0,15 10,12 20,16 30,8 40,10 50,3 50,20" fill="url(#sparkline-green)" />
-              <path d="M0 15 L10 12 L20 16 L30 8 L40 10 L50 3" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
           </div>
         </div>
 
@@ -244,16 +240,6 @@
             <div class="w-7 h-7 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-1">
               <i class="fa-solid fa-user-lock text-xs"></i>
             </div>
-            <svg class="w-20 h-7 opacity-80 overflow-visible" viewBox="0 0 50 20" fill="none">
-              <defs>
-                <linearGradient id="sparkline-red" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#ef4444" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#ef4444" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <polygon points="0,20 0,5 10,12 20,8 30,14 40,6 50,10 50,20" fill="url(#sparkline-red)" />
-              <path d="M0 5 L10 12 L20 8 L30 14 L40 6 L50 10" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
           </div>
         </div>
 
@@ -266,35 +252,25 @@
             <div class="w-7 h-7 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-1">
               <i class="fa-solid fa-clock-rotate-left text-xs"></i>
             </div>
-            <svg class="w-20 h-7 opacity-80 overflow-visible" viewBox="0 0 50 20" fill="none">
-              <defs>
-                <linearGradient id="sparkline-amber" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/>
-                  <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <polygon points="0,20 0,18 12,10 24,14 36,4 50,12 50,20" fill="url(#sparkline-amber)" />
-              <path d="M0 18 L12 10 L24 14 L36 4 L50 12" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
           </div>
         </div>
 
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">System Status</div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">AI Safety Status</div>
             <div class="text-xs font-bold text-emerald-400 mt-2 flex items-center gap-1.5">
-              <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Operational
+              <i class="fa-solid fa-shield-cat text-xs text-emerald-400"></i> AI Auto-Mod Active
             </div>
           </div>
           <div class="flex flex-col items-end gap-1">
             <div class="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <i class="fa-solid fa-server text-xs"></i>
+              <i class="fa-solid fa-robot text-xs"></i>
             </div>
-            <span class="text-[10px] font-mono text-slate-500">API Sync 100%</span>
           </div>
         </div>
       </div>
 
+      <!-- DASHBOARD MODERATION COMMAND TAB -->
       <section id="tab-dashboard" class="tab-content space-y-6">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -339,6 +315,7 @@
           </div>
         </div>
 
+        <!-- LIVE ACTIVE PLAYERS INVENTORY -->
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -349,11 +326,6 @@
               <p class="text-xs text-slate-400 mt-0.5">Real-time telemetry stream from live game servers</p>
             </div>
             <div class="flex items-center gap-2">
-              <select id="serverSelectFilter" class="px-2.5 py-1 bg-[#0b0f17] card-border rounded text-[11px] text-slate-300 focus:outline-none">
-                <option value="all">All Servers (8 Active)</option>
-                <option value="us-east">US-East #1</option>
-                <option value="eu-west">EU-West #1</option>
-              </select>
               <button onclick="fetchLivePlayers()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors">
                 <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Refresh
               </button>
@@ -363,6 +335,7 @@
           <div id="livePlayersContainer"></div>
         </div>
 
+        <!-- RECENT ACTION LOGS -->
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -379,6 +352,7 @@
         </div>
       </section>
 
+      <!-- LIVE CHAT FEED & AI SAFETY SCANNER TAB -->
       <section id="tab-chat" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
@@ -387,11 +361,11 @@
                 <i class="fa-solid fa-comments text-blue-400"></i>
                 <span>Live In-Game Chat Feed & AI Safety Scanner</span>
               </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Real-time telemetry stream with automated toxicity classification</p>
+              <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-              <input type="text" id="chatSearchInput" placeholder="Filter keywords or username..." class="px-3 py-1 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-56" onkeyup="filterChatFeed()" />
+              <input type="text" id="chatSearchInput" placeholder="Filter text or regex (e.g. discord\.gg)..." class="px-3 py-1 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-64" onkeyup="filterChatFeed()" />
 
               <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2 py-1 bg-[#0b0f17] card-border rounded">
                 <input type="checkbox" id="toggleFlaggedOnly" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" onchange="renderChatStream()" />
@@ -411,40 +385,43 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[580px]">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[600px]">
+            <!-- CHAT MESSAGES STREAM PANEL -->
             <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden">
-              <div id="chatFeedStream" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+              <div id="chatFeedStream" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
               <div class="p-3 bg-[#0e131f] border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                 <span class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>AI Safety Engine Listening (0.2s latency)</span>
+                  <span>AI Safety Engine Listening (0.1s websocket latency)</span>
                 </span>
                 <span id="chatTotalCount" class="font-mono text-[11px] text-slate-500">0 messages</span>
               </div>
             </div>
 
+            <!-- ACTIVE CHATTERS & RISK SCORE SIDEBAR -->
             <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden">
               <div>
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span>Active Chatters</span>
+                  <span>Active Chatters & Risk Level</span>
                   <span class="text-[10px] text-blue-400 font-mono" id="activeChattersCount">0 online</span>
                 </h3>
-                <div id="activeChattersList" class="space-y-2 overflow-y-auto max-h-[460px] pr-1"></div>
+                <div id="activeChattersList" class="space-y-2 overflow-y-auto max-h-[480px] pr-1"></div>
               </div>
               <div class="pt-3 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
-                <span>Account Risk Score</span>
-                <span class="text-emerald-400 font-semibold">Low Risk Baseline</span>
+                <span>Threat Baseline</span>
+                <span class="text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Active Monitoring</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- USER LOOKUP TAB -->
       <section id="tab-lookup" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div>
             <h2 class="text-sm font-bold text-slate-100">Roblox User Lookup & Risk Profile</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Inspect account history, creation age, avatar assets, and previous infraction history</p>
+            <p class="text-xs text-slate-400 mt-0.5">Inspect account history, creation age, avatar headshots, and previous infraction history</p>
           </div>
 
           <div class="flex gap-2">
@@ -458,6 +435,7 @@
         <div id="lookupResultContainer"></div>
       </section>
 
+      <!-- BANNED USERS TAB -->
       <section id="tab-banned" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -474,6 +452,7 @@
         </div>
       </section>
 
+      <!-- AUDIT LOGS TAB -->
       <section id="tab-logs" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -490,6 +469,7 @@
         </div>
       </section>
 
+      <!-- STAFF MANAGEMENT TAB -->
       <section id="tab-management" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="border-b border-slate-800/80 pb-3">
@@ -535,6 +515,7 @@
         </div>
       </section>
 
+      <!-- SERVER CONSOLE TAB -->
       <section id="tab-system" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-3">
           <h2 class="text-sm font-bold text-slate-100">Server & Environment Telemetry</h2>
@@ -565,26 +546,26 @@
 
           <div id="consoleTerminalWindow" class="console-terminal p-4 rounded card-border text-xs text-slate-300 space-y-1.5 h-80 overflow-y-auto">
             <div class="text-slate-500">[SYSTEM INIT] Connecting to Roblox LogService websocket telemetry stream...</div>
-            <div class="text-emerald-400">[INFO 16:14:02] MessagingService listener active on channel 'ModChannel'</div>
-            <div class="text-slate-300">[INFO 16:14:05] Server Instance #US-EAST-01 reporting 12 live player connections.</div>
+            <div class="text-emerald-400">[INFO] MessagingService listener active on channel 'ModChannel'</div>
           </div>
         </div>
       </section>
 
     </main>
 
+    <!-- FOOTER -->
     <footer class="h-8 bg-[#0a0d14] border-t border-slate-800/80 px-6 flex items-center justify-between text-[11px] text-slate-500 shrink-0 select-none">
       <div class="flex items-center gap-4">
         <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Connected</span>
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> MessagingService: Listening</span>
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> DataStore: Synced</span>
+        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> WebSockets: Active</span>
       </div>
       <div>
-        <span>Escape Tsunami Staff Portal v2.4.0</span>
+        <span>Escape Tsunami Staff Portal v2.5.0</span>
       </div>
     </footer>
   </div>
 
+  <!-- BAN MODAL -->
   <div id="banModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-md p-5 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -612,6 +593,7 @@
     </div>
   </div>
 
+  <!-- CHAT QUICK ACTION MODAL -->
   <div id="chatActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-sm p-5 space-y-4 shadow-2xl border-l-4 border-l-blue-500">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -637,6 +619,7 @@
     </div>
   </div>
 
+  <!-- COMMAND PALETTE MODAL -->
   <div id="commandPaletteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20 p-4 hidden" onclick="toggleCommandPalette(event)">
     <div class="bg-[#121722] card-border rounded w-full max-w-xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
       <div class="p-3 border-b border-slate-800 flex items-center gap-3">
@@ -650,12 +633,31 @@
 
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
+  <!-- FRONTEND SCRIPT LOGIC -->
   <script>
+    const socket = typeof io !== 'undefined' ? io() : null;
     let previewTimer = null;
     let isCooldownActive = false;
     let currentUserRole = 'mod';
     let chatMessagesList = [];
     let activeChatTarget = null;
+    let userRiskScores = new Map();
+
+    // SOCKET.IO REAL-TIME LISTENERS
+    if (socket) {
+      socket.on('initialChatLogs', (logs) => {
+        if (Array.isArray(logs)) {
+          chatMessagesList = logs;
+          renderChatStream();
+        }
+      });
+
+      socket.on('newChatMessage', (chatData) => {
+        chatMessagesList.unshift(chatData);
+        if (chatMessagesList.length > 200) chatMessagesList.pop();
+        renderChatStream();
+      });
+    }
 
     function notify(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -785,29 +787,41 @@
       }
     }
 
+    // AI SAFETY & TOXICITY CLASSIFICATION ENGINE
     function analyzeMessageToxicity(text) {
       const lower = text.toLowerCase();
-      const severeTriggers = ['scam', 'free robux', 'hacking', 'flying lol', 'slur', 'exploit', 'i am finding you', 'threat'];
-      const minorTriggers = ['shut up', 'noob', 'loser', 'you\'re bad', 'trash', 'ez'];
+      
+      const harassmentTriggers = ['fat', 'ugly', 'kys', 'kill yourself', 'trash player', 'loser', 'hate you', 'die', 'noob idiot'];
+      const profanityTriggers = ['fuck', 'shit', 'bitch', 'ass', 'bastard', 'crap', 'f*ck', 's*it', 'f u c k'];
+      const scamTriggers = ['discord.gg', 'discord.com/invite', '.com', '.gg/', 'free robux', 'robux.com'];
 
-      let isSevere = severeTriggers.some(t => lower.includes(t));
-      let isMinor = minorTriggers.some(t => lower.includes(t));
+      const isHarassment = harassmentTriggers.some(t => lower.includes(t));
+      const isProfanity = profanityTriggers.some(t => lower.includes(t));
+      const isScam = scamTriggers.some(t => lower.includes(t));
 
-      if (isSevere) {
+      if (isHarassment) {
         return {
-          flag: 'SEVERE',
-          borderClass: 'border-l-4 border-l-red-500 bg-red-950/20',
-          badgeText: '🚨 HIGH RISK',
+          flag: 'HARASSMENT',
+          borderClass: 'border-l-4 border-l-red-600/90 bg-red-950/20',
+          badgeText: '🚨 HARASSMENT / BULLYING',
           badgeClass: 'bg-red-500/20 text-red-400 border-red-500/30',
-          analysis: 'AI Analysis: [Threat / Exploit Detected] [Toxic: 94%]'
+          category: 'Harassment/Bullying'
         };
-      } else if (isMinor) {
+      } else if (isProfanity) {
         return {
-          flag: 'MINOR',
-          borderClass: 'border-l-4 border-l-amber-500 bg-amber-950/20',
-          badgeText: '🟡 MINOR HARASSMENT',
+          flag: 'PROFANITY',
+          borderClass: 'border-l-4 border-l-amber-500/80 bg-amber-950/15',
+          badgeText: '🟡 PROFANITY DETECTED',
           badgeClass: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-          analysis: 'AI Analysis: [Insult Detected] [Toxic: 68%]'
+          category: 'Profanity'
+        };
+      } else if (isScam) {
+        return {
+          flag: 'SCAM',
+          borderClass: 'border-l-4 border-l-purple-500/80 bg-purple-950/20',
+          badgeText: '🔗 UNSAFE LINK / SCAM',
+          badgeClass: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+          category: 'Unsafe Link/Scam'
         };
       }
 
@@ -816,7 +830,7 @@
         borderClass: 'border-l-2 border-l-slate-800',
         badgeText: '',
         badgeClass: '',
-        analysis: ''
+        category: 'Clean'
       };
     }
 
@@ -832,77 +846,186 @@
       renderChatStream();
     }
 
+    // DISCORD-STYLE MESSAGE GROUPING & RENDERER
     function renderChatStream() {
       const stream = document.getElementById('chatFeedStream');
-      const query = (document.getElementById('chatSearchInput')?.value || '').toLowerCase();
+      const searchRaw = (document.getElementById('chatSearchInput')?.value || '').trim();
       const flaggedOnly = document.getElementById('toggleFlaggedOnly')?.checked || false;
+      const autoModActive = document.getElementById('toggleAutoMod')?.checked ?? true;
 
-      let filtered = chatMessagesList.filter(m => m.username.toLowerCase().includes(query) || m.msg.toLowerCase().includes(query));
+      userRiskScores.clear();
+
+      let filtered = chatMessagesList;
+
+      if (searchRaw) {
+        try {
+          const regex = new RegExp(searchRaw, 'i');
+          filtered = filtered.filter(m => regex.test(m.username) || regex.test(m.msg));
+        } catch (err) {
+          const lower = searchRaw.toLowerCase();
+          filtered = filtered.filter(m => m.username.toLowerCase().includes(lower) || m.msg.toLowerCase().includes(lower));
+        }
+      }
 
       if (flaggedOnly) {
         filtered = filtered.filter(m => analyzeMessageToxicity(m.msg).flag !== 'SAFE');
       }
 
-      stream.innerHTML = filtered.map((m) => {
+      let htmlBuffer = '';
+      
+      for (let i = 0; i < filtered.length; i++) {
+        const m = filtered[i];
+        const prevMsg = filtered[i - 1]; // Message above (newer) or below depending on order
         const tox = analyzeMessageToxicity(m.msg);
 
-        return `
-          <div class="p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
-            <div class="flex items-start gap-3 min-w-0 flex-1">
-              <img src="https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${m.userId}&size=150x150&format=Png&isCircular=false" 
-                   onerror="this.onerror=null;this.src='https://placehold.co/80x80/1e293b/64748b?text=RBX';" 
-                   class="w-8 h-8 rounded bg-slate-800 card-border shrink-0 cursor-pointer" 
-                   onclick="navigateToUserLookup('${m.userId}')" 
-                   title="Click to lookup player" />
-              <div class="space-y-1 min-w-0 flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-bold text-slate-100 cursor-pointer hover:underline" onclick="navigateToUserLookup('${m.userId}')">${m.username}</span>
-                  <span class="text-[10px] text-slate-500 font-mono">ID: ${m.userId}</span>
-                  ${tox.badgeText ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>` : ''}
-                  <span class="text-[10px] text-slate-500 font-mono ml-auto">${m.time}</span>
-                </div>
+        // Track Risk Score per User
+        const currentRisk = userRiskScores.get(m.userId) || 'LOW';
+        if (tox.flag === 'HARASSMENT' || tox.flag === 'SCAM') {
+          userRiskScores.set(m.userId, 'HIGH');
+        } else if (tox.flag === 'PROFANITY' && currentRisk !== 'HIGH') {
+          userRiskScores.set(m.userId, 'MEDIUM');
+        } else if (!userRiskScores.has(m.userId)) {
+          userRiskScores.set(m.userId, 'LOW');
+        }
 
+        // Discord Grouping: Check if previous message in list is same user within 60 seconds
+        let isGrouped = false;
+        if (prevMsg && prevMsg.userId === m.userId && !m.redacted && !prevMsg.redacted) {
+          const t1 = new Date(`1970-01-01T${m.time}Z`).getTime();
+          const t2 = new Date(`1970-01-01T${prevMsg.time}Z`).getTime();
+          if (!isNaN(t1) && !isNaN(t2) && Math.abs(t1 - t2) <= 60000) {
+            isGrouped = true;
+          }
+        }
+
+        // REAL ROBLOX HEADSHOT API URL
+        const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${m.userId}&width=150&height=150&format=png`;
+
+        if (isGrouped) {
+          // COMPACT DISCORD GROUPED MESSAGE
+          htmlBuffer += `
+            <div class="group relative px-3 py-1 hover:bg-slate-800/40 rounded transition-colors flex items-start justify-between text-xs pl-14 ${tox.borderClass}">
+              <div class="min-w-0 flex-1 space-y-0.5">
                 ${m.redacted ? `
                   <p class="text-slate-500 italic text-[11px] font-mono flex items-center gap-1.5">
-                    <i class="fa-solid fa-eye-slash text-[10px]"></i> [Message removed by ${document.getElementById('currentAdminName')?.innerText || 'Moderator'}]
+                    <i class="fa-solid fa-eye-slash text-[10px]"></i> [Message removed by Staff / Auto-Mod]
                   </p>
                 ` : `
-                  <p class="text-slate-200 leading-relaxed font-normal break-words">${m.msg}</p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-slate-200 font-normal leading-normal break-words">${m.msg}</p>
+                    <span class="text-[10px] text-slate-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">${m.time}</span>
+                  </div>
                 `}
 
-                ${tox.analysis && !m.redacted ? `<div class="text-[10px] text-slate-400 font-mono font-medium">${tox.analysis}</div>` : ''}
+                ${tox.badgeText && !m.redacted ? `
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>
+                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono">🛡️ Auto-Mod: Warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>` : ''}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- ACTION BUTTONS ON HOVER -->
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
+                <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
+                  <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                </button>
+                <button onclick="redactChatMessage(${m.id})" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-all" title="Scrub/Redact">
+                  <i class="fa-solid fa-trash text-[11px]"></i>
+                </button>
+                <button onclick="openChatActionModal('${m.userId}', '${m.username}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all" title="Quick Punish">
+                  <i class="fa-solid fa-hammer text-[11px]"></i>
+                </button>
               </div>
             </div>
+          `;
+        } else {
+          // FULL HEADERED MESSAGE
+          htmlBuffer += `
+            <div class="group relative p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
+              <div class="flex items-start gap-3 min-w-0 flex-1">
+                <img src="${avatarUrl}" 
+                     onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';" 
+                     class="w-8 h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
+                     onclick="navigateToUserLookup('${m.userId}')" 
+                     title="Click for User Lookup" />
 
-            <div class="flex items-center gap-1.5 ml-3 shrink-0">
-              <button onclick="navigateToUserLookup('${m.userId}')" class="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Lookup Profile (🔍)">🔍</button>
-              <button onclick="redactChatMessage(${m.id})" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Scrub/Redact Message (🗑️)">🗑️</button>
-              <button onclick="openChatActionModal('${m.userId}', '${m.username}')" class="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors" title="Quick Moderation Action (🔨)">🔨</button>
+                <div class="space-y-1 min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-slate-100 cursor-pointer hover:underline hover:text-blue-400 transition-colors" onclick="navigateToUserLookup('${m.userId}')">${m.username}</span>
+                    <span class="text-[10px] text-slate-500 font-mono">ID: ${m.userId}</span>
+                    ${tox.badgeText ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>` : ''}
+                    <span class="text-[10px] text-slate-500 font-mono ml-auto">${m.time}</span>
+                  </div>
+
+                  ${m.redacted ? `
+                    <p class="text-slate-500 italic text-[11px] font-mono flex items-center gap-1.5">
+                      <i class="fa-solid fa-eye-slash text-[10px]"></i> [Message removed by Staff / Auto-Mod]
+                    </p>
+                  ` : `
+                    <p class="text-slate-200 leading-relaxed font-normal break-words">${m.msg}</p>
+                  `}
+
+                  ${tox.badgeText && !m.redacted && autoModActive ? `
+                    <div class="text-[10px] text-amber-400/90 font-mono font-medium flex items-center gap-1.5 pt-0.5">
+                      <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
+                      <span>Auto-Mod: User warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- ACTION BUTTONS WITH HOVER CIRCLES -->
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
+                <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
+                  <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                </button>
+                <button onclick="redactChatMessage(${m.id})" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-all" title="Scrub/Redact">
+                  <i class="fa-solid fa-trash text-[11px]"></i>
+                </button>
+                <button onclick="openChatActionModal('${m.userId}', '${m.username}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all" title="Quick Punish">
+                  <i class="fa-solid fa-hammer text-[11px]"></i>
+                </button>
+              </div>
             </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }
+      }
 
+      stream.innerHTML = htmlBuffer || '<div class="p-6 text-center text-xs text-slate-500">No chat messages recorded in telemetry feed</div>';
       document.getElementById('chatTotalCount').innerText = `${filtered.length} messages`;
 
+      // ACTIVE CHATTERS & RISK SCORE SIDEBAR
       const chattersMap = new Map();
       chatMessagesList.forEach(m => chattersMap.set(m.userId, m));
       const chattersContainer = document.getElementById('activeChattersList');
       document.getElementById('activeChattersCount').innerText = `${chattersMap.size} active`;
 
-      chattersContainer.innerHTML = Array.from(chattersMap.values()).map(c => `
-        <div class="p-2.5 bg-[#0e131f] card-border rounded flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2 min-w-0">
-            <img src="https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${c.userId}&size=150x150&format=Png&isCircular=false" 
-                 onerror="this.onerror=null;this.src='https://placehold.co/80x80/1e293b/64748b?text=RBX';"
-                 class="w-6 h-6 rounded bg-slate-800 card-border shrink-0" />
-            <span class="font-medium text-slate-200 truncate">${c.username}</span>
+      chattersContainer.innerHTML = Array.from(chattersMap.values()).map(c => {
+        const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=150&height=150&format=png`;
+        const userRisk = userRiskScores.get(c.userId) || 'LOW';
+
+        let riskBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        if (userRisk === 'HIGH') riskBadgeClass = 'bg-red-500/20 text-red-400 border-red-500/30';
+        if (userRisk === 'MEDIUM') riskBadgeClass = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+
+        return `
+          <div class="p-2.5 bg-[#0e131f] card-border rounded flex items-center justify-between text-xs cursor-pointer hover:border-slate-700 transition-colors" onclick="navigateToUserLookup('${c.userId}')">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img src="${avatarUrl}" 
+                   onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';"
+                   class="w-7 h-7 rounded-full bg-slate-800 card-border shrink-0 object-cover" />
+              <div class="truncate">
+                <span class="font-medium text-slate-200 truncate block">${c.username}</span>
+                <span class="text-[10px] text-slate-500 font-mono">ID: ${c.userId}</span>
+              </div>
+            </div>
+            <span class="px-1.5 py-0.5 text-[9px] font-bold font-mono rounded border shrink-0 ${riskBadgeClass}">
+              ${userRisk} RISK
+            </span>
           </div>
-          <span class="px-1.5 py-0.5 text-[9px] font-mono rounded ${c.ageDays > 30 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
-            ${c.ageDays}d old
-          </span>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function filterChatFeed() { renderChatStream(); }
@@ -924,14 +1047,18 @@
 
     function toggleAutoModEngine() {
       notify('Auto-Mod Configured', 'Automated safety engine updated.');
+      renderChatStream();
     }
 
     function openChatActionModal(userId, username) {
       activeChatTarget = { userId, username };
       const modal = document.getElementById('chatActionModal');
       document.getElementById('chatActionUserDetails').innerHTML = `
-        <div class="font-bold text-slate-200">Target: ${username}</div>
-        <div class="text-slate-400 font-mono text-[10px]">UserID: ${userId}</div>
+        <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
+        <div>
+          <div class="font-bold text-slate-200">${username}</div>
+          <div class="text-slate-400 font-mono text-[10px]">UserID: ${userId}</div>
+        </div>
       `;
       modal.classList.remove('hidden');
     }
@@ -1002,7 +1129,10 @@
               <tbody class="divide-y divide-slate-800/60">
                 ${players.map((p, i) => `
                   <tr class="${i % 2 === 0 ? 'bg-[#121722]' : 'bg-[#0e131f]'} hover:bg-slate-800/30">
-                    <td class="p-2.5 font-semibold text-slate-200">${p.displayName} <span class="text-slate-500 font-normal">(@${p.username})</span></td>
+                    <td class="p-2.5 font-semibold text-slate-200 flex items-center gap-2">
+                      <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${p.userId}&width=150&height=150&format=png" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
+                      <span>${p.displayName} <span class="text-slate-500 font-normal">(@${p.username})</span></span>
+                    </td>
                     <td class="p-2.5 font-mono text-slate-400">${p.userId}</td>
                     <td class="p-2.5">
                       ${p.tools.length === 0 ? '<span class="text-slate-500 italic">Empty</span>' : p.tools.map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] card-border mr-1">${t}</span>`).join('')}
@@ -1041,7 +1171,7 @@
           badge.classList.remove('hidden');
           badge.classList.add('flex');
           badge.innerHTML = `
-            <img src="${data.avatarUrl}" class="w-8 h-8 rounded bg-slate-800 card-border" />
+            <img src="${data.avatarUrl}" class="w-8 h-8 rounded-full bg-slate-800 card-border object-cover" />
             <div class="text-xs">
               <div class="font-bold text-slate-200">${data.displayName} <span class="text-slate-400 font-normal">(@${data.username})</span></div>
               <div class="text-[10px] text-slate-500">Joined: ${new Date(data.created).toLocaleDateString()}</div>
@@ -1234,7 +1364,7 @@
           <div class="space-y-4">
             <div class="p-5 bg-[#121722] card-border rounded flex gap-4 text-xs">
               <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 group">
-                <img src="${data.avatarUrl}" class="w-20 h-20 rounded bg-[#0b0f17] card-border group-hover:border-blue-500 transition-colors" />
+                <img src="${data.avatarUrl}" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
                 <span class="text-[9px] text-blue-400 block text-center mt-1 group-hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Profile</span>
               </a>
               <div class="space-y-2 flex-1">
@@ -1248,7 +1378,6 @@
                 <div class="grid grid-cols-3 gap-2 text-[11px] text-slate-300">
                   <div>Joined: ${new Date(data.created).toLocaleDateString()} (${data.accountAgeDays}d ago)</div>
                   <div>Status: <span class="font-bold text-emerald-400">${data.presenceType || 'Offline'}</span></div>
-                  <div>Estimated Playtime: <span class="font-mono text-slate-300">14.2 hrs</span></div>
                 </div>
                 <div class="pt-2 flex gap-2">
                   <button onclick="sendToModeration('${data.userId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-xs transition-colors">Target in Moderation</button>
@@ -1328,7 +1457,6 @@
                   <th class="p-2.5">Staff User</th>
                   <th class="p-2.5">Role Level</th>
                   <th class="p-2.5">Email Contact</th>
-                  <th class="p-2.5">Actions Issued</th>
                   <th class="p-2.5 text-right">Remove</th>
                 </tr>
               </thead>
@@ -1340,7 +1468,6 @@
                       <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${getRoleBadge(u.role)}">${u.role || 'MOD'}</span>
                     </td>
                     <td class="p-2.5 text-slate-400 font-mono">${u.email || 'No email'}</td>
-                    <td class="p-2.5 font-mono text-slate-300">12 Dispatches</td>
                     <td class="p-2.5 text-right">
                       <button onclick="deleteModerator('${u.username}')" class="px-2 py-1 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded text-[11px] card-border font-medium">Remove</button>
                     </td>
@@ -1414,7 +1541,7 @@
       fetchBanned();
       fetchLogs();
       setInterval(fetchLivePlayers, 4000);
-      setInterval(fetchChatFeed, 2000);
+      setInterval(fetchChatFeed, 3000);
     });
   </script>
 </body>
