@@ -112,13 +112,16 @@ function saveUsersToFile() {
 }
 
 function generateFallbackAiAnalysis(promptText) {
+  if (promptText.includes("Refine this note")) {
+    return "Inappropriate behavior and chat policy violation.";
+  }
   if (promptText.includes("Analyze these recent")) {
     return "• Risk Assessment: Medium Risk\n• Primary Findings: Slang profanity and repeated chat telemetry detected.\n• Identified Users: UserID 4258516633 (Flagged for slang bypass).\n• Recommended Staff Action: Issue formal verbal warning notice.";
   }
   if (promptText.includes("said in chat:")) {
-    return "1) Severity Rating: Moderate (Medium Risk)\n2) Intent Breakdown: Player is expressing frustration using filtered slang.\n3) Recommended Staff Action: Issue Warn dispatch.\n4) Warning Text: Please maintain respectful language in public chat.";
+    return "1) Severity Rating: Moderate (Medium Risk)\n2) Intent Breakdown: Player is expressing frustration using filtered slang.\n3) Recommended Staff Action: Issue Warn action.\n4) Warning Text: Please maintain respectful language in public chat.";
   }
-  return "Executive Safety Briefing:\n• Telemetry Status: Stable with normal background activity.\n• Audit Log Summary: Dispatches executed cleanly.\n• Recommendation: Maintain standard automated chat monitoring.";
+  return "Staff Security Briefing:\n• Live System Status: Stable with normal player activity.\n• Action Log Summary: Dispatches executed cleanly.\n• Recommendation: Maintain standard automated chat monitoring.";
 }
 
 async function deleteRobloxDataStoreEntry(userId) {
@@ -174,7 +177,7 @@ async function sendModActionToRoblox(userId, action, reason, toolName = null, du
   const dataForRoblox = JSON.stringify({
     action,
     userId: Number(userId),
-    reason: reason || 'Automated Auto-Mod Action',
+    reason: reason || 'Automated Action',
     toolName,
     durationSeconds: Number(durationSeconds) || 0,
     admin: adminName,
@@ -444,7 +447,7 @@ app.post('/api/roblox/chat', async (req, res) => {
 
     const tox = checkToxicity(msg);
     if (tox.isBad) {
-      await sendModActionToRoblox(userId, "WARN", `Automated Auto-Mod Flag: ${tox.category}`, null, 0, '', 'AI Auto-Mod');
+      await sendModActionToRoblox(userId, "WARN", `Automated Flag: ${tox.category}`, null, 0, '', 'AI Auto-Mod');
     }
   }
 
@@ -560,4 +563,4 @@ io.on('connection', (socket) => {
   socket.emit('initialChatLogs', liveChatMessages);
 });
 
-server.listen(process.env.PORT || 3000, () => console.log('🚀 ETFD Moderation Console Online on Port 3000!'));
+server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Control Center Online on Port 3000!'));

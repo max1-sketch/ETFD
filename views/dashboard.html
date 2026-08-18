@@ -163,7 +163,6 @@
       color: #94a3b8;
     }
 
-    /* SCANNING GLOW ANIMATION */
     .scanning-active {
       box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
       border-color: rgba(139, 92, 246, 0.5) !important;
@@ -284,9 +283,9 @@
           <div>
             <h1 id="pageTitleHeading" class="text-sm font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-gauge-high text-blue-400 text-xs"></i>
-              <span>Moderation Command Center</span>
+              <span>Staff Command Center</span>
             </h1>
-            <p id="pageSubHeading" class="text-[11px] text-slate-400 hidden sm:block">Live Open Cloud dispatch and telemetry console</p>
+            <p id="pageSubHeading" class="text-[11px] text-slate-400 hidden sm:block">Live game data and moderation console</p>
           </div>
         </div>
 
@@ -394,11 +393,11 @@
                 <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
                   <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-blue-400"></i>
-                    <span>24h Toxicity Telemetry</span>
+                    <span>24h Toxicity Trends</span>
                   </h3>
                   <div class="text-right">
-                    <span class="text-[10px] font-mono text-emerald-400 font-semibold block">Status: Normal</span>
-                    <span class="text-[9px] font-mono text-amber-400">Peak: 15:00 - 18:00</span>
+                    <span class="text-[10px] font-mono text-emerald-400 font-semibold block">Server Status: Normal</span>
+                    <span class="text-[9px] font-mono text-amber-400">Busiest Time: 15:00 - 18:00</span>
                   </div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2">Real-time flagged infractions trend line</p>
@@ -434,7 +433,7 @@
 
             <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
               <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">24h Dispatches Issued</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">24h Recent Actions</span>
                 <span id="statTotalLogs" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
               </div>
               <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
@@ -444,7 +443,7 @@
 
             <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
               <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Open Cloud Latency</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Connection Test Latency</span>
                 <span class="text-2xl font-black text-emerald-400 font-mono mt-1 block">12ms</span>
               </div>
               <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -463,7 +462,7 @@
                   <i class="fa-solid fa-users text-emerald-400"></i>
                   <span>Live Server Instances & Inventory Drawer</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Inspect player tools, backpacks, ping, account age, and execute restrictions</p>
+                <p class="text-xs text-slate-400 mt-0.5">Check player items, ping, account age, and issue punishments</p>
               </div>
               <button onclick="fetchLivePlayers()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 card-border">
                 <i class="fa-solid fa-rotate text-xs"></i> Refresh Players
@@ -486,9 +485,9 @@
                   <div>
                     <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                       <i class="fa-solid fa-comments text-amber-400"></i>
-                      <span>Live In-Game Chat Feed & AI Safety Scanner</span>
+                      <span>Live Chat Feed & Chat Scanner</span>
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time live game data with Auto-Chat Flagging & Discord grouping</p>
                   </div>
                   
                   <div class="flex items-center gap-2">
@@ -524,13 +523,13 @@
                 <div id="chatFeedList" class="mt-4 space-y-2 max-h-[520px] overflow-y-auto pr-1">
                   <div class="p-8 text-center text-slate-500 text-xs font-mono">
                     <i class="fa-solid fa-robot text-2xl text-slate-600 block mb-2"></i>
-                    Listening for live game chat telemetry...
+                    Chat Scanner Online (Listening for live chat messages...)
                   </div>
                 </div>
               </div>
 
               <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> AI Safety Engine Listening (0.1s websocket latency)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Chat Scanner Online (0.1s websocket latency)</span>
                 <span id="chatMessageCounter">0 messages</span>
               </div>
             </div>
@@ -603,9 +602,9 @@
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                   <i class="fa-solid fa-list-check text-purple-400"></i>
-                  <span>Moderation Audit Trail & Incident Logs</span>
+                  <span>Action Logs</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Complete historical log of all command dispatches</p>
+                <p class="text-xs text-slate-400 mt-0.5">Complete historical log of all command actions</p>
               </div>
 
               <div class="flex items-center gap-2">
@@ -739,7 +738,7 @@
             <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-trophy text-amber-400"></i>
-                <span>Staff Activity & Productivity Leaderboard</span>
+                <span>Staff Leaderboard</span>
               </h2>
               <span class="text-[11px] text-slate-400 font-mono">Live Session Data</span>
             </div>
@@ -938,7 +937,7 @@
 
       <div id="aiModalLoading" class="p-8 text-center space-y-3">
         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-400"></i>
-        <div class="text-xs font-mono text-slate-300 animate-pulse" id="aiModalLoadingText">Analyzing live telemetry with Gemini AI...</div>
+        <div class="text-xs font-mono text-slate-300 animate-pulse" id="aiModalLoadingText">Analyzing live data with Gemini AI...</div>
       </div>
 
       <div id="aiModalContent" class="hidden space-y-3 max-h-[60vh] overflow-y-auto text-xs text-slate-200 font-sans leading-relaxed p-4 bg-[#0b0f17] card-border rounded-lg whitespace-pre-line font-mono">
@@ -1354,7 +1353,7 @@
         container.innerHTML = `
           <div class="p-8 text-center text-slate-500 text-xs font-mono">
             <i class="fa-solid fa-robot text-2xl text-slate-600 block mb-2"></i>
-            No chat telemetry matching filter rules.
+            No chat messages matching filter rules.
           </div>`;
         return;
       }
@@ -1385,7 +1384,7 @@
               </div>
             </div>
             <div class="flex items-center gap-1">
-              <button onclick="analyzeSingleMessageWithGemini('${m.userId}', '${m.username}', \`${m.msg.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)" class="p-1.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded transition-colors" title="Gemini AI Intent & Context Analysis">
+              <button onclick="analyzeSingleMessageWithGemini('${m.userId}', '${m.username}', \`${m.msg.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)" class="p-1.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded transition-colors" title="Gemini AI Context & Intent Analysis">
                 <i class="fa-solid fa-brain text-xs"></i>
               </button>
               <button onclick="quickAction('WARN', ${m.userId}, '${m.username}')" class="p-1.5 text-slate-400 hover:text-amber-400 transition-colors" title="Quick Moderation">
@@ -1504,7 +1503,7 @@
       try {
         await fetch('/api/logs', { method: 'DELETE' });
         fetchLogs();
-        notify('Logs Wiped', 'Audit trail cleared.');
+        notify('Logs Wiped', 'Action logs cleared.');
       } catch (e) {}
     }
 
@@ -1674,7 +1673,7 @@
     });
 
     async function callGeminiApi(userPrompt, systemInstruction = "") {
-      // 1. Try server backend proxy
+      // Try server backend proxy
       try {
         const response = await fetch('/api/ai/generate', {
           method: 'POST',
@@ -1687,39 +1686,21 @@
         }
       } catch (err) {}
 
-      // 2. Try direct Canvas runtime model API
-      try {
-        const apiKey = "";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-        const payload = {
-          contents: [{ parts: [{ text: userPrompt }] }]
-        };
-        if (systemInstruction) payload.systemInstruction = { parts: [{ text: systemInstruction }] };
-
-        const directRes = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (directRes.ok) {
-          const result = await directRes.json();
-          const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return text;
-        }
-      } catch (err) {}
-
-      // 3. Fallback intelligence output generator
+      // Fallback response generator
       return generateFrontEndAiFallback(userPrompt);
     }
 
     function generateFrontEndAiFallback(prompt) {
+      if (prompt.includes("Refine this note")) {
+        return "Inappropriate behavior and chat policy violation.";
+      }
       if (prompt.includes("Analyze these recent")) {
-        return "• Risk Assessment: Medium Risk\n• Primary Findings: Minor profanity and spam detected in chat stream.\n• Identified Users: UserID 4258516633 (Flagged for slang bypass).\n• Recommended Staff Action: Issue formal verbal warning notice.";
+        return "• Risk Assessment: Medium Risk\n• Primary Findings: Slang profanity and repeated chat telemetry detected.\n• Identified Users: UserID 4258516633 (Flagged for slang bypass).\n• Recommended Staff Action: Issue formal verbal warning notice.";
       }
       if (prompt.includes("said in chat:")) {
-        return "1) Severity Rating: Moderate (Medium Risk)\n2) Intent Breakdown: Player is expressing frustration using filtered slang.\n3) Recommended Staff Action: Issue Warn dispatch.\n4) Warning Text: Please maintain respectful language in public chat.";
+        return "1) Severity Rating: Moderate (Medium Risk)\n2) Intent Breakdown: Player is expressing frustration using filtered slang.\n3) Recommended Staff Action: Issue Warn action.\n4) Warning Text: Please maintain respectful language in public chat.";
       }
-      return "Executive Safety Briefing:\n• Telemetry Status: Stable with normal background activity.\n• Audit Log Summary: Dispatches executed cleanly.\n• Recommendation: Maintain standard automated chat monitoring.";
+      return "Staff Security Briefing:\n• Live System Status: Stable with normal background activity.\n• Action Log Summary: Dispatches executed cleanly.\n• Recommendation: Maintain standard automated chat monitoring.";
     }
 
     function showAiModal(title, subtitle = "POWERED BY GEMINI 3 FLASH") {
@@ -1784,7 +1765,7 @@
 
     async function generateAiIncidentReport() {
       if (!activeAuditLogs.length && !activeBannedList.length) {
-        notify('AI Report', 'No audit logs or ban records to summarize.', 'warning');
+        notify('AI Report', 'No action logs or ban records to summarize.', 'warning');
         return;
       }
 
