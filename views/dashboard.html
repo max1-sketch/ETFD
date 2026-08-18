@@ -21,7 +21,7 @@
       --bg-sidebar: #0e131f;
       --bg-card: #121722;
       --bg-input: #0a0e18;
-      --border-color: rgba(255, 255, 255, 0.08);
+      --border-color: rgba(255, 255, 255, 0.05);
       --border-focus: #3b82f6;
       --text-main: #f8fafc;
       --text-muted: #8e9bb0;
@@ -71,7 +71,7 @@
       background-color: #1a2234;
       color: #ffffff;
       border-left: 3px solid var(--accent-blue);
-      box-shadow: -3px 0 12px rgba(59, 130, 246, 0.4);
+      box-shadow: -3px 0 12px rgba(59, 130, 246, 0.25);
     }
 
     ::-webkit-scrollbar {
@@ -147,10 +147,27 @@
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+
+    /* UNIFORM BADGE STYLING */
+    .sidebar-badge {
+      height: 18px;
+      padding: 0 6px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body class="h-full flex flex-col overflow-hidden select-none">
 
+  <!-- TOP NOTICE BANNER -->
   <div id="topNoticeBanner" class="hidden w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0">
     <div class="flex items-center gap-2 max-w-4xl mx-auto text-center truncate">
       <i id="noticeBannerIcon" class="fa-solid fa-triangle-exclamation text-sm"></i>
@@ -166,11 +183,11 @@
     <!-- MOBILE DRAWER BACKDROP -->
     <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileSidebar(false)"></div>
 
-    <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/60 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 transition-transform duration-300">
       <div class="flex flex-col h-full justify-between">
         <div class="p-4 space-y-5 overflow-y-auto">
           <!-- BRAND LOGO HEADER -->
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">
                 <i class="fa-solid fa-shield-halved text-base"></i>
@@ -189,49 +206,48 @@
             <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest my-2">Commands</div>
             
             <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all nav-active text-slate-100">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-gauge-high text-blue-400 w-4"></i> Moderation</span>
-              <span class="text-[9px] font-mono px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold">CORE</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-gauge-high text-blue-400 w-4 text-center"></i> Moderation</span>
+              <span class="sidebar-badge text-blue-300 border-blue-500/30 bg-blue-500/10">CORE</span>
             </button>
 
             <button onclick="switchTab('players')" id="nav-players" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-users text-emerald-400 w-4"></i> Live Players</span>
-              <span id="navLivePlayersBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-bold">0</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-users text-emerald-400 w-4 text-center"></i> Live Players</span>
+              <span id="navLivePlayersBadge" class="sidebar-badge text-slate-400">0</span>
             </button>
 
             <button onclick="switchTab('chat')" id="nav-chat" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-comments text-amber-400 w-4"></i> Live Chat Feed</span>
-              <span id="navChatCountBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">LIVE</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-comments text-amber-400 w-4 text-center"></i> Live Chat Feed</span>
+              <span id="navChatCountBadge" class="sidebar-badge text-amber-300 border-amber-500/30 bg-amber-500/10">LIVE</span>
             </button>
 
             <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Records & Security</div>
 
             <button onclick="switchTab('banned')" id="nav-banned" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-ban text-red-400 w-4"></i> Banned Users</span>
-              <span id="navBannedCountBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded font-bold">0</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-ban text-red-400 w-4 text-center"></i> Banned Users</span>
+              <span id="navBannedCountBadge" class="sidebar-badge text-slate-400">0</span>
             </button>
 
             <button onclick="switchTab('logs')" id="nav-logs" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-list-check text-purple-400 w-4"></i> Action Logs</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-list-check text-purple-400 w-4 text-center"></i> Action Logs</span>
             </button>
 
             <button onclick="switchTab('lookup')" id="nav-lookup" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass text-cyan-400 w-4"></i> Roblox Lookup</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass text-cyan-400 w-4 text-center"></i> Roblox Lookup</span>
             </button>
 
             <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Administration</div>
 
             <button onclick="switchTab('management')" id="nav-management" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-user-gear text-indigo-400 w-4"></i> Staff Center</span>
-              <span id="navOwnerBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">OWNER</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-user-gear text-indigo-400 w-4 text-center"></i> Staff Center</span>
             </button>
 
             <button onclick="switchTab('system')" id="nav-system" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-terminal text-emerald-400 w-4"></i> Console Terminal</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-terminal text-emerald-400 w-4 text-center"></i> Console Terminal</span>
             </button>
           </nav>
         </div>
 
-        <div class="p-3 bg-[#0a0d14] border-t border-slate-800/80 flex items-center justify-between">
+        <div class="p-3 bg-[#0a0d14] border-t border-slate-800/60 flex items-center justify-between">
           <div onclick="openUserSettingsModal()" class="flex items-center gap-2.5 cursor-pointer group flex-1 truncate pr-2">
             <div class="relative shrink-0">
               <img id="sidebarUserAvatar" src="/api/avatar/1" class="w-8 h-8 rounded-md bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
@@ -257,7 +273,7 @@
     <main class="flex-1 flex flex-col min-w-0 bg-[#080b11] overflow-y-auto">
       
       <!-- TOPBAR HEADER -->
-      <header class="sticky top-0 z-30 bg-[#0e131f]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+      <header class="sticky top-0 z-30 bg-[#0e131f]/90 backdrop-blur-md border-b border-slate-800/60 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 text-slate-300 hover:text-white bg-[#121722] card-border rounded-lg">
             <i class="fa-solid fa-bars text-sm"></i>
@@ -272,28 +288,32 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
-          <!-- THEME SELECTOR -->
-          <div class="flex items-center gap-1 bg-[#121722] p-1 card-border rounded text-[10px]">
-            <button onclick="setAppTheme('sea')" class="px-2 py-0.5 rounded text-blue-400 font-bold hover:bg-slate-800 transition-colors" title="Deep Sea Theme">Sea</button>
-            <button onclick="setAppTheme('purple')" class="px-2 py-0.5 rounded text-purple-400 font-bold hover:bg-slate-800 transition-colors" title="Cyber Purple Theme">Purple</button>
-            <button onclick="setAppTheme('stealth')" class="px-2 py-0.5 rounded text-slate-300 font-bold hover:bg-slate-800 transition-colors" title="Stealth Black Theme">Stealth</button>
+          <!-- COMPACT THEME SELECTOR POP-OVER -->
+          <div class="relative">
+            <button onclick="toggleThemeDropdown()" class="p-2 bg-[#121722] card-border rounded-lg text-slate-400 hover:text-slate-100 transition-colors flex items-center gap-1.5 text-xs" title="Switch Theme">
+              <i class="fa-solid fa-palette text-purple-400"></i>
+            </button>
+            <div id="themeDropdown" class="hidden absolute right-0 mt-2 w-32 bg-[#121722] card-border rounded-lg shadow-xl p-1 z-50 space-y-0.5 text-xs">
+              <button onclick="setAppTheme('sea'); toggleThemeDropdown();" class="w-full text-left px-2.5 py-1.5 rounded text-blue-400 font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Deep Sea</button>
+              <button onclick="setAppTheme('purple'); toggleThemeDropdown();" class="w-full text-left px-2.5 py-1.5 rounded text-purple-400 font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Purple</button>
+              <button onclick="setAppTheme('stealth'); toggleThemeDropdown();" class="w-full text-left px-2.5 py-1.5 rounded text-slate-300 font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Stealth</button>
+            </div>
           </div>
 
-          <button onclick="toggleCommandPalette()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 hover:border-slate-700 transition-colors">
+          <button onclick="toggleCommandPalette()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#121722] card-border rounded-lg text-xs text-slate-400 hover:border-slate-700 transition-colors">
             <i class="fa-solid fa-terminal text-blue-400 text-xs"></i>
             <span class="text-[11px]">Command Palette...</span>
             <kbd class="px-1.5 py-0.5 bg-slate-800 text-[9px] font-mono text-slate-300 rounded card-border">Ctrl+K</kbd>
           </button>
 
           <!-- API PULSE DOT -->
-          <div class="flex items-center gap-2 bg-[#121722] px-2.5 py-1.5 card-border rounded text-[11px] font-mono">
+          <div class="flex items-center gap-2 bg-[#121722] px-2.5 py-1.5 card-border rounded-lg text-[11px] font-mono">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span class="text-emerald-400 font-bold hidden sm:inline">ONLINE</span>
           </div>
         </div>
       </header>
 
-      <!-- TAB CONTENT AREA -->
       <div class="p-4 sm:p-6 space-y-6 flex-1">
         
         <section id="tab-dashboard" class="tab-content space-y-6">
@@ -301,7 +321,7 @@
             
             <!-- COMMAND ACTIONS -->
             <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-              <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
                 <div>
                   <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-terminal text-blue-400"></i>
@@ -313,14 +333,11 @@
 
               <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                 <div class="md:col-span-4 space-y-1">
-                  <div class="flex items-center justify-between">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Target UserID *</label>
-                    <span class="text-[9px] text-slate-500 font-mono">Numbers only</span>
-                  </div>
+                  <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Target UserID *</label>
                   <input 
                     type="text" 
                     id="userId" 
-                    placeholder="e.g. 12345678" 
+                    placeholder="Enter UserID (numbers only)..." 
                     class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors font-mono" 
                     oninput="validateNumericInput(this); debounceUserPreview(); updateBanBtnState();" 
                   />
@@ -346,15 +363,15 @@
               <div id="userPreviewBadge" class="hidden p-3 bg-[#0b0f17] card-border rounded-lg items-center justify-between transition-all"></div>
 
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-                  <button onclick="sendAction('KICK')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
-                    <i class="fa-solid fa-boot text-slate-400 text-xs"></i> Kick
+                <div class="flex items-center gap-1.5 p-1 bg-[#0b0f17] card-border rounded-lg w-full sm:w-auto">
+                  <button onclick="sendAction('KICK')" class="flex-1 sm:flex-initial py-2 px-3.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shoe-prints text-slate-400 text-xs"></i> Kick
                   </button>
-                  <button onclick="sendAction('WARN')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
+                  <button onclick="sendAction('WARN')" class="flex-1 sm:flex-initial py-2 px-3.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
                     <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i> Warn
                   </button>
-                  <button onclick="sendAction('UNBAN')" class="col-span-2 sm:col-span-1 py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
-                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i> Unban User
+                  <button onclick="sendAction('UNBAN')" class="flex-1 sm:flex-initial py-2 px-3.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i> Unban
                   </button>
                 </div>
 
@@ -362,30 +379,30 @@
                   id="globalBanBtn"
                   disabled
                   onclick="triggerGlobalBanConfirmation()" 
-                  class="w-full sm:w-auto py-2.5 px-4 bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                  class="w-full sm:w-auto py-2.5 px-4 bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
                 >
-                  <i class="fa-solid fa-gavel"></i> Global Ban...
+                  <i class="fa-solid fa-lock text-[10px]" id="globalBanLockIcon"></i> Global Ban...
                 </button>
               </div>
             </div>
 
+            <!-- TOXICITY TELEMETRY GRAPH -->
             <div class="lg:col-span-4 bg-[#121722] card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between">
               <div>
-                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
                   <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-blue-400"></i>
                     <span>24h Toxicity Telemetry</span>
                   </h3>
-                  <span class="text-[10px] font-mono text-emerald-400 font-semibold">AI Scan</span>
+                  <div class="text-right">
+                    <span class="text-[10px] font-mono text-emerald-400 font-semibold block">Status: Normal</span>
+                    <span class="text-[9px] font-mono text-amber-400">Peak: 15:00 - 18:00</span>
+                  </div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2">Real-time flagged infractions trend line</p>
-                <div class="mt-3 relative h-32 w-full">
+                <div class="mt-3 relative h-32 w-full rounded-lg overflow-hidden bg-[#0a0e18] card-border">
                   <canvas id="toxicityHeatmapCanvas" class="w-full h-full"></canvas>
                 </div>
-              </div>
-              <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                <span>Peak Risk Hour: <strong class="text-amber-400">15:00 - 18:00</strong></span>
-                <span>Status: Normal</span>
               </div>
             </div>
           </div>
@@ -395,17 +412,17 @@
             <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
               <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Live In-Game Players</span>
-                <span id="statLivePlayers" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+                <span id="statLivePlayers" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
               </div>
               <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <i class="fa-solid fa-gamepad text-lg"></i>
+                <i class="fa-solid fa-signal text-lg"></i>
               </div>
             </div>
 
             <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
               <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Global Bans</span>
-                <span id="statActiveBans" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+                <span id="statActiveBans" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
               </div>
               <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
                 <i class="fa-solid fa-ban text-lg"></i>
@@ -415,7 +432,7 @@
             <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
               <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">24h Dispatches Issued</span>
-                <span id="statTotalLogs" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+                <span id="statTotalLogs" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
               </div>
               <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                 <i class="fa-solid fa-shield-halved text-lg"></i>
@@ -427,7 +444,7 @@
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Open Cloud Latency</span>
                 <span class="text-2xl font-black text-emerald-400 font-mono mt-1 block">12ms</span>
               </div>
-              <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                 <i class="fa-solid fa-bolt text-lg"></i>
               </div>
             </div>
@@ -436,7 +453,7 @@
 
         <section id="tab-players" class="tab-content space-y-4 hidden">
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                   <i class="fa-solid fa-users text-emerald-400"></i>
@@ -460,7 +477,7 @@
             
             <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4 flex flex-col justify-between">
               <div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
                   <div>
                     <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                       <i class="fa-solid fa-comments text-amber-400"></i>
@@ -501,7 +518,7 @@
                 </div>
               </div>
 
-              <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+              <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> AI Safety Engine Listening (0.1s websocket latency)</span>
                 <span id="chatMessageCounter">0 messages</span>
               </div>
@@ -509,7 +526,7 @@
 
             <!-- ACTIVE CHATTERS SIDEBAR -->
             <div class="lg:col-span-4 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-              <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+              <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <i class="fa-solid fa-user-shield text-blue-400"></i>
                   <span>Active Chatters & Risk Level</span>
@@ -527,7 +544,7 @@
 
         <section id="tab-banned" class="tab-content space-y-4 hidden">
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                   <i class="fa-solid fa-ban text-red-400"></i>
@@ -566,7 +583,7 @@
 
         <section id="tab-logs" class="tab-content space-y-4 hidden">
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                   <i class="fa-solid fa-list-check text-purple-400"></i>
@@ -594,7 +611,7 @@
 
         <section id="tab-lookup" class="tab-content space-y-4 hidden">
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3">
+            <div class="border-b border-slate-800/60 pb-3">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-magnifying-glass text-cyan-400"></i>
                 <span>Roblox Identity & Profile Inspector</span>
@@ -619,7 +636,7 @@
           
           <!-- OWNER NOTICE BROADCAST CENTER -->
           <div id="noticeConfigCard" class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+            <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                   <i class="fa-solid fa-bullhorn text-amber-400"></i>
@@ -627,7 +644,7 @@
                 </h2>
                 <p class="text-xs text-slate-400 mt-0.5">Broadcast system-wide alert banner to all active staff consoles</p>
               </div>
-              <span class="px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-amber-500/10 text-amber-400 border-amber-500/20">OWNER CONTROL</span>
+              <span class="sidebar-badge text-amber-400 border-amber-500/30 bg-amber-500/10">OWNER CONTROL</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
@@ -669,7 +686,7 @@
 
           <!-- INVITE STAFF MEMBER -->
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3">
+            <div class="border-b border-slate-800/60 pb-3">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus text-blue-400"></i>
                 <span>Invite Staff Member</span>
@@ -706,7 +723,7 @@
 
           <!-- STAFF LEADERBOARD -->
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+            <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-trophy text-amber-400"></i>
                 <span>Staff Activity & Productivity Leaderboard</span>
@@ -728,7 +745,7 @@
                 <tbody class="divide-y divide-slate-800/60">
                   <tr class="bg-[#0b0f17]">
                     <td class="p-2.5 font-bold text-slate-200">roblox <span class="text-amber-400 text-[10px]">(You)</span></td>
-                    <td class="p-2.5"><span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded border bg-amber-500/20 text-amber-400 border-amber-500/30">OWNER</span></td>
+                    <td class="p-2.5"><span class="sidebar-badge text-amber-400 border-amber-500/30 bg-amber-500/10">OWNER</span></td>
                     <td class="p-2.5 text-center font-mono text-slate-300" id="leadBansCount">0</td>
                     <td class="p-2.5 text-center font-mono text-slate-300" id="leadWarnsCount">0</td>
                     <td class="p-2.5 text-right font-bold text-emerald-400">TOP PERFORMER</td>
@@ -737,20 +754,11 @@
               </table>
             </div>
           </div>
-
-          <!-- ACTIVE ACCOUNTS LIST -->
-          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
-              <h2 class="text-sm font-bold text-slate-100">Active Staff Accounts & Permissions</h2>
-              <span class="text-[11px] text-slate-400 font-mono">Owner Controls Active</span>
-            </div>
-            <div id="moderatorsList" class="w-full overflow-x-auto"></div>
-          </div>
         </section>
 
         <section id="tab-system" class="tab-content space-y-4 hidden">
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+            <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-terminal text-emerald-400"></i>
                 <span>Open Cloud Terminal & Server Logs</span>
@@ -776,7 +784,7 @@
 
   <div id="userSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722]/90 card-border rounded-xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
-      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
             <i class="fa-solid fa-gear text-base"></i>
@@ -795,7 +803,7 @@
             <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
               <i class="fa-solid fa-id-card text-blue-400"></i> Profile Details
             </span>
-            <span id="profilePermissionBadge" class="px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">UNLOCKED</span>
+            <span id="profilePermissionBadge" class="sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10">UNLOCKED</span>
           </div>
 
           <div class="space-y-2.5">
@@ -818,7 +826,7 @@
             <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
               <i class="fa-solid fa-lock text-amber-400"></i> Security Passcode
             </span>
-            <span id="passwordPermissionBadge" class="px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">UNLOCKED</span>
+            <span id="passwordPermissionBadge" class="sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10">UNLOCKED</span>
           </div>
 
           <div class="space-y-2.5">
@@ -859,7 +867,7 @@
 
   <div id="globalBanModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative">
-      <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
         <h3 class="text-sm font-bold text-red-400 flex items-center gap-2">
           <i class="fa-solid fa-triangle-exclamation"></i>
           <span>Confirm Global Ban Action</span>
@@ -900,7 +908,7 @@
   <!-- GEMINI AI ASSISTANT MODAL -->
   <div id="aiAssistantModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded-xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative border-t-2 border-t-purple-500">
-      <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
             <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
@@ -921,7 +929,7 @@
       <div id="aiModalContent" class="hidden space-y-3 max-h-[60vh] overflow-y-auto text-xs text-slate-200 font-sans leading-relaxed p-4 bg-[#0b0f17] card-border rounded-lg whitespace-pre-line font-mono">
       </div>
 
-      <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
         <span class="text-[10px] font-mono text-slate-500">Grounded Safety Intelligence</span>
         <button onclick="closeAiModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border">Close Assistant</button>
       </div>
@@ -962,6 +970,10 @@
         toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
       }, 4000);
+    }
+
+    function toggleThemeDropdown() {
+      document.getElementById('themeDropdown').classList.toggle('hidden');
     }
 
     function setAppTheme(theme) {
@@ -1071,14 +1083,17 @@
       const userIdVal = document.getElementById('userId').value.trim();
       const reasonVal = document.getElementById('reason').value.trim();
       const btn = document.getElementById('globalBanBtn');
+      const lockIcon = document.getElementById('globalBanLockIcon');
 
       if (userIdVal.length > 3 && reasonVal.length > 2) {
         btn.disabled = false;
-        btn.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed', 'opacity-60');
+        btn.classList.remove('bg-slate-800/80', 'text-slate-500', 'cursor-not-allowed', 'opacity-60');
         btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+        if (lockIcon) lockIcon.classList.add('hidden');
       } else {
         btn.disabled = true;
-        btn.className = 'w-full sm:w-auto py-2.5 px-4 bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2';
+        btn.className = 'w-full sm:w-auto py-2.5 px-4 bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2';
+        if (lockIcon) lockIcon.classList.remove('hidden');
       }
     }
 
@@ -1106,7 +1121,7 @@
                   <div class="text-[10px] font-mono text-slate-400">ID: ${data.userId} • Age: ${data.accountAgeDays} days</div>
                 </div>
               </div>
-              <span class="px-2 py-0.5 text-[9px] font-mono font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">VERIFIED USER</span>
+              <span class="sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10">VERIFIED USER</span>
             `;
           } else { badge.classList.add('hidden'); }
         } catch (e) { badge.classList.add('hidden'); }
@@ -1181,7 +1196,12 @@
         const res = await fetch('/api/live-players');
         const data = await res.json();
         livePlayersList = data.players || [];
-        document.getElementById('statLivePlayers').innerText = livePlayersList.length;
+        
+        const countEl = document.getElementById('statLivePlayers');
+        countEl.innerText = livePlayersList.length;
+        if (livePlayersList.length > 0) countEl.className = "text-2xl font-black text-slate-100 font-mono mt-1 block";
+        else countEl.className = "text-2xl font-black text-slate-500 font-mono mt-1 block";
+
         document.getElementById('navLivePlayersBadge').innerText = livePlayersList.length;
         renderLivePlayers();
       } catch (e) {}
@@ -1281,7 +1301,7 @@
                     <span class="text-xs font-bold text-slate-100">${m.username}</span>
                     <span class="text-[10px] font-mono text-slate-500">ID: ${m.userId}</span>
                     <span class="text-[10px] text-slate-500">${m.time || ''}</span>
-                    ${tox.badge ? `<span class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded bg-slate-800 text-amber-400 card-border">${tox.badge}</span>` : ''}
+                    ${tox.badge ? `<span class="sidebar-badge text-amber-400 border-amber-500/30 bg-amber-500/10">${tox.badge}</span>` : ''}
                   </div>
                 ` : ''}
                 <div class="text-xs text-slate-300 mt-0.5 break-words">${m.msg}</div>
@@ -1312,7 +1332,12 @@
         const res = await fetch('/api/banned');
         const data = await res.json();
         activeBannedList = data.bannedUsers || [];
-        document.getElementById('statActiveBans').innerText = activeBannedList.length;
+
+        const countEl = document.getElementById('statActiveBans');
+        countEl.innerText = activeBannedList.length;
+        if (activeBannedList.length > 0) countEl.className = "text-2xl font-black text-slate-100 font-mono mt-1 block";
+        else countEl.className = "text-2xl font-black text-slate-500 font-mono mt-1 block";
+
         document.getElementById('navBannedCountBadge').innerText = activeBannedList.length;
         renderBannedTable();
       } catch (e) {}
@@ -1365,7 +1390,12 @@
         const res = await fetch('/api/logs');
         const data = await res.json();
         activeAuditLogs = data.logs || [];
-        document.getElementById('statTotalLogs').innerText = activeAuditLogs.length;
+
+        const countEl = document.getElementById('statTotalLogs');
+        countEl.innerText = activeAuditLogs.length;
+        if (activeAuditLogs.length > 0) countEl.className = "text-2xl font-black text-slate-100 font-mono mt-1 block";
+        else countEl.className = "text-2xl font-black text-slate-500 font-mono mt-1 block";
+
         renderLogsTable();
       } catch (e) {}
     }
@@ -1383,7 +1413,7 @@
       container.innerHTML = filtered.map(l => `
         <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between text-xs font-mono">
           <div class="flex items-center gap-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.action==='BAN'?'bg-red-500/20 text-red-400 border border-red-500/30':l.action==='KICK'?'bg-amber-500/20 text-amber-400 border border-amber-500/30':'bg-blue-500/20 text-blue-400 border border-blue-500/30'}">${l.action}</span>
+            <span class="sidebar-badge ${l.action==='BAN'?'text-red-400 border-red-500/30 bg-red-500/10':l.action==='KICK'?'text-amber-400 border-amber-500/30 bg-amber-500/10':'text-blue-400 border-blue-500/30 bg-blue-500/10'}">${l.action}</span>
             <span class="text-slate-200">UserID: ${l.userId}</span>
             <span class="text-slate-400">"${l.reason}"</span>
           </div>
@@ -1444,15 +1474,15 @@
 
       if (!canEditProfile && currentUserRole !== 'owner') {
         userInputs.forEach(i => i.classList.add('locked-input'));
-        badgeProfile.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20';
+        badgeProfile.className = 'sidebar-badge text-red-400 border-red-500/30 bg-red-500/10';
         badgeProfile.innerText = 'LOCKED BY ADMIN';
-        badgePassword.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20';
+        badgePassword.className = 'sidebar-badge text-red-400 border-red-500/30 bg-red-500/10';
         badgePassword.innerText = 'LOCKED BY ADMIN';
       } else {
         userInputs.forEach(i => i.classList.remove('locked-input'));
-        badgeProfile.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        badgeProfile.className = 'sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
         badgeProfile.innerText = 'UNLOCKED';
-        badgePassword.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        badgePassword.className = 'sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
         badgePassword.innerText = 'UNLOCKED';
       }
 
@@ -1489,6 +1519,26 @@
       const h = canvas.height = canvas.offsetHeight;
 
       ctx.clearRect(0, 0, w, h);
+
+      // FAINT GRID LINES BACKGROUND
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+
+      for (let y = 0; y <= h; y += h / 4) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      for (let x = 0; x <= w; x += w / 8) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // TREND LINE
       ctx.beginPath();
       ctx.strokeStyle = '#3b82f6';
       ctx.lineWidth = 2;
@@ -1508,7 +1558,7 @@
       ctx.lineTo(0, h);
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+      grad.addColorStop(0, 'rgba(59, 130, 246, 0.20)');
       grad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
       ctx.fillStyle = grad;
       ctx.fill();
@@ -1680,8 +1730,6 @@
       });
       socket.on('playersUpdate', (players) => {
         livePlayersList = players || [];
-        document.getElementById('statLivePlayers').innerText = livePlayersList.length;
-        document.getElementById('navLivePlayersBadge').innerText = livePlayersList.length;
         renderLivePlayers();
       });
     }
