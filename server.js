@@ -76,6 +76,15 @@ let actionLogs = [];
 let lastActionTimestamp = 0;
 const avatarUrlCache = new Map();
 
+// System Notice Banner State
+let systemNotice = {
+  active: false,
+  message: "System Maintenance scheduled tonight at 10:00 PM EST.",
+  alertLevel: "warning", // 'info', 'warning', 'emergency'
+  icon: "triangle-exclamation", // 'bell', 'shield', 'triangle-exclamation'
+  author: "Owner"
+};
+
 if (fs.existsSync(BANS_FILE)) {
   try {
     const rawData = fs.readFileSync(BANS_FILE, 'utf8');
@@ -280,6 +289,72 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'logi
 
 app.get('/api/me', requireAuth, (req, res) => {
   res.json({ username: req.session.adminName || 'roblox', role: req.session.role || 'mod' });
+});
+
+app.get('/api/notice', (req, res) => {
+  res.json({ notice: systemNotice });
+});
+
+app.post('/api/notice', requireAuth, requireOwner, (req, res) => {
+  const { active, message, alertLevel, icon } = req.body;
+  systemNotice = {
+    active: Boolean(active),
+    message: String(message || '').trim(),
+    alertLevel: alertLevel || 'info',
+    icon: icon || 'bell',
+    author: req.session.adminName || 'Owner'
+  };
+  io.emit('noticeUpdate', systemNotice);
+  res.json({ success: true, notice: systemNotice });
+});
+
+app.post('/api/ai/generate', requireAuth, async (req, res) => {
+  const { prompt, systemInstruction } = req.body;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+
+  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required' });
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+  const payload = { contents: [{ parts: [{ text: prompt }] }] };
+  if (systemInstruction) {
+    payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+  }
+
+  try {
+    const response = await axios.post(url, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 12000
+    });
+    const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text) return res.json({ success: true, text });
+    res.status(500).json({ success: false, error: 'Empty AI generation result from Gemini API.' });
+  } catch (err) {
+    console.error('Gemini AI API Error:', err.response?.data || err.message);
+    res.status(err.response?.status || 500).json({ 
+      success: false, 
+      error: err.response?.data?.error?.message || err.message || 'Gemini API call failed.' 
+    });
+  }
+});
+
+app.post('/api/profile/update', requireAuth, (req, res) => {
+  const username = req.session.adminName;
+  const userObj = Array.from(usersMap.values()).find(u => u.username.toLowerCase() === username.toLowerCase());
+
+  const isOwner = req.session.role === 'owner';
+  const canEdit = isOwner || (userObj && userObj.canEditProfile !== false);
+
+  if (!canEdit) {
+    return res.status(403).json({ success: false, error: 'Your profile is locked by a System Administrator.' });
+  }
+
+  const { newDisplayName, newPassword } = req.body;
+  if (userObj && newPassword && newPassword.trim().length > 0) {
+    userObj.password = newPassword.trim();
+    saveUsersToFile();
+  }
+
+  res.json({ success: true, message: 'Profile updated successfully.' });
 });
 
 app.get('/api/users', requireAuth, requireOwner, (req, res) => {
