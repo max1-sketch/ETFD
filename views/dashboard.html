@@ -95,7 +95,6 @@
 </head>
 <body class="h-full flex overflow-hidden select-none">
 
-  <!-- SIDEBAR NAVIGATION -->
   <aside class="w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none">
     <div>
       <div class="px-5 py-4 border-b border-slate-800/80 flex items-center gap-3">
@@ -182,10 +181,8 @@
     </div>
   </aside>
 
-  <!-- MAIN WORKSPACE CONTAINER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0b0f17]">
     
-    <!-- TOP HEADER -->
     <header class="h-14 border-b border-slate-800/80 px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
       <div class="flex items-center gap-2 text-xs text-slate-400">
         <span class="hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
@@ -211,10 +208,8 @@
       </div>
     </header>
 
-    <!-- MAIN BODY CONTENT -->
     <main class="flex-1 overflow-y-auto p-6 space-y-6">
 
-      <!-- TOP METRIC CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
@@ -270,7 +265,6 @@
         </div>
       </div>
 
-      <!-- DASHBOARD MODERATION COMMAND TAB -->
       <section id="tab-dashboard" class="tab-content space-y-6">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -315,7 +309,6 @@
           </div>
         </div>
 
-        <!-- LIVE ACTIVE PLAYERS INVENTORY -->
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -335,7 +328,6 @@
           <div id="livePlayersContainer"></div>
         </div>
 
-        <!-- RECENT ACTION LOGS -->
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -352,7 +344,6 @@
         </div>
       </section>
 
-      <!-- LIVE CHAT FEED & AI SAFETY SCANNER TAB -->
       <section id="tab-chat" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
@@ -386,7 +377,6 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[600px]">
-            <!-- CHAT MESSAGES STREAM PANEL -->
             <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden">
               <div id="chatFeedStream" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
               <div class="p-3 bg-[#0e131f] border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
@@ -398,7 +388,6 @@
               </div>
             </div>
 
-            <!-- ACTIVE CHATTERS & RISK SCORE SIDEBAR -->
             <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden">
               <div>
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -416,7 +405,6 @@
         </div>
       </section>
 
-      <!-- USER LOOKUP TAB -->
       <section id="tab-lookup" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div>
@@ -435,7 +423,6 @@
         <div id="lookupResultContainer"></div>
       </section>
 
-      <!-- BANNED USERS TAB -->
       <section id="tab-banned" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -452,7 +439,6 @@
         </div>
       </section>
 
-      <!-- AUDIT LOGS TAB -->
       <section id="tab-logs" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -469,7 +455,6 @@
         </div>
       </section>
 
-      <!-- STAFF MANAGEMENT TAB -->
       <section id="tab-management" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-4">
           <div class="border-b border-slate-800/80 pb-3">
@@ -515,7 +500,6 @@
         </div>
       </section>
 
-      <!-- SERVER CONSOLE TAB -->
       <section id="tab-system" class="tab-content space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-5 space-y-3">
           <h2 class="text-sm font-bold text-slate-100">Server & Environment Telemetry</h2>
@@ -553,7 +537,6 @@
 
     </main>
 
-    <!-- FOOTER -->
     <footer class="h-8 bg-[#0a0d14] border-t border-slate-800/80 px-6 flex items-center justify-between text-[11px] text-slate-500 shrink-0 select-none">
       <div class="flex items-center gap-4">
         <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Connected</span>
@@ -565,7 +548,6 @@
     </footer>
   </div>
 
-  <!-- BAN MODAL -->
   <div id="banModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-md p-5 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -593,7 +575,6 @@
     </div>
   </div>
 
-  <!-- CHAT QUICK ACTION MODAL -->
   <div id="chatActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-sm p-5 space-y-4 shadow-2xl border-l-4 border-l-blue-500">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -619,7 +600,6 @@
     </div>
   </div>
 
-  <!-- COMMAND PALETTE MODAL -->
   <div id="commandPaletteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20 p-4 hidden" onclick="toggleCommandPalette(event)">
     <div class="bg-[#121722] card-border rounded w-full max-w-xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
       <div class="p-3 border-b border-slate-800 flex items-center gap-3">
@@ -633,7 +613,6 @@
 
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
-  <!-- FRONTEND SCRIPT LOGIC -->
   <script>
     const socket = typeof io !== 'undefined' ? io() : null;
     let previewTimer = null;
@@ -643,7 +622,6 @@
     let activeChatTarget = null;
     let userRiskScores = new Map();
 
-    // SOCKET.IO REAL-TIME LISTENERS
     if (socket) {
       socket.on('initialChatLogs', (logs) => {
         if (Array.isArray(logs)) {
@@ -792,7 +770,6 @@
       }
     }
 
-    // AI SAFETY & TOXICITY CLASSIFICATION ENGINE
     function analyzeMessageToxicity(text) {
       const lower = text.toLowerCase();
       
@@ -851,7 +828,6 @@
       renderChatStream();
     }
 
-    // DISCORD-STYLE MESSAGE GROUPING & RENDERER WITH FIXED AVATAR HEADSHOTS
     function renderChatStream() {
       const stream = document.getElementById('chatFeedStream');
       const searchRaw = (document.getElementById('chatSearchInput')?.value || '').trim();
@@ -859,7 +835,6 @@
       const autoModActive = document.getElementById('toggleAutoMod')?.checked ?? true;
 
       userRiskScores.clear();
-
       let filtered = chatMessagesList;
 
       if (searchRaw) {
@@ -883,7 +858,6 @@
         const prevMsg = filtered[i - 1];
         const tox = analyzeMessageToxicity(m.msg);
 
-        // Track Risk Score per User
         const currentRisk = userRiskScores.get(m.userId) || 'LOW';
         if (tox.flag === 'HARASSMENT' || tox.flag === 'SCAM') {
           userRiskScores.set(m.userId, 'HIGH');
@@ -893,7 +867,6 @@
           userRiskScores.set(m.userId, 'LOW');
         }
 
-        // Discord Grouping: Check if previous message in list is same user within 60 seconds
         let isGrouped = false;
         if (prevMsg && prevMsg.userId === m.userId && !m.redacted && !prevMsg.redacted) {
           const t1 = new Date(`1970-01-01T${m.time}Z`).getTime();
@@ -903,11 +876,9 @@
           }
         }
 
-        // REAL ROBLOX HEADSHOT API URL
-        const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${m.userId}&width=150&height=150&format=png`;
+        const avatarUrl = `/api/avatar/${m.userId}`;
 
         if (isGrouped) {
-          // COMPACT DISCORD GROUPED MESSAGE
           htmlBuffer += `
             <div class="group relative px-3 py-1 hover:bg-slate-800/40 rounded transition-colors flex items-start justify-between text-xs pl-14 ${tox.borderClass}">
               <div class="min-w-0 flex-1 space-y-0.5">
@@ -930,7 +901,6 @@
                 ` : ''}
               </div>
 
-              <!-- ACTION BUTTONS WITH HOVER CIRCLES -->
               <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
                 <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
                   <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
@@ -945,13 +915,10 @@
             </div>
           `;
         } else {
-          // FULL HEADERED MESSAGE WITH AVATAR HEADSHOT
           htmlBuffer += `
             <div class="group relative p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
               <div class="flex items-start gap-3 min-w-0 flex-1">
                 <img src="${avatarUrl}" 
-                     referrerpolicy="no-referrer"
-                     onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';" 
                      class="w-8 h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
                      onclick="navigateToUserLookup('${m.userId}')" 
                      title="Click for User Lookup" />
@@ -981,7 +948,6 @@
                 </div>
               </div>
 
-              <!-- ACTION BUTTONS WITH HOVER CIRCLES -->
               <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
                 <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
                   <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
@@ -1001,14 +967,13 @@
       stream.innerHTML = htmlBuffer || '<div class="p-6 text-center text-xs text-slate-500">No chat messages recorded in telemetry feed</div>';
       document.getElementById('chatTotalCount').innerText = `${filtered.length} messages`;
 
-      // ACTIVE CHATTERS & RISK SCORE SIDEBAR
       const chattersMap = new Map();
       chatMessagesList.forEach(m => chattersMap.set(m.userId, m));
       const chattersContainer = document.getElementById('activeChattersList');
       document.getElementById('activeChattersCount').innerText = `${chattersMap.size} active`;
 
       chattersContainer.innerHTML = Array.from(chattersMap.values()).map(c => {
-        const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=150&height=150&format=png`;
+        const avatarUrl = `/api/avatar/${c.userId}`;
         const userRisk = userRiskScores.get(c.userId) || 'LOW';
 
         let riskBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
@@ -1018,10 +983,7 @@
         return `
           <div class="p-2.5 bg-[#0e131f] card-border rounded flex items-center justify-between text-xs cursor-pointer hover:border-slate-700 transition-colors" onclick="navigateToUserLookup('${c.userId}')">
             <div class="flex items-center gap-2.5 min-w-0">
-              <img src="${avatarUrl}" 
-                   referrerpolicy="no-referrer"
-                   onerror="this.onerror=null;this.src='https://tr.rbxcdn.com/30day-avatar-headshot';"
-                   class="w-7 h-7 rounded-full bg-slate-800 card-border shrink-0 object-cover" />
+              <img src="${avatarUrl}" class="w-7 h-7 rounded-full bg-slate-800 card-border shrink-0 object-cover" />
               <div class="truncate">
                 <span class="font-medium text-slate-200 truncate block">${c.username}</span>
                 <span class="text-[10px] text-slate-500 font-mono">ID: ${c.userId}</span>
@@ -1061,7 +1023,7 @@
       activeChatTarget = { userId, username };
       const modal = document.getElementById('chatActionModal');
       document.getElementById('chatActionUserDetails').innerHTML = `
-        <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
+        <img src="/api/avatar/${userId}" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
         <div>
           <div class="font-bold text-slate-200">${username}</div>
           <div class="text-slate-400 font-mono text-[10px]">UserID: ${userId}</div>
@@ -1137,7 +1099,7 @@
                 ${players.map((p, i) => `
                   <tr class="${i % 2 === 0 ? 'bg-[#121722]' : 'bg-[#0e131f]'} hover:bg-slate-800/30">
                     <td class="p-2.5 font-semibold text-slate-200 flex items-center gap-2">
-                      <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${p.userId}&width=150&height=150&format=png" referrerpolicy="no-referrer" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
+                      <img src="/api/avatar/${p.userId}" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
                       <span>${p.displayName} <span class="text-slate-500 font-normal">(@${p.username})</span></span>
                     </td>
                     <td class="p-2.5 font-mono text-slate-400">${p.userId}</td>
@@ -1178,7 +1140,7 @@
           badge.classList.remove('hidden');
           badge.classList.add('flex');
           badge.innerHTML = `
-            <img src="${data.avatarUrl}" referrerpolicy="no-referrer" class="w-8 h-8 rounded-full bg-slate-800 card-border object-cover" />
+            <img src="/api/avatar/${data.userId}" class="w-8 h-8 rounded-full bg-slate-800 card-border object-cover" />
             <div class="text-xs">
               <div class="font-bold text-slate-200">${data.displayName} <span class="text-slate-400 font-normal">(@${data.username})</span></div>
               <div class="text-[10px] text-slate-500">Joined: ${new Date(data.created).toLocaleDateString()}</div>
@@ -1371,7 +1333,7 @@
           <div class="space-y-4">
             <div class="p-5 bg-[#121722] card-border rounded flex gap-4 text-xs">
               <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 group">
-                <img src="${data.avatarUrl}" referrerpolicy="no-referrer" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
+                <img src="/api/avatar/${data.userId}" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
                 <span class="text-[9px] text-blue-400 block text-center mt-1 group-hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Profile</span>
               </a>
               <div class="space-y-2 flex-1">

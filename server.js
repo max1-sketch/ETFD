@@ -22,7 +22,6 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// NODEMAILER SMTP TRANSPORTER
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: Number(process.env.SMTP_PORT) || 587,
@@ -75,6 +74,7 @@ let liveInGamePlayers = new Map();
 let liveChatMessages = [];
 let actionLogs = [];
 let lastActionTimestamp = 0;
+const avatarUrlCache = new Map();
 
 if (fs.existsSync(BANS_FILE)) {
   try {
@@ -130,9 +130,6 @@ async function sendDiscordLog(action, userId, reason, toolName, durationText, ad
   } catch (err) {}
 }
 
-// -----------------------------------------------------------------------------
-// TOXICITY DETECTION & OPEN CLOUD MESSAGING
-// -----------------------------------------------------------------------------
 function checkToxicity(msgText) {
   if (!msgText) return { isBad: false };
   const lower = msgText.toLowerCase();
@@ -157,7 +154,6 @@ async function sendModActionToRoblox(userId, action, reason, toolName = null, du
   const caseId = `#AM-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
   const url = `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/ModChannel`;
 
-  // Payload structure expected by Roblox game script
   const dataForRoblox = JSON.stringify({
     action,
     userId: Number(userId),
@@ -169,8 +165,7 @@ async function sendModActionToRoblox(userId, action, reason, toolName = null, du
   });
 
   try {
-    // Open Cloud requires double-stringified message format: { message: "JSON_STRING" }
-    const response = await axios.post(url, 
+    await axios.post(url, 
       { message: dataForRoblox },
       {
         headers: {
@@ -188,20 +183,15 @@ async function sendModActionToRoblox(userId, action, reason, toolName = null, du
     if (err.response) {
       const status = err.response.status;
       if (status === 403) {
-        console.error('❌ [ROBLOX API ERROR: 403 Forbidden] Check API Key permissions or IP Whitelist (set to 0.0.0.0/0 on Creator Dashboard).');
+        console.error('❌ [ROBLOX API ERROR: 403 Forbidden] Set IP Whitelist to 0.0.0.0/0 on Creator Dashboard.');
       } else if (status === 401) {
-        console.error('❌ [ROBLOX API ERROR: 401 Unauthorized] ROBLOX_API_KEY is invalid or copied incorrectly.');
-      } else {
-        console.error(`❌ [ROBLOX API ERROR: ${status}]`, err.response.data);
+        console.error('❌ [ROBLOX API ERROR: 401 Unauthorized] ROBLOX_API_KEY is invalid.');
       }
-    } else {
-      console.error('❌ [OPEN CLOUD NETWORK ERROR]:', err.message);
     }
     return { success: false, error: err.message };
   }
 }
 
-// AUTH MIDDLEWARE
 const requireAuth = (req, res, next) => {
   if (!req.session.isLoggedIn) {
     if (req.originalUrl.startsWith('/api/')) {
@@ -219,7 +209,40 @@ const requireOwner = (req, res, next) => {
   next();
 };
 
-// AUTH ROUTES
+app.get('/api/avatar/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  if (!userId || isNaN(Number(userId))) {
+    return res.redirect('https://tr.rbxcdn.com/30day-avatar-headshot');
+  }
+
+  try {
+    let imageUrl = avatarUrlCache.get(userId);
+
+    if (!imageUrl) {
+      const response = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+        timeout: 4000
+      });
+
+      imageUrl = response.data?.data?.[0]?.imageUrl;
+      if (imageUrl) {
+        avatarUrlCache.set(userId, imageUrl);
+      }
+    }
+
+    if (imageUrl) {
+      const imageStream = await axios.get(imageUrl, { responseType: 'stream', timeout: 5000 });
+      res.setHeader('Content-Type', imageStream.headers['content-type'] || 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return imageStream.data.pipe(res);
+    }
+  } catch (err) {
+    console.error(`Avatar stream error for UserID ${userId}:`, err.message);
+  }
+
+  res.redirect('https://tr.rbxcdn.com/30day-avatar-headshot');
+});
+
 app.post('/auth/login', (req, res) => {
   const inputPass = String(req.body.password || '').trim();
   const inputUser = String(req.body.username || '').trim();
@@ -308,8 +331,7 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
     const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${targetUserId}`, { headers, timeout: 5000 });
     const details = detailsRes.data;
 
-    let avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${targetUserId}&width=150&height=150&format=png`;
-
+    const avatarUrl = `/api/avatar/${targetUserId}`;
     const createdDate = details.created ? new Date(details.created) : new Date();
     const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
 
@@ -328,7 +350,6 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   }
 });
 
-// ROBLOX CHAT INGESTION & AUTOMATED MODERATION
 app.post('/api/roblox/chat', async (req, res) => {
   const secret = req.headers['x-server-secret'];
   if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
@@ -352,10 +373,8 @@ app.post('/api/roblox/chat', async (req, res) => {
     liveChatMessages.unshift(chatEntry);
     if (liveChatMessages.length > 200) liveChatMessages.pop();
 
-    // Broadcast message to Web UI Dashboard
     io.emit('newChatMessage', chatEntry);
 
-    // AUTO-MOD ENGINE: Scan for toxic content and automatically trigger warn action via Open Cloud
     const tox = checkToxicity(msg);
     if (tox.isBad) {
       console.log(`🚨 [AUTO-MOD FLAGGED] ${username} (${userId}): "${msg}" [Category: ${tox.category}]`);
@@ -370,7 +389,6 @@ app.get(['/api/chat', '/api/chat/logs'], requireAuth, (req, res) => {
   res.json({ messages: liveChatMessages });
 });
 
-// ROBLOX PLAYER TELEMETRY
 app.post('/api/roblox/players', (req, res) => {
   const secret = req.headers['x-server-secret'];
   if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
@@ -389,7 +407,6 @@ app.get('/api/live-players', requireAuth, (req, res) => {
   res.json({ players: Array.from(liveInGamePlayers.values()) });
 });
 
-// AUDIT LOGS & BANS
 app.get('/api/logs', requireAuth, (req, res) => {
   res.json({ logs: actionLogs });
 });
@@ -466,7 +483,6 @@ app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-// SELF-PING KEEP-ALIVE (Prevents Render cold starts)
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://etfd.onrender.com';
 setInterval(async () => {
   try {
@@ -474,7 +490,6 @@ setInterval(async () => {
   } catch (err) {}
 }, 4 * 60 * 1000);
 
-// SOCKET.IO REAL-TIME CONNECT HANDLER
 io.on('connection', (socket) => {
   socket.emit('initialChatLogs', liveChatMessages);
 });
