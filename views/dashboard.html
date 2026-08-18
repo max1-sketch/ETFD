@@ -2,7 +2,7 @@
 <html lang="en" class="h-full bg-[#0b0f17] text-slate-200">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Escape Tsunami - Enterprise Moderation Console</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,6 +50,7 @@
       background-color: #0b0f17;
       color: #cbd5e1;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
     
     .card-border {
@@ -91,37 +92,57 @@
       font-family: 'JetBrains Mono', monospace;
       background-color: #070a0f;
     }
+
+    /* Mobile drawer smooth transitions */
+    .mobile-drawer-overlay {
+      transition: opacity 0.3s ease-in-out;
+    }
+    .mobile-drawer-content {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
   </style>
 </head>
-<body class="h-full flex overflow-hidden select-none">
+<body class="h-full flex overflow-hidden select-none bg-[#0b0f17] text-slate-200">
 
-  <aside class="w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none">
+  <!-- MOBILE SIDEBAR BACKDROP OVERLAY -->
+  <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden mobile-drawer-overlay opacity-0" onclick="toggleMobileSidebar(false)"></div>
+
+  <!-- SIDEBAR (DESKTOP FIXED & MOBILE SLIDING DRAWER) -->
+  <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 mobile-drawer-content transition-transform duration-300">
     <div>
-      <div class="px-5 py-4 border-b border-slate-800/80 flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-          <i class="fa-solid fa-shield-halved text-base"></i>
+      <!-- Sidebar Header -->
+      <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <i class="fa-solid fa-shield-halved text-base"></i>
+          </div>
+          <div>
+            <h1 class="text-sm font-bold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
+            <span class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase mt-1 block" id="roleBadge">MOD CONSOLE</span>
+          </div>
         </div>
-        <div>
-          <h1 class="text-sm font-bold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
-          <span class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase mt-1 block" id="roleBadge">MOD CONSOLE</span>
-        </div>
+        <!-- Close button for mobile drawer -->
+        <button onclick="toggleMobileSidebar(false)" class="md:hidden p-1.5 text-slate-400 hover:text-slate-100 rounded transition-colors" title="Close Drawer">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
       </div>
 
-      <nav class="p-3 space-y-5">
+      <!-- Navigation Links -->
+      <nav class="p-3 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
         <div>
           <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Commands</div>
           <div class="space-y-1">
-            <button class="nav-item nav-active w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-300 hover:bg-slate-800/50" data-path="/dashboard" onclick="navigateTo('/dashboard')">
-              <i class="fa-solid fa-terminal w-4 text-slate-400"></i>
+            <button class="nav-item nav-active w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-300 hover:bg-slate-800/50" data-path="/dashboard" onclick="navigateTo('/dashboard')">
+              <i class="fa-solid fa-terminal w-4 text-slate-400 text-center"></i>
               <span>Moderation</span>
             </button>
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/chat" onclick="navigateTo('/chat')">
-              <i class="fa-solid fa-comments w-4 text-slate-400"></i>
-              <span>Live Game Chat</span>
-              <span class="ml-auto px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30">AI MONITORED</span>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/chat" onclick="navigateTo('/chat')">
+              <i class="fa-solid fa-comments w-4 text-slate-400 text-center"></i>
+              <span class="truncate">Live Game Chat</span>
+              <span class="ml-auto px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 shrink-0">AI</span>
             </button>
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/lookup" onclick="navigateTo('/lookup')">
-              <i class="fa-solid fa-magnifying-glass w-4 text-slate-400"></i>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/lookup" onclick="navigateTo('/lookup')">
+              <i class="fa-solid fa-magnifying-glass w-4 text-slate-400 text-center"></i>
               <span>User Lookup</span>
             </button>
           </div>
@@ -130,12 +151,12 @@
         <div>
           <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Records</div>
           <div class="space-y-1">
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/banned" onclick="navigateTo('/banned')">
-              <i class="fa-solid fa-user-slash w-4 text-slate-400"></i>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/banned" onclick="navigateTo('/banned')">
+              <i class="fa-solid fa-user-slash w-4 text-slate-400 text-center"></i>
               <span>Banned Users</span>
             </button>
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/logs" onclick="navigateTo('/logs')">
-              <i class="fa-solid fa-receipt w-4 text-slate-400"></i>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/logs" onclick="navigateTo('/logs')">
+              <i class="fa-solid fa-receipt w-4 text-slate-400 text-center"></i>
               <span>Audit Logs</span>
             </button>
           </div>
@@ -144,8 +165,8 @@
         <div id="ownerSection" style="display:none;">
           <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Administration</div>
           <div class="space-y-1">
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/management" onclick="navigateTo('/management')">
-              <i class="fa-solid fa-users-gear w-4 text-slate-400"></i>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/management" onclick="navigateTo('/management')">
+              <i class="fa-solid fa-users-gear w-4 text-slate-400 text-center"></i>
               <span>Staff Management</span>
             </button>
           </div>
@@ -154,8 +175,8 @@
         <div>
           <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">System</div>
           <div class="space-y-1">
-            <button class="nav-item w-full text-left px-3 py-2 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/system" onclick="navigateTo('/system')">
-              <i class="fa-solid fa-server w-4 text-slate-400"></i>
+            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/system" onclick="navigateTo('/system')">
+              <i class="fa-solid fa-server w-4 text-slate-400 text-center"></i>
               <span>Server Console</span>
             </button>
           </div>
@@ -163,9 +184,10 @@
       </nav>
     </div>
 
-    <div class="p-3 border-t border-slate-800/80 bg-[#0a0d14]">
+    <!-- Admin User Badge -->
+    <div class="p-3 border-t border-slate-800/80 bg-[#0a0d14] shrink-0">
       <div class="p-2.5 rounded bg-[#121722] card-border flex items-center justify-between">
-        <div class="flex items-center gap-2.5 overflow-hidden">
+        <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-7 h-7 rounded bg-slate-800 border border-slate-700/60 flex items-center justify-center text-xs text-blue-400 font-bold shrink-0">
             <i class="fa-solid fa-user-shield text-xs"></i>
           </div>
@@ -174,43 +196,62 @@
             <div class="text-[10px] text-slate-500 font-medium uppercase tracking-wider" id="currentAdminRole">OWNER</div>
           </div>
         </div>
-        <a href="/auth/logout" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Log Out">
+        <a href="/auth/logout" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors shrink-0" title="Log Out">
           <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
         </a>
       </div>
     </div>
   </aside>
 
+  <!-- MAIN WORKSPACE CONTAINER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0b0f17]">
     
-    <header class="h-14 border-b border-slate-800/80 px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
-      <div class="flex items-center gap-2 text-xs text-slate-400">
-        <span class="hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
-        <i class="fa-solid fa-chevron-right text-[10px] text-slate-600"></i>
-        <span class="hover:text-slate-200 cursor-pointer" id="breadcrumbSection">Command Center</span>
-        <i class="fa-solid fa-chevron-right text-[10px] text-slate-600"></i>
-        <span class="text-slate-100 font-semibold" id="breadcrumbPage">Moderation</span>
-      </div>
-
-      <div class="flex items-center gap-6">
-        <button onclick="toggleCommandPalette()" class="w-64 px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 flex items-center justify-between hover:border-slate-700 transition-colors">
-          <span class="flex items-center gap-2">
-            <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
-            <span class="text-slate-500 font-normal">Search or command...</span>
-          </span>
-          <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border">⌘K</kbd>
+    <!-- TOP NAVIGATION HEADER BAR -->
+    <header class="h-14 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
+      
+      <!-- Left Header: Hamburger Trigger & Responsive Breadcrumb -->
+      <div class="flex items-center gap-3 text-xs text-slate-400 min-w-0">
+        <!-- Hamburger Menu Button for Mobile -->
+        <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded card-border transition-colors focus:outline-none" title="Open Navigation Menu">
+          <i class="fa-solid fa-bars text-sm"></i>
         </button>
 
-        <div class="flex items-center gap-2 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+        <!-- Responsive Breadcrumbs -->
+        <div class="flex items-center gap-1.5 sm:gap-2 text-xs truncate">
+          <span class="hidden sm:inline hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
+          <i class="fa-solid fa-chevron-right text-[9px] text-slate-600 hidden sm:inline"></i>
+          <span class="hidden md:inline hover:text-slate-200 cursor-pointer" id="breadcrumbSection">Command Center</span>
+          <i class="fa-solid fa-chevron-right text-[9px] text-slate-600 hidden md:inline"></i>
+          <span class="text-slate-100 font-semibold truncate" id="breadcrumbPage">Moderation</span>
+        </div>
+      </div>
+
+      <!-- Right Header: Command Palette & Open Cloud Badge -->
+      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+        <!-- Search Trigger Button -->
+        <button onclick="toggleCommandPalette()" class="w-9 sm:w-52 md:w-64 px-2.5 sm:px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 flex items-center justify-center sm:justify-between hover:border-slate-700 transition-colors">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
+            <span class="text-slate-500 font-normal hidden sm:inline truncate">Search commands...</span>
+          </span>
+          <kbd class="hidden md:inline px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border">⌘K</kbd>
+        </button>
+
+        <!-- Live Telemetry Status Pill -->
+        <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 sm:px-2.5 py-1 rounded border border-emerald-500/20 shrink-0">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Open Cloud Active</span>
+          <span class="hidden sm:inline">Open Cloud</span>
+          <span class="sm:hidden text-[10px] font-bold">ONLINE</span>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+    <!-- MAIN CONTENT VIEW AREA -->
+    <main class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- TOP TELEMETRY STAT CARDS GRID -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Live Players Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Live Players</div>
@@ -219,37 +260,34 @@
               <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-arrow-up text-[8px]"></i> +12%</span>
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <div class="w-7 h-7 rounded bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-1">
-              <i class="fa-solid fa-users text-xs"></i>
-            </div>
+          <div class="w-8 h-8 rounded bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+            <i class="fa-solid fa-users text-xs"></i>
           </div>
         </div>
 
+        <!-- Bans Recorded Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Bans Recorded</div>
             <div class="text-xl font-bold text-slate-100 mt-1" id="statTotalBans">0</div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <div class="w-7 h-7 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-1">
-              <i class="fa-solid fa-user-lock text-xs"></i>
-            </div>
+          <div class="w-8 h-8 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+            <i class="fa-solid fa-user-lock text-xs"></i>
           </div>
         </div>
 
+        <!-- Audit Events Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Audit Events</div>
             <div class="text-xl font-bold text-slate-100 mt-1" id="statTotalLogs">0</div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <div class="w-7 h-7 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-1">
-              <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-            </div>
+          <div class="w-8 h-8 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
           </div>
         </div>
 
+        <!-- AI Safety Status Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">AI Safety Status</div>
@@ -257,16 +295,16 @@
               <i class="fa-solid fa-shield-cat text-xs text-emerald-400"></i> AI Auto-Mod Active
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <div class="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <i class="fa-solid fa-robot text-xs"></i>
-            </div>
+          <div class="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <i class="fa-solid fa-robot text-xs"></i>
           </div>
         </div>
       </div>
 
-      <section id="tab-dashboard" class="tab-content space-y-6">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+      <!-- TAB 1: MODERATION DASHBOARD -->
+      <section id="tab-dashboard" class="tab-content space-y-4 sm:space-y-6">
+        <!-- Command Actions Box -->
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
@@ -277,39 +315,42 @@
             </div>
           </div>
 
+          <!-- Input Fields Stack -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
             <div class="md:col-span-4 space-y-1">
               <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Target UserID *</label>
-              <input type="number" id="userId" placeholder="e.g. 12345678" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" oninput="debounceUserPreview()" />
+              <input type="number" id="userId" placeholder="e.g. 12345678" class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" oninput="debounceUserPreview()" />
             </div>
             <div class="md:col-span-8 space-y-1">
               <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reason / Note (Mandatory for Kick/Warn/Ban) *</label>
-              <input type="text" id="reason" placeholder="Type clear moderation reason..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" />
+              <input type="text" id="reason" placeholder="Type clear moderation reason..." class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" />
             </div>
           </div>
 
           <div id="userPreviewBadge" class="hidden p-3 bg-[#0b0f17] card-border rounded items-center gap-3"></div>
 
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div class="inline-flex rounded-md shadow-sm border border-slate-800/90 bg-[#0b0f17] p-1 gap-1">
-              <button onclick="sendAction('KICK')" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center gap-2">
+          <!-- Touch-Friendly Responsive Action Button Grid -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+            <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+              <button onclick="sendAction('KICK')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
                 <i class="fa-solid fa-boot text-slate-400 text-xs"></i> Kick
               </button>
-              <button onclick="sendAction('WARN')" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center gap-2">
+              <button onclick="sendAction('WARN')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
                 <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i> Warn
               </button>
-              <button onclick="sendAction('UNBAN')" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center gap-2">
+              <button onclick="sendAction('UNBAN')" class="col-span-2 sm:col-span-1 py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
                 <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i> Unban User
               </button>
             </div>
 
-            <button onclick="openBanModal()" class="px-3.5 py-2 bg-red-500/10 border border-red-500/40 hover:bg-red-600 hover:text-white text-red-400 text-xs font-semibold rounded transition-colors flex items-center gap-2">
+            <button onclick="openBanModal()" class="w-full sm:w-auto py-2.5 px-4 bg-red-500/10 border border-red-500/40 hover:bg-red-600 hover:text-white text-red-400 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
               <i class="fa-solid fa-gavel"></i> Global Ban...
             </button>
           </div>
         </div>
 
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+        <!-- Live Active Players Container -->
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
@@ -318,17 +359,16 @@
               </h2>
               <p class="text-xs text-slate-400 mt-0.5">Real-time telemetry stream from live game servers</p>
             </div>
-            <div class="flex items-center gap-2">
-              <button onclick="fetchLivePlayers()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors">
-                <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Refresh
-              </button>
-            </div>
+            <button onclick="fetchLivePlayers()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors shrink-0">
+              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> <span class="hidden sm:inline">Refresh</span>
+            </button>
           </div>
 
-          <div id="livePlayersContainer"></div>
+          <div id="livePlayersContainer" class="w-full overflow-x-auto"></div>
         </div>
 
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+        <!-- Recent Logs Container -->
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
@@ -337,16 +377,18 @@
               </h2>
               <p class="text-xs text-slate-400 mt-0.5">Last 5 dispatch entries executed in this session</p>
             </div>
-            <button onclick="navigateTo('/logs')" class="text-xs text-blue-400 hover:underline font-medium">View Full Audit History &rarr;</button>
+            <button onclick="navigateTo('/logs')" class="text-xs text-blue-400 hover:underline font-medium shrink-0">View All &rarr;</button>
           </div>
 
           <div id="recentLogs" class="space-y-1.5"></div>
         </div>
       </section>
 
-      <section id="tab-chat" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
-          <div class="flex flex-wrap items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
+      <!-- TAB 2: LIVE GAME CHAT STREAM -->
+      <section id="tab-chat" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
+          <!-- Chat Filter Controls Bar -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
             <div>
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i class="fa-solid fa-comments text-blue-400"></i>
@@ -355,66 +397,72 @@
               <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-              <input type="text" id="chatSearchInput" placeholder="Filter text or regex (e.g. discord\.gg)..." class="px-3 py-1 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-64" onkeyup="filterChatFeed()" />
+            <!-- Responsive Filter Inputs -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+              <input type="text" id="chatSearchInput" placeholder="Filter text or regex (e.g. discord\.gg)..." class="px-3 py-1.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full sm:w-64" onkeyup="filterChatFeed()" />
 
-              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2 py-1 bg-[#0b0f17] card-border rounded">
-                <input type="checkbox" id="toggleFlaggedOnly" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" onchange="renderChatStream()" />
-                <span class="text-[11px] font-semibold">Flagged Only</span>
-              </label>
+              <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start pt-1 sm:pt-0">
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2.5 py-1.5 bg-[#0b0f17] card-border rounded">
+                  <input type="checkbox" id="toggleFlaggedOnly" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" onchange="renderChatStream()" />
+                  <span class="text-[11px] font-semibold">Flagged Only</span>
+                </label>
 
-              <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2 py-1 bg-[#0b0f17] card-border rounded">
-                <input type="checkbox" id="toggleAutoMod" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer" checked onchange="toggleAutoModEngine()" />
-                <span class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
-                  <i class="fa-solid fa-robot text-[10px]"></i> Auto-Mod
-                </span>
-              </label>
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2.5 py-1.5 bg-[#0b0f17] card-border rounded">
+                  <input type="checkbox" id="toggleAutoMod" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer" checked onchange="toggleAutoModEngine()" />
+                  <span class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                    <i class="fa-solid fa-robot text-[10px]"></i> Auto-Mod
+                  </span>
+                </label>
 
-              <button onclick="clearChatFeed()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors">
-                <i class="fa-solid fa-trash text-[10px]"></i> Clear
-              </button>
+                <button onclick="clearChatFeed()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors">
+                  <i class="fa-solid fa-trash text-[10px]"></i> Clear
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[600px]">
-            <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden">
-              <div id="chatFeedStream" class="flex-1 p-4 overflow-y-auto space-y-2"></div>
+          <!-- Main Stream Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[450px] lg:h-[600px]">
+            <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden h-[400px] lg:h-auto">
+              <div id="chatFeedStream" class="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2"></div>
               <div class="p-3 bg-[#0e131f] border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                <span class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>AI Safety Engine Listening (0.1s websocket latency)</span>
+                <span class="flex items-center gap-2 truncate">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                  <span class="truncate">AI Safety Engine Active</span>
                 </span>
-                <span id="chatTotalCount" class="font-mono text-[11px] text-slate-500">0 messages</span>
+                <span id="chatTotalCount" class="font-mono text-[11px] text-slate-500 shrink-0">0 messages</span>
               </div>
             </div>
 
-            <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden">
+            <!-- Active Chatters Sidebar -->
+            <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden max-h-[300px] lg:max-h-none">
               <div>
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span>Active Chatters & Risk Level</span>
+                  <span>Active Chatters</span>
                   <span class="text-[10px] text-blue-400 font-mono" id="activeChattersCount">0 online</span>
                 </h3>
-                <div id="activeChattersList" class="space-y-2 overflow-y-auto max-h-[480px] pr-1"></div>
+                <div id="activeChattersList" class="space-y-2 overflow-y-auto max-h-[200px] lg:max-h-[480px] pr-1"></div>
               </div>
               <div class="pt-3 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
                 <span>Threat Baseline</span>
-                <span class="text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Active Monitoring</span>
+                <span class="text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Active</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="tab-lookup" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+      <!-- TAB 3: USER LOOKUP -->
+      <section id="tab-lookup" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div>
             <h2 class="text-sm font-bold text-slate-100">Roblox User Lookup & Risk Profile</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Inspect account history, creation age, avatar headshots, and previous infraction history</p>
+            <p class="text-xs text-slate-400 mt-0.5">Inspect account history, creation age, avatar headshots, and previous infractions</p>
           </div>
 
-          <div class="flex gap-2">
-            <input type="text" id="lookupQuery" placeholder="Enter Username or UserID..." class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') performLookup()" />
-            <button onclick="performLookup()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center gap-2">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="lookupQuery" placeholder="Enter Username or UserID..." class="flex-1 px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') performLookup()" />
+            <button onclick="performLookup()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 shrink-0">
               <i class="fa-solid fa-magnifying-glass"></i> Search User
             </button>
           </div>
@@ -423,30 +471,32 @@
         <div id="lookupResultContainer"></div>
       </section>
 
-      <section id="tab-banned" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <!-- TAB 4: BANNED PLAYERS DIRECTORY -->
+      <section id="tab-banned" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-2">
             <div>
               <h2 class="text-sm font-bold text-slate-100">Banned Players Directory</h2>
               <p class="text-xs text-slate-400 mt-0.5">Active ban records synced across Open Cloud DataStores</p>
             </div>
-            <button onclick="forceUnbanAll()" class="px-3 py-1.5 bg-red-600/20 border border-red-500/40 hover:bg-red-600/30 text-red-300 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
+            <button onclick="forceUnbanAll()" class="px-3 py-1.5 bg-red-600/20 border border-red-500/40 hover:bg-red-600/30 text-red-300 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto">
               <i class="fa-solid fa-dumpster-fire"></i> Force Unban All
             </button>
           </div>
 
-          <div id="bannedUsersList"></div>
+          <div id="bannedUsersList" class="w-full overflow-x-auto"></div>
         </div>
       </section>
 
-      <section id="tab-logs" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <!-- TAB 5: AUDIT LOGS -->
+      <section id="tab-logs" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-2">
             <div>
               <h2 class="text-sm font-bold text-slate-100">Audit Logs</h2>
               <p class="text-xs text-slate-400 mt-0.5">Historical command history and staff actions</p>
             </div>
-            <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded card-border transition-colors flex items-center gap-1.5">
+            <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded card-border transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto">
               <i class="fa-solid fa-trash text-[10px]"></i> Clear Audit Logs
             </button>
           </div>
@@ -455,8 +505,9 @@
         </div>
       </section>
 
-      <section id="tab-management" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+      <!-- TAB 6: STAFF MANAGEMENT (OWNER ONLY) -->
+      <section id="tab-management" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="border-b border-slate-800/80 pb-3">
             <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-user-plus text-blue-400"></i>
@@ -471,7 +522,7 @@
               <input type="text" id="newUsername" placeholder="e.g. Golddoggo9866" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
             </div>
             <div class="space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Email Address (For Invite Code)</label>
+              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
               <input type="email" id="newEmail" placeholder="mod@example.com" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
             </div>
             <div class="space-y-1">
@@ -487,23 +538,24 @@
             </div>
           </div>
 
-          <button onclick="createModerator()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center gap-2">
+          <button onclick="createModerator()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
             <i class="fa-solid fa-paper-plane"></i> Send Invite & Create Account
           </button>
         </div>
 
-        <div class="bg-[#121722] card-border rounded p-5 space-y-4">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="border-b border-slate-800/80 pb-3">
-            <h2 class="text-sm font-bold text-slate-100">Active Staff Accounts & Activity Metrics</h2>
+            <h2 class="text-sm font-bold text-slate-100">Active Staff Accounts</h2>
           </div>
-          <div id="moderatorsList"></div>
+          <div id="moderatorsList" class="w-full overflow-x-auto"></div>
         </div>
       </section>
 
-      <section id="tab-system" class="tab-content space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-5 space-y-3">
+      <!-- TAB 7: SERVER CONSOLE TERMINAL -->
+      <section id="tab-system" class="tab-content space-y-4 sm:space-y-6 hidden">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-3">
           <h2 class="text-sm font-bold text-slate-100">Server & Environment Telemetry</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
             <div class="p-3 bg-[#0b0f17] card-border rounded space-y-1">
               <span class="text-slate-500 uppercase text-[10px] block font-bold">Messaging Topic</span>
               <span class="text-blue-400 font-bold">ModChannel</span>
@@ -519,7 +571,7 @@
           </div>
         </div>
 
-        <div class="bg-[#121722] card-border rounded p-5 space-y-3">
+        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
             <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
               <i class="fa-solid fa-terminal text-emerald-400"></i>
@@ -528,7 +580,7 @@
             <button onclick="clearConsoleTerminal()" class="text-xs text-slate-400 hover:text-slate-200">Clear Logs</button>
           </div>
 
-          <div id="consoleTerminalWindow" class="console-terminal p-4 rounded card-border text-xs text-slate-300 space-y-1.5 h-80 overflow-y-auto">
+          <div id="consoleTerminalWindow" class="console-terminal p-4 rounded card-border text-xs text-slate-300 space-y-1.5 h-72 sm:h-80 overflow-y-auto">
             <div class="text-slate-500">[SYSTEM INIT] Connecting to Roblox LogService websocket telemetry stream...</div>
             <div class="text-emerald-400">[INFO] MessagingService listener active on channel 'ModChannel'</div>
           </div>
@@ -537,24 +589,26 @@
 
     </main>
 
-    <footer class="h-8 bg-[#0a0d14] border-t border-slate-800/80 px-6 flex items-center justify-between text-[11px] text-slate-500 shrink-0 select-none">
-      <div class="flex items-center gap-4">
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Connected</span>
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> WebSockets: Active</span>
+    <!-- REFORMATTED RESPONSIVE FOOTER STATUS BAR -->
+    <footer class="bg-[#0a0d14] border-t border-slate-800/80 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 gap-2 shrink-0 select-none">
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
+        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Active</span>
+        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> WebSockets: Connected</span>
       </div>
-      <div>
+      <div class="text-center sm:text-right font-mono text-slate-600 text-[9px] sm:text-[10px]">
         <span>Escape Tsunami Staff Portal v2.5.0</span>
       </div>
     </footer>
   </div>
 
-  <div id="banModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <!-- MODAL 1: GLOBAL BAN CONFIGURATION -->
+  <div id="banModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-md p-5 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
           <i class="fa-solid fa-gavel text-red-500"></i> Configure Global Ban
         </h3>
-        <button onclick="closeBanModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeBanModal()" class="text-slate-400 hover:text-slate-200 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
       <div class="space-y-1">
@@ -575,43 +629,46 @@
     </div>
   </div>
 
-  <div id="chatActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <!-- MODAL 2: QUICK CHAT ACTION MODAL -->
+  <div id="chatActionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded w-full max-w-sm p-5 space-y-4 shadow-2xl border-l-4 border-l-blue-500">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-hammer text-amber-400"></i> Quick Moderation Action
+          <i class="fa-solid fa-hammer text-amber-400"></i> Quick Moderation
         </h3>
-        <button onclick="closeChatActionModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeChatActionModal()" class="text-slate-400 hover:text-slate-200 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
       <div id="chatActionUserDetails" class="p-3 bg-[#0b0f17] card-border rounded flex items-center gap-3 text-xs"></div>
 
       <div class="space-y-2">
-        <button onclick="triggerQuickAction('WARN')" class="w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
+        <button onclick="triggerQuickAction('WARN')" class="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
           <i class="fa-solid fa-bullhorn"></i> Issue Live Warning
         </button>
-        <button onclick="triggerQuickAction('KICK')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded card-border flex items-center justify-center gap-2">
+        <button onclick="triggerQuickAction('KICK')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded card-border flex items-center justify-center gap-2">
           <i class="fa-solid fa-boot"></i> Kick From Server
         </button>
-        <button onclick="triggerQuickAction('BAN')" class="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
+        <button onclick="triggerQuickAction('BAN')" class="w-full py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
           <i class="fa-solid fa-gavel"></i> Apply Global Ban
         </button>
       </div>
     </div>
   </div>
 
-  <div id="commandPaletteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-20 p-4 hidden" onclick="toggleCommandPalette(event)">
+  <!-- MODAL 3: COMMAND PALETTE -->
+  <div id="commandPaletteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-start justify-center pt-12 sm:pt-20 p-4 hidden" onclick="toggleCommandPalette(event)">
     <div class="bg-[#121722] card-border rounded w-full max-w-xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
       <div class="p-3 border-b border-slate-800 flex items-center gap-3">
-        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
-        <input type="text" id="paletteInput" placeholder="Type a command or navigate... (e.g. 'kick', 'ban', 'lookup', 'chat')" class="w-full bg-transparent text-xs text-slate-100 focus:outline-none" onkeyup="filterCommandPalette()" />
-        <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border">ESC</kbd>
+        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm shrink-0"></i>
+        <input type="text" id="paletteInput" placeholder="Type a command... (e.g. 'kick', 'ban', 'lookup', 'chat')" class="w-full bg-transparent text-xs text-slate-100 focus:outline-none" onkeyup="filterCommandPalette()" />
+        <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border shrink-0">ESC</kbd>
       </div>
-      <div id="paletteResults" class="p-2 space-y-1 max-h-80 overflow-y-auto text-xs"></div>
+      <div id="paletteResults" class="p-2 space-y-1 max-h-72 overflow-y-auto text-xs"></div>
     </div>
   </div>
 
-  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <script>
     const socket = typeof io !== 'undefined' ? io() : null;
@@ -622,6 +679,30 @@
     let activeChatTarget = null;
     let userRiskScores = new Map();
 
+    // -------------------------------------------------------------------------
+    // MOBILE DRAWER SIDEBAR CONTROLLER
+    // -------------------------------------------------------------------------
+    function toggleMobileSidebar(forceOpen = null) {
+      const drawer = document.getElementById('sidebarDrawer');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      
+      const isOpen = !drawer.classList.contains('-translate-x-full');
+      const shouldOpen = forceOpen !== null ? forceOpen : !isOpen;
+
+      if (shouldOpen) {
+        drawer.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+      } else {
+        drawer.classList.add('-translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // SOCKET WEBSOCKET LISTENERS
+    // -------------------------------------------------------------------------
     if (socket) {
       socket.on('initialChatLogs', (logs) => {
         if (Array.isArray(logs)) {
@@ -642,13 +723,16 @@
       });
     }
 
+    // -------------------------------------------------------------------------
+    // TOAST NOTIFICATIONS
+    // -------------------------------------------------------------------------
     function notify(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `toast-card pointer-events-auto p-3 bg-[#121722] card-border rounded shadow-lg flex items-start gap-3 text-xs border-l-4 ${type === 'error' ? 'border-l-red-500' : 'border-l-emerald-500'}`;
       
       toast.innerHTML = `
-        <i class="fa-solid ${type === 'error' ? 'fa-circle-xmark text-red-500' : 'fa-circle-check text-emerald-500'} text-sm mt-0.5"></i>
+        <i class="fa-solid ${type === 'error' ? 'fa-circle-xmark text-red-500' : 'fa-circle-check text-emerald-500'} text-sm mt-0.5 shrink-0"></i>
         <div>
           <div class="font-bold text-slate-100">${title}</div>
           <div class="text-slate-400 mt-0.5">${message}</div>
@@ -663,6 +747,9 @@
       }, 4000);
     }
 
+    // -------------------------------------------------------------------------
+    // AUTH & USER SESSION
+    // -------------------------------------------------------------------------
     async function loadCurrentUser() {
       try {
         const res = await fetch('/api/me');
@@ -682,9 +769,13 @@
       } catch (e) {}
     }
 
+    // -------------------------------------------------------------------------
+    // CLIENT ROUTING & NAVIGATION
+    // -------------------------------------------------------------------------
     function navigateTo(path) {
       window.history.pushState({}, '', path);
       renderRoute();
+      toggleMobileSidebar(false); // Auto-close drawer on mobile when navigating
     }
 
     function renderRoute() {
@@ -694,11 +785,11 @@
 
       const routeMap = {
         '/dashboard': { id: 'tab-dashboard', section: 'Command Center', breadcrumb: 'Moderation' },
-        '/chat': { id: 'tab-chat', section: 'Telemetry', breadcrumb: 'Live Game Chat' },
+        '/chat': { id: 'tab-chat', section: 'Telemetry', breadcrumb: 'Live Chat' },
         '/lookup': { id: 'tab-lookup', section: 'Command Center', breadcrumb: 'User Lookup' },
         '/banned': { id: 'tab-banned', section: 'Records', breadcrumb: 'Banned Users' },
         '/logs': { id: 'tab-logs', section: 'Records', breadcrumb: 'Audit Logs' },
-        '/management': { id: 'tab-management', section: 'Administration', breadcrumb: 'Staff Management' },
+        '/management': { id: 'tab-management', section: 'Administration', breadcrumb: 'Staff' },
         '/system': { id: 'tab-system', section: 'System', breadcrumb: 'Server Console' }
       };
 
@@ -720,6 +811,9 @@
 
     window.onpopstate = renderRoute;
 
+    // -------------------------------------------------------------------------
+    // COMMAND PALETTE
+    // -------------------------------------------------------------------------
     function toggleCommandPalette(e) {
       const modal = document.getElementById('commandPaletteModal');
       modal.classList.toggle('hidden');
@@ -737,6 +831,7 @@
       if (e.key === 'Escape') {
         document.getElementById('commandPaletteModal').classList.add('hidden');
         closeChatActionModal();
+        toggleMobileSidebar(false);
       }
     });
 
@@ -770,6 +865,9 @@
       }
     }
 
+    // -------------------------------------------------------------------------
+    // AI CHAT SAFETY SCANNER & RENDER ENGINE
+    // -------------------------------------------------------------------------
     function analyzeMessageToxicity(text) {
       const lower = text.toLowerCase();
       
@@ -880,7 +978,7 @@
 
         if (isGrouped) {
           htmlBuffer += `
-            <div class="group relative px-3 py-1 hover:bg-slate-800/40 rounded transition-colors flex items-start justify-between text-xs pl-14 ${tox.borderClass}">
+            <div class="group relative px-3 py-1 hover:bg-slate-800/40 rounded transition-colors flex items-start justify-between text-xs pl-12 sm:pl-14 ${tox.borderClass}">
               <div class="min-w-0 flex-1 space-y-0.5">
                 ${m.redacted ? `
                   <p class="text-slate-500 italic text-[11px] font-mono flex items-center gap-1.5">
@@ -896,12 +994,12 @@
                 ${tox.badgeText && !m.redacted ? `
                   <div class="flex items-center gap-2 mt-0.5">
                     <span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>
-                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono">🛡️ Auto-Mod: User warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>` : ''}
+                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono hidden sm:inline">🛡️ Auto-Mod: User warned for ${tox.category}</span>` : ''}
                   </div>
                 ` : ''}
               </div>
 
-              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-2 shrink-0">
                 <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
                   <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                 </button>
@@ -917,16 +1015,16 @@
         } else {
           htmlBuffer += `
             <div class="group relative p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
-              <div class="flex items-start gap-3 min-w-0 flex-1">
+              <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
                 <img src="${avatarUrl}" 
-                     class="w-8 h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
+                     class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
                      onclick="navigateToUserLookup('${m.userId}')" 
                      title="Click for User Lookup" />
 
                 <div class="space-y-1 min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-bold text-slate-100 cursor-pointer hover:underline hover:text-blue-400 transition-colors" onclick="navigateToUserLookup('${m.userId}')">${m.username}</span>
-                    <span class="text-[10px] text-slate-500 font-mono">ID: ${m.userId}</span>
+                    <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">ID: ${m.userId}</span>
                     ${tox.badgeText ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>` : ''}
                     <span class="text-[10px] text-slate-500 font-mono ml-auto">${m.time}</span>
                   </div>
@@ -942,13 +1040,13 @@
                   ${tox.badgeText && !m.redacted && autoModActive ? `
                     <div class="text-[10px] text-amber-400/90 font-mono font-medium flex items-center gap-1.5 pt-0.5">
                       <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
-                      <span>Auto-Mod: User warned for ${tox.category} (Case #AM-${m.id.toString().slice(-4)})</span>
+                      <span>Auto-Mod: Warned for ${tox.category}</span>
                     </div>
                   ` : ''}
                 </div>
               </div>
 
-              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-3 shrink-0">
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-2 shrink-0">
                 <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
                   <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                 </button>
@@ -1019,6 +1117,9 @@
       renderChatStream();
     }
 
+    // -------------------------------------------------------------------------
+    // QUICK ACTION MODALS & PLAYER TELEMETRY
+    // -------------------------------------------------------------------------
     function openChatActionModal(userId, username) {
       activeChatTarget = { userId, username };
       const modal = document.getElementById('chatActionModal');
@@ -1066,9 +1167,9 @@
 
         if (players.length === 0) {
           container.innerHTML = `
-            <div class="p-8 text-center bg-[#0b0f17] card-border rounded space-y-3 flex flex-col items-center justify-center">
-              <div class="w-12 h-12 rounded-full bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 shadow-inner mb-1">
-                <i class="fa-solid fa-server text-xl text-blue-400 animate-pulse"></i>
+            <div class="p-6 sm:p-8 text-center bg-[#0b0f17] card-border rounded space-y-3 flex flex-col items-center justify-center">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 shadow-inner mb-1">
+                <i class="fa-solid fa-server text-lg sm:text-xl text-blue-400 animate-pulse"></i>
               </div>
               <div>
                 <div class="text-xs font-bold text-slate-200">Server is currently idle</div>
@@ -1085,8 +1186,8 @@
         }
 
         container.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[500px]">
               <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
                 <tr>
                   <th class="p-2.5">Player</th>
@@ -1104,7 +1205,7 @@
                     </td>
                     <td class="p-2.5 font-mono text-slate-400">${p.userId}</td>
                     <td class="p-2.5">
-                      ${p.tools.length === 0 ? '<span class="text-slate-500 italic">Empty</span>' : p.tools.map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] card-border mr-1">${t}</span>`).join('')}
+                      ${p.tools.length === 0 ? '<span class="text-slate-500 italic">Empty</span>' : p.tools.map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] card-border mr-1 mb-1">${t}</span>`).join('')}
                     </td>
                     <td class="p-2.5 text-right">
                       <button onclick="sendToModeration('${p.userId}')" class="px-2 py-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded text-[11px] font-medium card-border">Target</button>
@@ -1118,6 +1219,9 @@
       } catch (e) {}
     }
 
+    // -------------------------------------------------------------------------
+    // MODERATION ACTIONS & BANS
+    // -------------------------------------------------------------------------
     function debounceUserPreview() {
       clearTimeout(previewTimer);
       previewTimer = setTimeout(fetchUserPreview, 400);
@@ -1221,8 +1325,8 @@
       }
 
       container.innerHTML = `
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+        <div class="w-full overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[500px]">
             <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
               <tr>
                 <th class="p-2.5">Banned Player</th>
@@ -1270,10 +1374,10 @@
           <div class="flex items-center gap-2.5 min-w-0">
             <span class="px-2 py-0.5 text-[10px] font-bold font-mono rounded border shrink-0 ${getBadgeClass(l.action)}">${l.action}</span>
             <span class="text-slate-200 font-mono font-medium shrink-0">ID: ${l.userId}</span>
-            <span class="text-slate-400 font-normal truncate">"${l.reason}"</span>
+            <span class="text-slate-400 font-normal truncate hidden sm:inline">"${l.reason}"</span>
             <span class="text-slate-500 text-[10px] shrink-0">by ${l.admin || 'Console'}</span>
           </div>
-          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-4">${new Date(l.timestamp).toLocaleTimeString()}</span>
+          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-2">${new Date(l.timestamp).toLocaleTimeString()}</span>
         </div>
       `).join('');
 
@@ -1282,10 +1386,10 @@
           <div class="flex items-center gap-2.5 min-w-0">
             <span class="px-2 py-0.5 text-[10px] font-bold font-mono rounded border shrink-0 ${getBadgeClass(l.action)}">${l.action}</span>
             <span class="text-slate-200 font-mono font-medium shrink-0">ID: ${l.userId}</span>
-            <span class="text-slate-400 font-normal truncate">"${l.reason}"</span>
+            <span class="text-slate-400 font-normal truncate hidden sm:inline">"${l.reason}"</span>
             <span class="text-slate-500 text-[10px] shrink-0">by ${l.admin || 'Console'}</span>
           </div>
-          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-4">${new Date(l.timestamp).toLocaleString()}</span>
+          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-2">${new Date(l.timestamp).toLocaleString()}</span>
         </div>
       `).join('');
 
@@ -1305,6 +1409,9 @@
       } catch (e) { notify('Error', 'Failed to clear logs', 'error'); }
     }
 
+    // -------------------------------------------------------------------------
+    // USER LOOKUP & MANAGEMENT
+    // -------------------------------------------------------------------------
     async function performLookup(forcedQuery = null) {
       const query = forcedQuery || document.getElementById('lookupQuery').value.trim();
       const container = document.getElementById('lookupResultContainer');
@@ -1331,9 +1438,9 @@
 
         container.innerHTML = `
           <div class="space-y-4">
-            <div class="p-5 bg-[#121722] card-border rounded flex gap-4 text-xs">
-              <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 group">
-                <img src="/api/avatar/${data.userId}" class="w-20 h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
+            <div class="p-4 sm:p-5 bg-[#121722] card-border rounded flex flex-col sm:flex-row gap-4 text-xs">
+              <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 self-center sm:self-start group">
+                <img src="/api/avatar/${data.userId}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
                 <span class="text-[9px] text-blue-400 block text-center mt-1 group-hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Profile</span>
               </a>
               <div class="space-y-2 flex-1">
@@ -1344,7 +1451,7 @@
                   </div>
                   <span class="px-2 py-0.5 text-[10px] font-bold rounded border ${riskBadgeColor}">${riskLevel}</span>
                 </div>
-                <div class="grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-300">
                   <div>Joined: ${new Date(data.created).toLocaleDateString()} (${data.accountAgeDays}d ago)</div>
                   <div>Status: <span class="font-bold text-emerald-400">${data.presenceType || 'Offline'}</span></div>
                 </div>
@@ -1354,15 +1461,15 @@
               </div>
             </div>
 
-            <div class="p-5 bg-[#121722] card-border rounded space-y-3">
+            <div class="p-4 sm:p-5 bg-[#121722] card-border rounded space-y-3">
               <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
-                <span>Previous Offenses & Moderation History (${userPastLogs.length})</span>
+                <span>Previous Offenses (${userPastLogs.length})</span>
               </h4>
 
               ${userPastLogs.length === 0 ? '<p class="text-xs text-slate-500">No previous recorded moderation actions on file for this user.</p>' : `
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left text-xs">
+                <div class="w-full overflow-x-auto">
+                  <table class="w-full text-left text-xs min-w-[400px]">
                     <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
                       <tr>
                         <th class="p-2">Action</th>
@@ -1415,12 +1522,12 @@
         const getRoleBadge = (role) => {
           if (role === 'owner') return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
           if (role === 'admin') return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-          return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+          return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20';
         };
 
         container.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[450px]">
               <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
                 <tr>
                   <th class="p-2.5">Staff User</th>
@@ -1503,6 +1610,7 @@
       document.getElementById('consoleTerminalWindow').innerHTML = '<div class="text-slate-500">[CONSOLE CLEARED] Telemetry stream listening...</div>';
     }
 
+    // INITIALIZATION ON DOM READY
     document.addEventListener('DOMContentLoaded', async () => {
       await loadCurrentUser();
       renderRoute();
