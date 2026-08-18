@@ -57,7 +57,6 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
-    /* 1. Navigation Left Glow Bar */
     .nav-active {
       background-color: #1a2234;
       color: #ffffff;
@@ -95,7 +94,6 @@
       background-color: #070a0f;
     }
 
-    /* Mobile drawer smooth transitions */
     .mobile-drawer-overlay {
       transition: opacity 0.3s ease-in-out;
     }
@@ -103,7 +101,6 @@
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Bento Box Glassmorphism Cards */
     .bento-card {
       background: rgba(18, 23, 34, 0.75);
       backdrop-filter: blur(12px);
@@ -111,7 +108,6 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* 4. Locked Field Styling & Custom Tooltip */
     .locked-container {
       position: relative;
     }
@@ -163,13 +159,10 @@
 </head>
 <body class="h-full flex overflow-hidden select-none bg-[#0b0f17] text-slate-200">
 
-  <!-- MOBILE SIDEBAR BACKDROP OVERLAY -->
   <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden mobile-drawer-overlay opacity-0" onclick="toggleMobileSidebar(false)"></div>
 
-  <!-- SIDEBAR (DESKTOP FIXED & MOBILE SLIDING DRAWER) -->
   <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 mobile-drawer-content transition-transform duration-300">
     <div>
-      <!-- Sidebar Header -->
       <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
@@ -180,13 +173,11 @@
             <span class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase mt-1 block" id="roleBadge">STAFF PORTAL</span>
           </div>
         </div>
-        <!-- Close button for mobile drawer -->
         <button onclick="toggleMobileSidebar(false)" class="md:hidden p-1.5 text-slate-400 hover:text-slate-100 rounded transition-colors" title="Close Drawer">
           <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
-      <!-- Navigation Links with Collapsible Categories -->
       <nav class="p-3 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
         <div>
           <div class="px-3 mb-2 flex items-center justify-between text-[10px] font-bold text-slate-500 tracking-widest uppercase cursor-pointer hover:text-slate-300 transition-colors" onclick="toggleNavGroup('navCommandsGroup')">
@@ -249,7 +240,6 @@
       </nav>
     </div>
 
-    <!-- Admin User Badge with User Settings Gear Access -->
     <div class="p-3 border-t border-slate-800/80 bg-[#0a0d14] shrink-0">
       <div class="p-2.5 rounded bg-[#121722] card-border flex items-center justify-between">
         <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group" onclick="openUserSettingsModal()">
@@ -274,20 +264,14 @@
     </div>
   </aside>
 
-  <!-- MAIN WORKSPACE CONTAINER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0b0f17]">
     
-    <!-- TOP NAVIGATION HEADER BAR -->
     <header class="h-14 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
-      
-      <!-- Left Header: Hamburger Trigger & Responsive Breadcrumb -->
       <div class="flex items-center gap-3 text-xs text-slate-400 min-w-0">
-        <!-- Hamburger Menu Button for Mobile -->
         <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded card-border transition-colors focus:outline-none" title="Open Navigation Menu">
           <i class="fa-solid fa-bars text-sm"></i>
         </button>
 
-        <!-- Responsive Breadcrumbs -->
         <div class="flex items-center gap-1.5 sm:gap-2 text-xs truncate">
           <span class="hidden sm:inline hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
           <i class="fa-solid fa-chevron-right text-[9px] text-slate-600 hidden sm:inline"></i>
@@ -297,9 +281,7 @@
         </div>
       </div>
 
-      <!-- Right Header: Command Palette & Open Cloud Badge -->
       <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-        <!-- Search Trigger Button -->
         <button onclick="toggleCommandPalette()" class="w-9 sm:w-52 md:w-64 px-2.5 sm:px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 flex items-center justify-center sm:justify-between hover:border-slate-700 transition-colors">
           <span class="flex items-center gap-2">
             <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
@@ -308,7 +290,6 @@
           <kbd class="hidden md:inline px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border">⌘K</kbd>
         </button>
 
-        <!-- Live Telemetry Status Pill -->
         <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 sm:px-2.5 py-1 rounded border border-emerald-500/20 shrink-0">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span class="hidden sm:inline">Open Cloud</span>
@@ -317,12 +298,9 @@
       </div>
     </header>
 
-    <!-- MAIN CONTENT VIEW AREA -->
     <main class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
 
-      <!-- TOP TELEMETRY STAT CARDS GRID -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <!-- Live Players Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Live Players</div>
@@ -336,7 +314,6 @@
           </div>
         </div>
 
-        <!-- Bans Recorded Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Bans Recorded</div>
@@ -347,7 +324,6 @@
           </div>
         </div>
 
-        <!-- Audit Events Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Audit Events</div>
@@ -358,7 +334,6 @@
           </div>
         </div>
 
-        <!-- AI Safety Status Card -->
         <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">AI Safety Status</div>
@@ -374,7 +349,6 @@
 
       <!-- TAB 1: MODERATION DASHBOARD -->
       <section id="tab-dashboard" class="tab-content space-y-4 sm:space-y-6">
-        <!-- Command Actions Box -->
         <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -386,7 +360,6 @@
             </div>
           </div>
 
-          <!-- Input Fields Stack with Strict Numeric Validation -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
             <div class="md:col-span-4 space-y-1">
               <div class="flex items-center justify-between">
@@ -413,10 +386,8 @@
             </div>
           </div>
 
-          <!-- Live Mini-Avatar Preview Card -->
           <div id="userPreviewBadge" class="hidden p-3 bg-[#0b0f17] card-border rounded items-center justify-between transition-all"></div>
 
-          <!-- Touch-Friendly Responsive Action Button Grid -->
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
             <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
               <button onclick="sendAction('KICK')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
@@ -430,7 +401,6 @@
               </button>
             </div>
 
-            <!-- Dynamic Ban Button (Gray & Disabled until 1 Valid Numeric ID is Entered) -->
             <button 
               id="globalBanBtn"
               disabled
@@ -442,7 +412,6 @@
           </div>
         </div>
 
-        <!-- Live Active Players Container -->
         <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -460,7 +429,6 @@
           <div id="livePlayersContainer" class="w-full overflow-x-auto"></div>
         </div>
 
-        <!-- Recent Logs Container -->
         <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div>
@@ -480,7 +448,6 @@
       <!-- TAB 2: LIVE GAME CHAT STREAM WITH PERSISTENT BUFFER -->
       <section id="tab-chat" class="tab-content space-y-4 sm:space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <!-- Chat Filter Controls Bar -->
           <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
             <div>
               <div class="flex items-center gap-2">
@@ -488,7 +455,6 @@
                   <i class="fa-solid fa-comments text-blue-400"></i>
                   <span>Live In-Game Chat Feed & AI Safety Scanner</span>
                 </h2>
-                <!-- Database Telemetry Buffer Status Indicator -->
                 <span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono rounded-full flex items-center gap-1.5 shrink-0">
                   <i class="fa-solid fa-arrows-rotate fa-spin text-[9px]"></i>
                   <span>Syncing Database...</span>
@@ -497,7 +463,6 @@
               <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
             </div>
 
-            <!-- Responsive Filter Inputs & History Trigger -->
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
               <button onclick="loadChatHistory()" class="px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-blue-300 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
                 <i class="fa-solid fa-clock-rotate-left text-[11px]"></i> Load History
@@ -525,7 +490,6 @@
             </div>
           </div>
 
-          <!-- Main Stream Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[450px] lg:h-[600px]">
             <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden h-[400px] lg:h-auto">
               <div id="chatFeedStream" class="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2"></div>
@@ -538,7 +502,6 @@
               </div>
             </div>
 
-            <!-- Active Chatters Sidebar with Risk Scoring -->
             <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden max-h-[300px] lg:max-h-none">
               <div>
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -609,7 +572,7 @@
         </div>
       </section>
 
-      <!-- TAB 6: STAFF MANAGEMENT (OWNER ONLY WITH PERMISSION TOGGLES) -->
+      <!-- TAB 6: STAFF MANAGEMENT -->
       <section id="tab-management" class="tab-content space-y-4 sm:space-y-6 hidden">
         <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
           <div class="border-b border-slate-800/80 pb-3">
@@ -694,7 +657,6 @@
 
     </main>
 
-    <!-- RESPONSIVE FOOTER STATUS BAR -->
     <footer class="bg-[#0a0d14] border-t border-slate-800/80 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 gap-2 shrink-0 select-none">
       <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
         <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Active</span>
@@ -706,7 +668,7 @@
     </footer>
   </div>
 
-  <!-- MODAL 1: DYNAMIC GLOBAL BAN CONFIRMATION MODAL -->
+  <!-- MODAL 1: CONFIRM GLOBAL BAN -->
   <div id="banConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] card-border rounded-lg w-full max-w-md p-6 space-y-5 shadow-2xl border-l-4 border-l-red-500">
       <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -716,12 +678,8 @@
         <button onclick="closeBanConfirmModal()" class="text-slate-400 hover:text-slate-200 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <!-- Target Avatar & Identity Preview -->
-      <div id="banConfirmUserCard" class="p-3.5 bg-[#0b0f17] card-border rounded flex items-center gap-3.5">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div id="banConfirmUserCard" class="p-3.5 bg-[#0b0f17] card-border rounded flex items-center gap-3.5"></div>
 
-      <!-- Ban Duration Select -->
       <div class="space-y-1.5">
         <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">BAN DURATION</label>
         <select id="banDurationSelect" class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500">
@@ -733,7 +691,6 @@
         </select>
       </div>
 
-      <!-- Notice Warning -->
       <p class="text-[11px] text-slate-400 leading-relaxed bg-red-500/10 border border-red-500/20 p-2.5 rounded">
         ⚠️ This action will immediately displace the player to Ban Land, store the record in Open Cloud DataStore, and post an audit entry to Discord.
       </p>
@@ -747,10 +704,9 @@
     </div>
   </div>
 
-  <!-- MODAL 2: ADMIN-CONTROLLED BENTO BOX USER SETTINGS MODAL -->
+  <!-- MODAL 2: USER SETTINGS -->
   <div id="userSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722]/90 card-border rounded-xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
-      <!-- Top Title Bar -->
       <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
@@ -764,10 +720,7 @@
         <button onclick="closeUserSettingsModal()" class="text-slate-400 hover:text-slate-200 p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <!-- Bento Box Grid Layout -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        <!-- Bento Box 1: Profile Information -->
         <div class="bento-card p-4 rounded-lg space-y-3">
           <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
@@ -777,14 +730,12 @@
           </div>
 
           <div class="space-y-2.5">
-            <!-- Username Container (With Locked Tooltip logic) -->
             <div id="usernameFieldContainer" class="locked-container space-y-1">
               <div class="locked-tooltip">Locked by System Administrator</div>
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Staff Username</label>
               <input type="text" id="settingsUsername" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none" />
             </div>
 
-            <!-- Display Name Container -->
             <div id="displayNameFieldContainer" class="locked-container space-y-1">
               <div class="locked-tooltip">Locked by System Administrator</div>
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Display Alias</label>
@@ -793,7 +744,6 @@
           </div>
         </div>
 
-        <!-- Bento Box 2: Security & Passcode -->
         <div class="bento-card p-4 rounded-lg space-y-3">
           <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
             <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
@@ -815,10 +765,8 @@
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- Bento Box 3: Role Privileges & Status Footer -->
       <div class="bento-card p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-slate-800 border border-slate-700/60 flex items-center justify-center text-blue-400 text-xs shrink-0">
@@ -878,7 +826,6 @@
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <script>
@@ -887,14 +834,11 @@
     let isCooldownActive = false;
     let currentUserRole = 'mod';
     let currentAdminName = 'roblox';
-    let canEditProfile = true; // Admin permission state
+    let canEditProfile = true;
     let chatMessagesList = [];
     let activeChatTarget = null;
     let userRiskScores = new Map();
 
-    // -------------------------------------------------------------------------
-    // 1. STRICT NUMERIC VALIDATION & DYNAMIC BAN BUTTON LOCK
-    // -------------------------------------------------------------------------
     function validateNumericInput(inputEl) {
       inputEl.value = inputEl.value.replace(/[^0-9]/g, '');
     }
@@ -918,9 +862,6 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // 2. COLLAPSIBLE NAVIGATION CATEGORIES
-    // -------------------------------------------------------------------------
     function toggleNavGroup(groupId) {
       const groupEl = document.getElementById(groupId);
       const iconEl = document.getElementById(`${groupId}Icon`);
@@ -930,9 +871,6 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // 3. MOBILE DRAWER SIDEBAR CONTROLLER
-    // -------------------------------------------------------------------------
     function toggleMobileSidebar(forceOpen = null) {
       const drawer = document.getElementById('sidebarDrawer');
       const backdrop = document.getElementById('mobileSidebarBackdrop');
@@ -951,9 +889,6 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // SOCKET WEBSOCKET LISTENERS
-    // -------------------------------------------------------------------------
     if (socket) {
       socket.on('initialChatLogs', (logs) => {
         if (Array.isArray(logs)) {
@@ -974,9 +909,6 @@
       });
     }
 
-    // -------------------------------------------------------------------------
-    // TOAST NOTIFICATIONS
-    // -------------------------------------------------------------------------
     function notify(title, message, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -998,9 +930,6 @@
       }, 4000);
     }
 
-    // -------------------------------------------------------------------------
-    // AUTH & USER SESSION
-    // -------------------------------------------------------------------------
     async function loadCurrentUser() {
       try {
         const res = await fetch('/api/me');
@@ -1023,9 +952,6 @@
       } catch (e) {}
     }
 
-    // -------------------------------------------------------------------------
-    // CLIENT ROUTING & NAVIGATION
-    // -------------------------------------------------------------------------
     function navigateTo(path) {
       window.history.pushState({}, '', path);
       renderRoute();
@@ -1065,9 +991,6 @@
 
     window.onpopstate = renderRoute;
 
-    // -------------------------------------------------------------------------
-    // USER SETTINGS MODAL & ADMIN LOCK LOGIC
-    // -------------------------------------------------------------------------
     function openUserSettingsModal() {
       const modal = document.getElementById('userSettingsModal');
       document.getElementById('settingsUsername').value = currentAdminName;
@@ -1116,9 +1039,6 @@
       closeUserSettingsModal();
     }
 
-    // -------------------------------------------------------------------------
-    // COMMAND PALETTE
-    // -------------------------------------------------------------------------
     function toggleCommandPalette(e) {
       const modal = document.getElementById('commandPaletteModal');
       modal.classList.toggle('hidden');
@@ -1172,9 +1092,6 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // AI CHAT SAFETY SCANNER & RENDER ENGINE
-    // -------------------------------------------------------------------------
     function analyzeMessageToxicity(text) {
       const lower = text.toLowerCase();
       
@@ -1429,9 +1346,6 @@
       renderChatStream();
     }
 
-    // -------------------------------------------------------------------------
-    // GLOBAL BAN CONFIRMATION & MODERATION DISPATCHES
-    // -------------------------------------------------------------------------
     async function triggerGlobalBanConfirmation() {
       const id = document.getElementById('userId').value.trim();
       const reason = document.getElementById('reason').value.trim();
@@ -1747,9 +1661,6 @@
       } catch (e) { notify('Error', 'Failed to clear logs', 'error'); }
     }
 
-    // -------------------------------------------------------------------------
-    // USER LOOKUP & STAFF MANAGEMENT
-    // -------------------------------------------------------------------------
     async function performLookup(forcedQuery = null) {
       const query = forcedQuery || document.getElementById('lookupQuery').value.trim();
       const container = document.getElementById('lookupResultContainer');
@@ -1960,7 +1871,6 @@
       document.getElementById('consoleTerminalWindow').innerHTML = '<div class="text-slate-500">[CONSOLE CLEARED] Telemetry stream listening...</div>';
     }
 
-    // INITIALIZATION ON DOM READY
     document.addEventListener('DOMContentLoaded', async () => {
       await loadCurrentUser();
       renderRoute();
@@ -1974,12 +1884,3 @@
   </script>
 </body>
 </html>
-```
-
-### Summary of Additions & Enhancements:
-
-1. **Navigation Left Glow Bar (`nav-active`):** Replaced default borders with a glowing 3px left indicator bar (`border-left: 3px solid #3b82f6` + blue box-shadow).
-2. **User Settings Bento Box Modal (`openUserSettingsModal`):** Accessible by clicking either the user card or gear icon in the bottom-left sidebar.
-3. **Admin Lock & Tooltip System:** Implemented `.locked-container` and `.locked-field` CSS rules. When `canEditProfile` is false, inputs get `opacity-50 pointer-events-none` and display a styled hover bubble (*"Locked by System Administrator"*).
-4. **Strict Ban Validation & Preview:** Restricts UserID to numbers only, auto-previews avatar and details, and locks the "Global Ban..." button until a valid numeric ID and mandatory reason are entered.
-5. **Confirm Global Ban Modal (`triggerGlobalBanConfirmation`):** Shows target face headshot, name, account age, case reason, and duration selection before sending the Open Cloud dispatch.
