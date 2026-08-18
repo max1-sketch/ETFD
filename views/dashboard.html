@@ -1,66 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0f17] text-slate-200">
+<html lang="en" class="h-full bg-[#080b11] text-slate-200">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Escape Tsunami - Staff Command Platform</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Tsunami - Staff Command Center</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS & FontAwesome CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script src="/socket.io/socket.io.js"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            brand: {
-              bg: '#0b0f17',
-              surface: '#0e131f',
-              card: '#121722',
-              cardAlt: '#0f1420',
-              border: 'rgba(255, 255, 255, 0.08)',
-              accent: '#3b82f6',
-              danger: '#ef4444',
-              warning: '#f59e0b',
-              success: '#10b981',
-            }
-          },
-          borderRadius: {
-            'DEFAULT': '6px',
-            'md': '6px',
-            'lg': '8px',
-            'xl': '8px'
-          }
-        }
-      }
-    }
-  </script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
   <style>
+    :root {
+      --bg-main: #080b11;
+      --bg-sidebar: #0e131f;
+      --bg-card: #121722;
+      --bg-input: #0a0e18;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #8e9bb0;
+      --accent-blue: #3b82f6;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    }
+
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0b0f17;
-      color: #cbd5e1;
-      -webkit-font-smoothing: antialiased;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    
+
+    /* THEME STYLES */
+    body.theme-purple {
+      --bg-main: #090614;
+      --bg-sidebar: #120d24;
+      --bg-card: #171030;
+      --bg-input: #0b0718;
+      background-color: #090614 !important;
+    }
+
+    body.theme-stealth {
+      --bg-main: #050505;
+      --bg-sidebar: #0a0a0a;
+      --bg-card: #111111;
+      --bg-input: #000000;
+      background-color: #050505 !important;
+    }
+
     .card-border {
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
     }
-    
+
     .nav-active {
       background-color: #1a2234;
       color: #ffffff;
-      border-left: 3px solid #3b82f6;
+      border-left: 3px solid var(--accent-blue);
       box-shadow: -3px 0 12px rgba(59, 130, 246, 0.4);
     }
 
@@ -69,53 +79,24 @@
       height: 5px;
     }
     ::-webkit-scrollbar-track {
-      background: #0b0f17;
+      background: var(--bg-main);
     }
     ::-webkit-scrollbar-thumb {
       background: #1e293b;
       border-radius: 4px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #334155;
-    }
 
-    .toast-card {
-      transform: translateY(100%);
-      opacity: 0;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .toast-card.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .console-terminal {
-      font-family: 'JetBrains Mono', monospace;
-      background-color: #070a0f;
-    }
-
-    .mobile-drawer-overlay {
-      transition: opacity 0.3s ease-in-out;
-    }
-    .mobile-drawer-content {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .bento-card {
-      background: rgba(18, 23, 34, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* LOCKED INPUT & TOOLTIP STYLES */
+    .locked-input {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      opacity: 0.55 !important;
+      user-select: none !important;
     }
 
     .locked-container {
       position: relative;
-    }
-    .locked-field {
-      opacity: 0.5;
-      pointer-events: none;
-      cursor: not-allowed !important;
-      user-select: none;
     }
     .locked-container:hover .locked-tooltip {
       opacity: 1;
@@ -126,14 +107,13 @@
       position: absolute;
       top: -36px;
       left: 12px;
-      background: #1e293b;
-      color: #f1f5f9;
+      background: var(--accent-red);
+      color: #ffffff;
       padding: 4px 10px;
       border-radius: 4px;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.02em;
-      border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
       white-space: nowrap;
       pointer-events: none;
@@ -150,561 +130,650 @@
       left: 16px;
       width: 8px;
       height: 8px;
-      background: #1e293b;
+      background: var(--accent-red);
       transform: rotate(45deg);
-      border-right: 1px solid rgba(255, 255, 255, 0.15);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .bento-card {
+      background: rgba(18, 23, 34, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+    }
+
+    .toast-card {
+      animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
   </style>
 </head>
-<body class="h-full flex overflow-hidden select-none bg-[#0b0f17] text-slate-200">
+<body class="h-full flex flex-col overflow-hidden select-none">
 
-  <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden mobile-drawer-overlay opacity-0" onclick="toggleMobileSidebar(false)"></div>
+  <div id="topNoticeBanner" class="hidden w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0">
+    <div class="flex items-center gap-2 max-w-4xl mx-auto text-center truncate">
+      <i id="noticeBannerIcon" class="fa-solid fa-triangle-exclamation text-sm"></i>
+      <span id="noticeBannerText" class="truncate">Maintenance scheduled tonight at 10:00 PM EST.</span>
+      <span class="text-[10px] opacity-75 font-mono hidden sm:inline" id="noticeBannerAuthor">— Issued by Owner</span>
+    </div>
+    <button onclick="dismissTopNotice()" class="text-slate-300 hover:text-white p-1" title="Dismiss Notice">
+      <i class="fa-solid fa-xmark text-xs"></i>
+    </button>
+  </div>
 
-  <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 mobile-drawer-content transition-transform duration-300">
-    <div>
-      <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+  <div class="flex-1 flex min-h-0 overflow-hidden">
+    <!-- MOBILE DRAWER BACKDROP -->
+    <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileSidebar(false)"></div>
+
+    <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 transition-transform duration-300">
+      <div class="flex flex-col h-full justify-between">
+        <div class="p-4 space-y-5 overflow-y-auto">
+          <!-- BRAND LOGO HEADER -->
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-shield-halved text-base"></i>
+              </div>
+              <div>
+                <h1 class="text-xs font-black text-slate-100 uppercase tracking-wider leading-none">Escape Tsunami</h1>
+                <span class="text-[9px] font-mono text-blue-400 font-bold block mt-1 tracking-widest">STAFF v2.5.0</span>
+              </div>
+            </div>
+            <button onclick="toggleMobileSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-1">
+              <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+          </div>
+
+          <nav class="space-y-1 text-xs font-semibold">
+            <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest my-2">Commands</div>
+            
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all nav-active text-slate-100">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-gauge-high text-blue-400 w-4"></i> Moderation</span>
+              <span class="text-[9px] font-mono px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold">CORE</span>
+            </button>
+
+            <button onclick="switchTab('players')" id="nav-players" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-users text-emerald-400 w-4"></i> Live Players</span>
+              <span id="navLivePlayersBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-bold">0</span>
+            </button>
+
+            <button onclick="switchTab('chat')" id="nav-chat" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-comments text-amber-400 w-4"></i> Live Chat Feed</span>
+              <span id="navChatCountBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">LIVE</span>
+            </button>
+
+            <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Records & Security</div>
+
+            <button onclick="switchTab('banned')" id="nav-banned" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-ban text-red-400 w-4"></i> Banned Users</span>
+              <span id="navBannedCountBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded font-bold">0</span>
+            </button>
+
+            <button onclick="switchTab('logs')" id="nav-logs" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-list-check text-purple-400 w-4"></i> Action Logs</span>
+            </button>
+
+            <button onclick="switchTab('lookup')" id="nav-lookup" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-magnifying-glass text-cyan-400 w-4"></i> Roblox Lookup</span>
+            </button>
+
+            <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Administration</div>
+
+            <button onclick="switchTab('management')" id="nav-management" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-user-gear text-indigo-400 w-4"></i> Staff Center</span>
+              <span id="navOwnerBadge" class="text-[9px] font-mono px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">OWNER</span>
+            </button>
+
+            <button onclick="switchTab('system')" id="nav-system" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-terminal text-emerald-400 w-4"></i> Console Terminal</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="p-3 bg-[#0a0d14] border-t border-slate-800/80 flex items-center justify-between">
+          <div onclick="openUserSettingsModal()" class="flex items-center gap-2.5 cursor-pointer group flex-1 truncate pr-2">
+            <div class="relative shrink-0">
+              <img id="sidebarUserAvatar" src="/api/avatar/1" class="w-8 h-8 rounded-md bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+              <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0a0d14] rounded-full"></span>
+            </div>
+            <div class="truncate">
+              <div id="sidebarAdminName" class="text-xs font-bold text-slate-200 group-hover:text-blue-400 transition-colors truncate">roblox</div>
+              <div id="sidebarAdminRole" class="text-[9px] font-mono font-semibold text-amber-400 uppercase tracking-wider">OWNER</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="openUserSettingsModal()" class="p-1.5 text-slate-400 hover:text-blue-400 transition-colors rounded hover:bg-slate-800/60" title="Account Settings">
+              <i class="fa-solid fa-gear text-xs"></i>
+            </button>
+            <a href="/auth/logout" class="p-1.5 text-slate-400 hover:text-red-400 transition-colors rounded hover:bg-slate-800/60" title="Logout Session">
+              <i class="fa-solid fa-right-from-bracket text-xs"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 bg-[#080b11] overflow-y-auto">
+      
+      <!-- TOPBAR HEADER -->
+      <header class="sticky top-0 z-30 bg-[#0e131f]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
-            <i class="fa-solid fa-shield-halved text-base"></i>
-          </div>
-          <div>
-            <h1 class="text-sm font-bold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
-            <span class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase mt-1 block" id="roleBadge">STAFF PORTAL</span>
-          </div>
-        </div>
-        <button onclick="toggleMobileSidebar(false)" class="md:hidden p-1.5 text-slate-400 hover:text-slate-100 rounded transition-colors" title="Close Drawer">
-          <i class="fa-solid fa-xmark text-base"></i>
-        </button>
-      </div>
-
-      <nav class="p-3 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
-        <div>
-          <div class="px-3 mb-2 flex items-center justify-between text-[10px] font-bold text-slate-500 tracking-widest uppercase cursor-pointer hover:text-slate-300 transition-colors" onclick="toggleNavGroup('navCommandsGroup')">
-            <span>Commands</span>
-            <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" id="navCommandsGroupIcon"></i>
-          </div>
-          <div class="space-y-1" id="navCommandsGroup">
-            <button class="nav-item nav-active w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-300 hover:bg-slate-800/50" data-path="/dashboard" onclick="navigateTo('/dashboard')">
-              <i class="fa-solid fa-terminal w-4 text-slate-400 text-center"></i>
-              <span>Moderation</span>
-            </button>
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/chat" onclick="navigateTo('/chat')">
-              <i class="fa-solid fa-comments w-4 text-slate-400 text-center"></i>
-              <span class="truncate">Live Game Chat</span>
-              <span class="ml-auto px-1.5 py-0.5 text-[9px] font-bold bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 shrink-0">AI</span>
-            </button>
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/lookup" onclick="navigateTo('/lookup')">
-              <i class="fa-solid fa-magnifying-glass w-4 text-slate-400 text-center"></i>
-              <span>User Lookup</span>
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div class="px-3 mb-2 flex items-center justify-between text-[10px] font-bold text-slate-500 tracking-widest uppercase cursor-pointer hover:text-slate-300 transition-colors" onclick="toggleNavGroup('navRecordsGroup')">
-            <span>Records</span>
-            <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" id="navRecordsGroupIcon"></i>
-          </div>
-          <div class="space-y-1" id="navRecordsGroup">
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/banned" onclick="navigateTo('/banned')">
-              <i class="fa-solid fa-user-slash w-4 text-slate-400 text-center"></i>
-              <span>Banned Users</span>
-            </button>
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/logs" onclick="navigateTo('/logs')">
-              <i class="fa-solid fa-receipt w-4 text-slate-400 text-center"></i>
-              <span>Audit Logs</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="ownerSection" style="display:none;">
-          <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Administration</div>
-          <div class="space-y-1">
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/management" onclick="navigateTo('/management')">
-              <i class="fa-solid fa-users-gear w-4 text-slate-400 text-center"></i>
-              <span>Staff Management</span>
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div class="px-3 mb-2 text-[10px] font-bold text-slate-500 tracking-widest uppercase">System</div>
-          <div class="space-y-1">
-            <button class="nav-item w-full text-left px-3 py-2.5 text-xs font-medium rounded transition-colors flex items-center gap-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-slate-200" data-path="/system" onclick="navigateTo('/system')">
-              <i class="fa-solid fa-server w-4 text-slate-400 text-center"></i>
-              <span>Server Console</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-    </div>
-
-    <div class="p-3 border-t border-slate-800/80 bg-[#0a0d14] shrink-0">
-      <div class="p-2.5 rounded bg-[#121722] card-border flex items-center justify-between">
-        <div class="flex items-center gap-2.5 min-w-0 cursor-pointer group" onclick="openUserSettingsModal()">
-          <div class="w-7 h-7 rounded bg-slate-800 border border-slate-700/60 flex items-center justify-center text-xs text-blue-400 font-bold shrink-0 group-hover:border-blue-500 transition-colors">
-            <i class="fa-solid fa-user-shield text-xs"></i>
-          </div>
-          <div class="truncate">
-            <div class="text-xs font-semibold text-slate-200 truncate group-hover:text-blue-400 transition-colors" id="currentAdminName">roblox</div>
-            <div class="text-[10px] text-slate-500 font-medium uppercase tracking-wider" id="currentAdminRole">OWNER</div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <button onclick="openUserSettingsModal()" class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 rounded transition-colors shrink-0" title="User Account Settings (⚙️)">
-            <i class="fa-solid fa-gear text-xs"></i>
+          <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 text-slate-300 hover:text-white bg-[#121722] card-border rounded-lg">
+            <i class="fa-solid fa-bars text-sm"></i>
           </button>
-          <a href="/auth/logout" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors shrink-0" title="Log Out">
-            <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0b0f17]">
-    
-    <header class="h-14 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between bg-[#0e131f] shrink-0">
-      <div class="flex items-center gap-3 text-xs text-slate-400 min-w-0">
-        <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded card-border transition-colors focus:outline-none" title="Open Navigation Menu">
-          <i class="fa-solid fa-bars text-sm"></i>
-        </button>
-
-        <div class="flex items-center gap-1.5 sm:gap-2 text-xs truncate">
-          <span class="hidden sm:inline hover:text-slate-200 cursor-pointer" onclick="navigateTo('/dashboard')">Dashboard</span>
-          <i class="fa-solid fa-chevron-right text-[9px] text-slate-600 hidden sm:inline"></i>
-          <span class="hidden md:inline hover:text-slate-200 cursor-pointer" id="breadcrumbSection">Command Center</span>
-          <i class="fa-solid fa-chevron-right text-[9px] text-slate-600 hidden md:inline"></i>
-          <span class="text-slate-100 font-semibold truncate" id="breadcrumbPage">Moderation</span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-        <button onclick="toggleCommandPalette()" class="w-9 sm:w-52 md:w-64 px-2.5 sm:px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 flex items-center justify-center sm:justify-between hover:border-slate-700 transition-colors">
-          <span class="flex items-center gap-2">
-            <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
-            <span class="text-slate-500 font-normal hidden sm:inline truncate">Search commands...</span>
-          </span>
-          <kbd class="hidden md:inline px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border">⌘K</kbd>
-        </button>
-
-        <div class="flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 sm:px-2.5 py-1 rounded border border-emerald-500/20 shrink-0">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="hidden sm:inline">Open Cloud</span>
-          <span class="sm:hidden text-[10px] font-bold">ONLINE</span>
-        </div>
-      </div>
-    </header>
-
-    <main class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
           <div>
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Live Players</div>
-            <div class="text-xl font-bold text-slate-100 mt-1 flex items-center gap-2">
-              <span id="statLivePlayers">0</span>
-              <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-arrow-up text-[8px]"></i> +12%</span>
-            </div>
-          </div>
-          <div class="w-8 h-8 rounded bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-            <i class="fa-solid fa-users text-xs"></i>
+            <h1 id="pageTitleHeading" class="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-gauge-high text-blue-400 text-xs"></i>
+              <span>Moderation Command Center</span>
+            </h1>
+            <p id="pageSubHeading" class="text-[11px] text-slate-400 hidden sm:block">Live Open Cloud dispatch and telemetry console</p>
           </div>
         </div>
 
-        <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
-          <div>
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Bans Recorded</div>
-            <div class="text-xl font-bold text-slate-100 mt-1" id="statTotalBans">0</div>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- THEME SELECTOR -->
+          <div class="flex items-center gap-1 bg-[#121722] p-1 card-border rounded text-[10px]">
+            <button onclick="setAppTheme('sea')" class="px-2 py-0.5 rounded text-blue-400 font-bold hover:bg-slate-800 transition-colors" title="Deep Sea Theme">Sea</button>
+            <button onclick="setAppTheme('purple')" class="px-2 py-0.5 rounded text-purple-400 font-bold hover:bg-slate-800 transition-colors" title="Cyber Purple Theme">Purple</button>
+            <button onclick="setAppTheme('stealth')" class="px-2 py-0.5 rounded text-slate-300 font-bold hover:bg-slate-800 transition-colors" title="Stealth Black Theme">Stealth</button>
           </div>
-          <div class="w-8 h-8 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
-            <i class="fa-solid fa-user-lock text-xs"></i>
+
+          <button onclick="toggleCommandPalette()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-400 hover:border-slate-700 transition-colors">
+            <i class="fa-solid fa-terminal text-blue-400 text-xs"></i>
+            <span class="text-[11px]">Command Palette...</span>
+            <kbd class="px-1.5 py-0.5 bg-slate-800 text-[9px] font-mono text-slate-300 rounded card-border">Ctrl+K</kbd>
+          </button>
+
+          <!-- API PULSE DOT -->
+          <div class="flex items-center gap-2 bg-[#121722] px-2.5 py-1.5 card-border rounded text-[11px] font-mono">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-emerald-400 font-bold hidden sm:inline">ONLINE</span>
           </div>
         </div>
+      </header>
 
-        <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
-          <div>
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Audit Events</div>
-            <div class="text-xl font-bold text-slate-100 mt-1" id="statTotalLogs">0</div>
-          </div>
-          <div class="w-8 h-8 rounded bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-          </div>
-        </div>
-
-        <div class="p-4 bg-[#121722] card-border rounded flex items-center justify-between relative overflow-hidden">
-          <div>
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">AI Safety Status</div>
-            <div class="text-xs font-bold text-emerald-400 mt-2 flex items-center gap-1.5">
-              <i class="fa-solid fa-shield-cat text-xs text-emerald-400"></i> AI Auto-Mod Active
-            </div>
-          </div>
-          <div class="w-8 h-8 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-            <i class="fa-solid fa-robot text-xs"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 1: MODERATION DASHBOARD -->
-      <section id="tab-dashboard" class="tab-content space-y-4 sm:space-y-6">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-terminal text-blue-400"></i>
-                <span>Command Actions</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Issue real-time moderation dispatches across live game servers</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="md:col-span-4 space-y-1">
-              <div class="flex items-center justify-between">
-                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Target UserID *</label>
-                <span class="text-[9px] text-slate-500 font-mono">Numbers only</span>
+      <!-- TAB CONTENT AREA -->
+      <div class="p-4 sm:p-6 space-y-6 flex-1">
+        
+        <section id="tab-dashboard" class="tab-content space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <!-- COMMAND ACTIONS -->
+            <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div>
+                  <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-blue-400"></i>
+                    <span>Command Actions</span>
+                  </h2>
+                  <p class="text-xs text-slate-400 mt-0.5">Issue real-time moderation dispatches across live game servers</p>
+                </div>
               </div>
-              <input 
-                type="text" 
-                id="userId" 
-                placeholder="e.g. 12345678" 
-                class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors font-mono" 
-                oninput="validateNumericInput(this); debounceUserPreview(); updateBanBtnState();" 
-              />
-            </div>
-            <div class="md:col-span-8 space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reason / Note (Mandatory for Kick/Warn/Ban) *</label>
-              <input 
-                type="text" 
-                id="reason" 
-                placeholder="Type clear moderation reason..." 
-                class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" 
-                oninput="updateBanBtnState()"
-              />
-            </div>
-          </div>
 
-          <div id="userPreviewBadge" class="hidden p-3 bg-[#0b0f17] card-border rounded items-center justify-between transition-all"></div>
-
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-            <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-              <button onclick="sendAction('KICK')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
-                <i class="fa-solid fa-boot text-slate-400 text-xs"></i> Kick
-              </button>
-              <button onclick="sendAction('WARN')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
-                <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i> Warn
-              </button>
-              <button onclick="sendAction('UNBAN')" class="col-span-2 sm:col-span-1 py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 card-border">
-                <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i> Unban User
-              </button>
-            </div>
-
-            <button 
-              id="globalBanBtn"
-              disabled
-              onclick="triggerGlobalBanConfirmation()" 
-              class="w-full sm:w-auto py-2.5 px-4 bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded transition-all flex items-center justify-center gap-2"
-            >
-              <i class="fa-solid fa-gavel"></i> Global Ban...
-            </button>
-          </div>
-        </div>
-
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-users-viewfinder text-blue-400"></i>
-                <span>Live Active Players & Inventory</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Real-time telemetry stream from live game servers</p>
-            </div>
-            <button onclick="fetchLivePlayers()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors shrink-0">
-              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> <span class="hidden sm:inline">Refresh</span>
-            </button>
-          </div>
-
-          <div id="livePlayersContainer" class="w-full overflow-x-auto"></div>
-        </div>
-
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-blue-400"></i>
-                <span>Recent Console Actions</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Last 5 dispatch entries executed in this session</p>
-            </div>
-            <button onclick="navigateTo('/logs')" class="text-xs text-blue-400 hover:underline font-medium shrink-0">View All &rarr;</button>
-          </div>
-
-          <div id="recentLogs" class="space-y-1.5"></div>
-        </div>
-      </section>
-
-      <!-- TAB 2: LIVE GAME CHAT STREAM WITH PERSISTENT BUFFER -->
-      <section id="tab-chat" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800/80 pb-3 gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-comments text-blue-400"></i>
-                  <span>Live In-Game Chat Feed & AI Safety Scanner</span>
-                </h2>
-                <span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono rounded-full flex items-center gap-1.5 shrink-0">
-                  <i class="fa-solid fa-arrows-rotate fa-spin text-[9px]"></i>
-                  <span>Syncing Database...</span>
-                </span>
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-4 space-y-1">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Target UserID *</label>
+                    <span class="text-[9px] text-slate-500 font-mono">Numbers only</span>
+                  </div>
+                  <input 
+                    type="text" 
+                    id="userId" 
+                    placeholder="e.g. 12345678" 
+                    class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors font-mono" 
+                    oninput="validateNumericInput(this); debounceUserPreview(); updateBanBtnState();" 
+                  />
+                </div>
+                <div class="md:col-span-8 space-y-1">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reason / Note (Mandatory for Kick/Warn/Ban) *</label>
+                    <button onclick="aiPolishReason()" class="text-[10px] font-mono text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors">
+                      <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> AI Refine Reason
+                    </button>
+                  </div>
+                  <input 
+                    type="text" 
+                    id="reason" 
+                    placeholder="Type clear moderation reason..." 
+                    class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-colors" 
+                    oninput="updateBanBtnState()"
+                  />
+                </div>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
-            </div>
 
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-              <button onclick="loadChatHistory()" class="px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-blue-300 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
-                <i class="fa-solid fa-clock-rotate-left text-[11px]"></i> Load History
-              </button>
+              <!-- PREVIEW BADGE -->
+              <div id="userPreviewBadge" class="hidden p-3 bg-[#0b0f17] card-border rounded-lg items-center justify-between transition-all"></div>
 
-              <input type="text" id="chatSearchInput" placeholder="Filter text or regex (e.g. discord\.gg)..." class="px-3 py-1.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full sm:w-64" onkeyup="filterChatFeed()" />
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                  <button onclick="sendAction('KICK')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
+                    <i class="fa-solid fa-boot text-slate-400 text-xs"></i> Kick
+                  </button>
+                  <button onclick="sendAction('WARN')" class="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
+                    <i class="fa-solid fa-bullhorn text-amber-400 text-xs"></i> Warn
+                  </button>
+                  <button onclick="sendAction('UNBAN')" class="col-span-2 sm:col-span-1 py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 card-border">
+                    <i class="fa-solid fa-user-check text-emerald-400 text-xs"></i> Unban User
+                  </button>
+                </div>
 
-              <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start pt-1 sm:pt-0">
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2.5 py-1.5 bg-[#0b0f17] card-border rounded">
-                  <input type="checkbox" id="toggleFlaggedOnly" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" onchange="renderChatStream()" />
-                  <span class="text-[11px] font-semibold">Flagged Only</span>
-                </label>
-
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-200 select-none px-2.5 py-1.5 bg-[#0b0f17] card-border rounded">
-                  <input type="checkbox" id="toggleAutoMod" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer" checked onchange="toggleAutoModEngine()" />
-                  <span class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
-                    <i class="fa-solid fa-robot text-[10px]"></i> Auto-Mod
-                  </span>
-                </label>
-
-                <button onclick="clearChatFeed()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded card-border transition-colors">
-                  <i class="fa-solid fa-trash text-[10px]"></i> Clear
+                <button 
+                  id="globalBanBtn"
+                  disabled
+                  onclick="triggerGlobalBanConfirmation()" 
+                  class="w-full sm:w-auto py-2.5 px-4 bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <i class="fa-solid fa-gavel"></i> Global Ban...
                 </button>
               </div>
             </div>
-          </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[450px] lg:h-[600px]">
-            <div class="lg:col-span-8 bg-[#0b0f17] card-border rounded flex flex-col justify-between overflow-hidden h-[400px] lg:h-auto">
-              <div id="chatFeedStream" class="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2"></div>
-              <div class="p-3 bg-[#0e131f] border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                <span class="flex items-center gap-2 truncate">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                  <span class="truncate">Database Persistent Sync Active</span>
-                </span>
-                <span id="chatTotalCount" class="font-mono text-[11px] text-slate-500 shrink-0">0 messages</span>
-              </div>
-            </div>
-
-            <div class="lg:col-span-4 bg-[#0b0f17] card-border rounded p-4 flex flex-col justify-between overflow-hidden max-h-[300px] lg:max-h-none">
+            <div class="lg:col-span-4 bg-[#121722] card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between">
               <div>
-                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span>Active Chatters & Threat Level</span>
-                  <span class="text-[10px] text-blue-400 font-mono" id="activeChattersCount">0 online</span>
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-blue-400"></i>
+                    <span>24h Toxicity Telemetry</span>
+                  </h3>
+                  <span class="text-[10px] font-mono text-emerald-400 font-semibold">AI Scan</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Real-time flagged infractions trend line</p>
+                <div class="mt-3 relative h-32 w-full">
+                  <canvas id="toxicityHeatmapCanvas" class="w-full h-full"></canvas>
+                </div>
+              </div>
+              <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                <span>Peak Risk Hour: <strong class="text-amber-400">15:00 - 18:00</strong></span>
+                <span>Status: Normal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SYSTEM STATS CARDS -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Live In-Game Players</span>
+                <span id="statLivePlayers" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <i class="fa-solid fa-gamepad text-lg"></i>
+              </div>
+            </div>
+
+            <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Global Bans</span>
+                <span id="statActiveBans" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                <i class="fa-solid fa-ban text-lg"></i>
+              </div>
+            </div>
+
+            <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">24h Dispatches Issued</span>
+                <span id="statTotalLogs" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+              </div>
+            </div>
+
+            <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Open Cloud Latency</span>
+                <span class="text-2xl font-black text-emerald-400 font-mono mt-1 block">12ms</span>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <i class="fa-solid fa-bolt text-lg"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-players" class="tab-content space-y-4 hidden">
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div>
+                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <i class="fa-solid fa-users text-emerald-400"></i>
+                  <span>Live Server Instances & Inventory Drawer</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Inspect player tools, backpacks, and execute targeted inventory restrictions</p>
+              </div>
+              <button onclick="fetchLivePlayers()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 card-border">
+                <i class="fa-solid fa-rotate text-xs"></i> Refresh Players
+              </button>
+            </div>
+
+            <div id="livePlayersContainer" class="space-y-2">
+              <div class="p-8 text-center text-slate-500 text-xs font-mono">Loading live game instances...</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-chat" class="tab-content space-y-4 hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                  <div>
+                    <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      <i class="fa-solid fa-comments text-amber-400"></i>
+                      <span>Live In-Game Chat Feed & AI Safety Scanner</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time stream with automated toxicity classification & Discord grouping</p>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    <button onclick="deepScanChatWithGemini()" class="px-2.5 py-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                      <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-xs"></i> AI Deep Scan
+                    </button>
+
+                    <label class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0b0f17] card-border rounded-lg text-xs cursor-pointer select-none">
+                      <input type="checkbox" id="chatFilterFlagged" class="w-3.5 h-3.5 rounded bg-slate-800 text-blue-600 focus:ring-0" onchange="renderChatFeed()" />
+                      <span class="text-[11px] text-slate-300">Flagged Only</span>
+                    </label>
+
+                    <label class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0b0f17] card-border rounded-lg text-xs cursor-pointer select-none">
+                      <input type="checkbox" id="autoModToggle" checked class="w-3.5 h-3.5 rounded bg-slate-800 text-blue-600 focus:ring-0" />
+                      <span class="text-[11px] text-slate-300 font-semibold flex items-center gap-1"><i class="fa-solid fa-robot text-emerald-400"></i> Auto-Mod</span>
+                    </label>
+
+                    <button onclick="clearChatFeed()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors card-border">
+                      <i class="fa-solid fa-trash-can text-xs"></i> Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- FILTER INPUT -->
+                <div class="mt-3">
+                  <input type="text" id="chatSearchFilter" placeholder="Filter text or regex (e.g. discord\.gg)..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" oninput="renderChatFeed()" />
+                </div>
+
+                <!-- CHAT MESSAGES STREAM CONTAINER -->
+                <div id="chatFeedList" class="mt-4 space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                  <div class="p-8 text-center text-slate-500 text-xs font-mono">Listening for live game chat telemetry...</div>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> AI Safety Engine Listening (0.1s websocket latency)</span>
+                <span id="chatMessageCounter">0 messages</span>
+              </div>
+            </div>
+
+            <!-- ACTIVE CHATTERS SIDEBAR -->
+            <div class="lg:col-span-4 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+              <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                  <i class="fa-solid fa-user-shield text-blue-400"></i>
+                  <span>Active Chatters & Risk Level</span>
                 </h3>
-                <div id="activeChattersList" class="space-y-2 overflow-y-auto max-h-[200px] lg:max-h-[480px] pr-1"></div>
+                <span id="activeChattersCount" class="text-[10px] font-mono font-bold text-blue-400">0 ACTIVE</span>
               </div>
-              <div class="pt-3 border-t border-slate-800/80 text-[10px] text-slate-500 flex items-center justify-between">
-                <span>Threat Baseline</span>
-                <span class="text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Active</span>
+
+              <div id="activeChattersList" class="space-y-2 max-h-[500px] overflow-y-auto">
+                <div class="p-6 text-center text-slate-500 text-xs font-mono">No active chatters detected yet.</div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- TAB 3: USER LOOKUP -->
-      <section id="tab-lookup" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div>
-            <h2 class="text-sm font-bold text-slate-100">Roblox User Lookup & Risk Profile</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Inspect account history, creation age, avatar headshots, and previous infractions</p>
+          </div>
+        </section>
+
+        <section id="tab-banned" class="tab-content space-y-4 hidden">
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div>
+                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <i class="fa-solid fa-ban text-red-400"></i>
+                  <span>Active Global Bans & DataStore Records</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Managed persistence synced across WebBanList_v3 DataStore</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input type="text" id="bannedSearchFilter" placeholder="Filter banned users..." class="px-3 py-1.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" oninput="renderBannedTable()" />
+                <button onclick="triggerUnbanAllConfirmation()" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
+                  <i class="fa-solid fa-rotate-left"></i> Unban All
+                </button>
+              </div>
+            </div>
+
+            <div id="bannedUsersTableContainer" class="w-full overflow-x-auto">
+              <table class="w-full text-left text-xs min-w-[650px]">
+                <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
+                  <tr>
+                    <th class="p-3">User</th>
+                    <th class="p-3">Reason</th>
+                    <th class="p-3">Moderator</th>
+                    <th class="p-3">Case ID</th>
+                    <th class="p-3">Banned At</th>
+                    <th class="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="bannedUsersTableBody" class="divide-y divide-slate-800/60">
+                  <tr><td colspan="6" class="p-6 text-center text-slate-500 font-mono">Loading banned users list...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-logs" class="tab-content space-y-4 hidden">
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div>
+                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <i class="fa-solid fa-list-check text-purple-400"></i>
+                  <span>Moderation Audit Trail & Incident Logs</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Complete historical log of all command dispatches</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="generateAiIncidentReport()" class="px-3 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                  <i class="fa-solid fa-brain text-purple-400 text-xs"></i> AI Briefing
+                </button>
+                <input type="text" id="logSearchFilter" placeholder="Filter log entries..." class="px-3 py-1.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" oninput="renderLogsTable()" />
+                <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors card-border flex items-center gap-2">
+                  <i class="fa-solid fa-trash-can"></i> Clear Logs
+                </button>
+              </div>
+            </div>
+
+            <div id="logsContainer" class="space-y-2">
+              <div class="p-6 text-center text-slate-500 text-xs font-mono">Loading action logs...</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-lookup" class="tab-content space-y-4 hidden">
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3">
+              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass text-cyan-400"></i>
+                <span>Roblox Identity & Profile Inspector</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Query Roblox API by Username or numeric UserID</p>
+            </div>
+
+            <div class="flex gap-2">
+              <input type="text" id="lookupQueryInput" placeholder="Enter Username or UserID (e.g. Builderman)..." class="flex-1 px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" onkeydown="if(event.key==='Enter') executeUserLookup();" />
+              <button onclick="executeUserLookup()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i> Lookup
+              </button>
+            </div>
+
+            <div id="lookupCardResult" class="hidden p-5 bg-[#0b0f17] card-border rounded-xl space-y-4">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-management" class="tab-content space-y-6 hidden">
+          
+          <!-- OWNER NOTICE BROADCAST CENTER -->
+          <div id="noticeConfigCard" class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <i class="fa-solid fa-bullhorn text-amber-400"></i>
+                  <span>Notice & Communications Center</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Broadcast system-wide alert banner to all active staff consoles</p>
+              </div>
+              <span class="px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-amber-500/10 text-amber-400 border-amber-500/20">OWNER CONTROL</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+              <div class="md:col-span-6 space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Announcement Message *</label>
+                <input type="text" id="noticeInputMessage" placeholder="e.g. Maintenance scheduled tonight at 10:00 PM EST." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="md:col-span-3 space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Alert Level *</label>
+                <select id="noticeInputLevel" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none">
+                  <option value="info">Info (Blue)</option>
+                  <option value="warning" selected>Warning (Amber)</option>
+                  <option value="emergency">Emergency (Red)</option>
+                </select>
+              </div>
+
+              <div class="md:col-span-3 space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Banner Icon</label>
+                <select id="noticeInputIcon" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none">
+                  <option value="bell">🔔 Bell Icon</option>
+                  <option value="triangle-exclamation" selected>⚠️ Warning Icon</option>
+                  <option value="shield">🛡️ Shield Icon</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="noticeInputActive" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" />
+                <span class="text-xs font-semibold text-slate-200">Enable Top Banner Broadcast</span>
+              </label>
+
+              <button onclick="saveNoticeSettings()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Publish Banner
+              </button>
+            </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row gap-2">
-            <input type="text" id="lookupQuery" placeholder="Enter Username or UserID..." class="flex-1 px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') performLookup()" />
-            <button onclick="performLookup()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2 shrink-0">
-              <i class="fa-solid fa-magnifying-glass"></i> Search User
+          <!-- INVITE STAFF MEMBER -->
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3">
+              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-blue-400"></i>
+                <span>Invite Staff Member</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Generate staff credentials and send automated access email</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Roblox Username *</label>
+                <input type="text" id="newUsername" placeholder="e.g. Golddoggo9866" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
+                <input type="email" id="newEmail" placeholder="mod@example.com" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Assigned Password *</label>
+                <input type="text" id="newPassword" placeholder="Set secure password..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Role Level *</label>
+                <select id="newRole" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                  <option value="mod">Moderator (Standard Mod Tools)</option>
+                  <option value="admin">Admin (Full Administrative Access)</option>
+                </select>
+              </div>
+            </div>
+
+            <button onclick="createModerator()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> Send Invite & Create Account
             </button>
           </div>
-        </div>
 
-        <div id="lookupResultContainer"></div>
-      </section>
-
-      <!-- TAB 4: BANNED PLAYERS DIRECTORY -->
-      <section id="tab-banned" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-2">
-            <div>
-              <h2 class="text-sm font-bold text-slate-100">Banned Players Directory</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Active ban records synced across Open Cloud DataStores</p>
+          <!-- STAFF LEADERBOARD -->
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-amber-400"></i>
+                <span>Staff Activity & Productivity Leaderboard</span>
+              </h2>
+              <span class="text-[11px] text-slate-400 font-mono">Live Session Data</span>
             </div>
-            <button onclick="forceUnbanAll()" class="px-3 py-1.5 bg-red-600/20 border border-red-500/40 hover:bg-red-600/30 text-red-300 text-xs font-semibold rounded transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto">
-              <i class="fa-solid fa-dumpster-fire"></i> Force Unban All
-            </button>
-          </div>
 
-          <div id="bannedUsersList" class="w-full overflow-x-auto"></div>
-        </div>
-      </section>
-
-      <!-- TAB 5: AUDIT LOGS -->
-      <section id="tab-logs" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-2">
-            <div>
-              <h2 class="text-sm font-bold text-slate-100">Audit Logs</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Historical command history and staff actions</p>
-            </div>
-            <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded card-border transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto">
-              <i class="fa-solid fa-trash text-[10px]"></i> Clear Audit Logs
-            </button>
-          </div>
-
-          <div id="fullLogs" class="space-y-1.5"></div>
-        </div>
-      </section>
-
-      <!-- TAB 6: STAFF MANAGEMENT -->
-      <section id="tab-management" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="border-b border-slate-800/80 pb-3">
-            <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <i class="fa-solid fa-user-plus text-blue-400"></i>
-              <span>Invite Staff Member</span>
-            </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Generate staff credentials and send automated access email</p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Roblox Username *</label>
-              <input type="text" id="newUsername" placeholder="e.g. Golddoggo9866" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
-              <input type="email" id="newEmail" placeholder="mod@example.com" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Assigned Password *</label>
-              <input type="text" id="newPassword" placeholder="Set secure password..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500" />
-            </div>
-            <div class="space-y-1">
-              <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Role Level *</label>
-              <select id="newRole" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500">
-                <option value="mod">Moderator (Standard Mod Tools)</option>
-                <option value="admin">Admin (Full Administrative Access)</option>
-              </select>
+            <div id="staffLeaderboardContainer" class="w-full overflow-x-auto">
+              <table class="w-full text-left text-xs min-w-[500px]">
+                <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
+                  <tr>
+                    <th class="p-2.5">Staff Identity</th>
+                    <th class="p-2.5">Privilege</th>
+                    <th class="p-2.5 text-center">Bans Executed</th>
+                    <th class="p-2.5 text-center">Warnings Issued</th>
+                    <th class="p-2.5 text-right">Activity Rating</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60">
+                  <tr class="bg-[#0b0f17]">
+                    <td class="p-2.5 font-bold text-slate-200">roblox <span class="text-amber-400 text-[10px]">(You)</span></td>
+                    <td class="p-2.5"><span class="px-2 py-0.5 text-[9px] font-bold uppercase rounded border bg-amber-500/20 text-amber-400 border-amber-500/30">OWNER</span></td>
+                    <td class="p-2.5 text-center font-mono text-slate-300" id="leadBansCount">0</td>
+                    <td class="p-2.5 text-center font-mono text-slate-300" id="leadWarnsCount">0</td>
+                    <td class="p-2.5 text-right font-bold text-emerald-400">TOP PERFORMER</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <button onclick="createModerator()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-2">
-            <i class="fa-solid fa-paper-plane"></i> Send Invite & Create Account
-          </button>
-        </div>
-
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-4">
-          <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-100">Active Staff Accounts & Permissions</h2>
-            <span class="text-[11px] text-slate-400 font-mono">Owner Controls Active</span>
+          <!-- ACTIVE ACCOUNTS LIST -->
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-100">Active Staff Accounts & Permissions</h2>
+              <span class="text-[11px] text-slate-400 font-mono">Owner Controls Active</span>
+            </div>
+            <div id="moderatorsList" class="w-full overflow-x-auto"></div>
           </div>
-          <div id="moderatorsList" class="w-full overflow-x-auto"></div>
-        </div>
-      </section>
+        </section>
 
-      <!-- TAB 7: SERVER CONSOLE TERMINAL -->
-      <section id="tab-system" class="tab-content space-y-4 sm:space-y-6 hidden">
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-3">
-          <h2 class="text-sm font-bold text-slate-100">Server & Environment Telemetry</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-            <div class="p-3 bg-[#0b0f17] card-border rounded space-y-1">
-              <span class="text-slate-500 uppercase text-[10px] block font-bold">Messaging Topic</span>
-              <span class="text-blue-400 font-bold">ModChannel</span>
+        <section id="tab-system" class="tab-content space-y-4 hidden">
+          <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+            <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-terminal text-emerald-400"></i>
+                <span>Open Cloud Terminal & Server Logs</span>
+              </h2>
+              <span class="text-[10px] font-mono text-emerald-400">CONNECTED: PORT 3000</span>
             </div>
-            <div class="p-3 bg-[#0b0f17] card-border rounded space-y-1">
-              <span class="text-slate-500 uppercase text-[10px] block font-bold">DataStore Engine</span>
-              <span class="text-emerald-400 font-bold">WebBanList_v3</span>
+
+            <div id="terminalOutput" class="bg-[#070a0f] card-border rounded-lg p-4 h-80 overflow-y-auto font-mono text-xs text-slate-300 space-y-1">
+              <div>[SYSTEM]: Open Cloud WebSocket established cleanly.</div>
+              <div>[SYSTEM]: Session authenticated as Owner (roblox).</div>
             </div>
-            <div class="p-3 bg-[#0b0f17] card-border rounded space-y-1">
-              <span class="text-slate-500 uppercase text-[10px] block font-bold">Open Cloud Connection</span>
-              <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Connected</span>
+
+            <div class="flex gap-2 font-mono">
+              <span class="px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-blue-400 font-bold select-none">&gt;_</span>
+              <input type="text" id="terminalCommandInput" placeholder="Type command (e.g. status, unban <id>, clear)..." class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') executeTerminalCommand();" />
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="bg-[#121722] card-border rounded p-4 sm:p-5 space-y-3">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-            <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <i class="fa-solid fa-terminal text-emerald-400"></i>
-              <span>Live Game LogService Terminal</span>
-            </h2>
-            <button onclick="clearConsoleTerminal()" class="text-xs text-slate-400 hover:text-slate-200">Clear Logs</button>
-          </div>
-
-          <div id="consoleTerminalWindow" class="console-terminal p-4 rounded card-border text-xs text-slate-300 space-y-1.5 h-72 sm:h-80 overflow-y-auto">
-            <div class="text-slate-500">[SYSTEM INIT] Connecting to Roblox LogService websocket telemetry stream...</div>
-            <div class="text-emerald-400">[INFO] MessagingService listener active on channel 'ModChannel'</div>
-          </div>
-        </div>
-      </section>
-
+      </div>
     </main>
-
-    <footer class="bg-[#0a0d14] border-t border-slate-800/80 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 gap-2 shrink-0 select-none">
-      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4">
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Open Cloud: Active</span>
-        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> WebSockets: Connected</span>
-      </div>
-      <div class="text-center sm:text-right font-mono text-slate-600 text-[9px] sm:text-[10px]">
-        <span>Escape Tsunami Staff Portal v2.5.0</span>
-      </div>
-    </footer>
   </div>
 
-  <!-- MODAL 1: CONFIRM GLOBAL BAN -->
-  <div id="banConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] card-border rounded-lg w-full max-w-md p-6 space-y-5 shadow-2xl border-l-4 border-l-red-500">
-      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-triangle-exclamation text-red-500"></i> Confirm Global Ban
-        </h3>
-        <button onclick="closeBanConfirmModal()" class="text-slate-400 hover:text-slate-200 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-      </div>
-
-      <div id="banConfirmUserCard" class="p-3.5 bg-[#0b0f17] card-border rounded flex items-center gap-3.5"></div>
-
-      <div class="space-y-1.5">
-        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">BAN DURATION</label>
-        <select id="banDurationSelect" class="w-full px-3 py-2.5 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-blue-500">
-          <option value="0">Permanent Ban (Never Expires)</option>
-          <option value="3600">1 Hour Temporary Suspension</option>
-          <option value="86400">1 Day Temporary Suspension</option>
-          <option value="604800">7 Days Temporary Suspension</option>
-          <option value="2592000">30 Days Temporary Suspension</option>
-        </select>
-      </div>
-
-      <p class="text-[11px] text-slate-400 leading-relaxed bg-red-500/10 border border-red-500/20 p-2.5 rounded">
-        ⚠️ This action will immediately displace the player to Ban Land, store the record in Open Cloud DataStore, and post an audit entry to Discord.
-      </p>
-
-      <div class="flex items-center justify-end gap-2.5 pt-1">
-        <button onclick="closeBanConfirmModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded card-border">Cancel</button>
-        <button onclick="executeConfirmedBan()" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow-lg transition-all flex items-center gap-2">
-          <i class="fa-solid fa-gavel text-xs"></i> Confirm & Execute Ban
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2: USER SETTINGS -->
   <div id="userSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722]/90 card-border rounded-xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
       <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -733,13 +802,13 @@
             <div id="usernameFieldContainer" class="locked-container space-y-1">
               <div class="locked-tooltip">Locked by System Administrator</div>
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Staff Username</label>
-              <input type="text" id="settingsUsername" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none" />
+              <input type="text" id="settingsUsername" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none" />
             </div>
 
             <div id="displayNameFieldContainer" class="locked-container space-y-1">
               <div class="locked-tooltip">Locked by System Administrator</div>
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Display Alias</label>
-              <input type="text" id="settingsDisplayName" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none" />
+              <input type="text" id="settingsDisplayName" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none" />
             </div>
           </div>
         </div>
@@ -756,10 +825,10 @@
             <div id="passwordFieldContainer" class="locked-container space-y-1">
               <div class="locked-tooltip">Locked by System Administrator</div>
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">New Access Key / Password</label>
-              <input type="password" id="settingsNewPassword" placeholder="Leave blank to keep current..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded text-xs text-slate-200 focus:outline-none" />
+              <input type="password" id="settingsNewPassword" placeholder="Leave blank to keep current..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none" />
             </div>
 
-            <div class="p-2.5 bg-[#0b0f17]/60 rounded card-border text-[10px] text-slate-400 space-y-1">
+            <div class="p-2.5 bg-[#0b0f17]/60 rounded-lg card-border text-[10px] text-slate-400 space-y-1">
               <div class="font-bold text-slate-300">Session Security Notice</div>
               <div>Changes to credentials take effect on your next session login.</div>
             </div>
@@ -779,8 +848,8 @@
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button onclick="closeUserSettingsModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded card-border">Cancel</button>
-          <button id="saveUserSettingsBtn" onclick="saveUserSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors flex items-center gap-2">
+          <button onclick="closeUserSettingsModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg card-border">Cancel</button>
+          <button id="saveUserSettingsBtn" onclick="saveUserSettings()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
             <i class="fa-solid fa-floppy-disk text-xs"></i> Save Changes
           </button>
         </div>
@@ -788,97 +857,124 @@
     </div>
   </div>
 
-  <!-- MODAL 3: QUICK CHAT ACTION MODAL -->
-  <div id="chatActionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] card-border rounded w-full max-w-sm p-5 space-y-4 shadow-2xl border-l-4 border-l-blue-500">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-hammer text-amber-400"></i> Quick Moderation
+  <div id="globalBanModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121722] card-border rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative">
+      <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-red-400 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Confirm Global Ban Action</span>
         </h3>
-        <button onclick="closeChatActionModal()" class="text-slate-400 hover:text-slate-200 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+        <button onclick="closeGlobalBanModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div id="chatActionUserDetails" class="p-3 bg-[#0b0f17] card-border rounded flex items-center gap-3 text-xs"></div>
+      <div id="banModalTargetPreview" class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center gap-3">
+        <!-- JS injected avatar & info -->
+      </div>
 
-      <div class="space-y-2">
-        <button onclick="triggerQuickAction('WARN')" class="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
-          <i class="fa-solid fa-bullhorn"></i> Issue Live Warning
-        </button>
-        <button onclick="triggerQuickAction('KICK')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded card-border flex items-center justify-center gap-2">
-          <i class="fa-solid fa-boot"></i> Kick From Server
-        </button>
-        <button onclick="triggerQuickAction('BAN')" class="w-full py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 text-xs font-semibold rounded flex items-center justify-center gap-2">
-          <i class="fa-solid fa-gavel"></i> Apply Global Ban
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Ban Duration *</label>
+          <select id="banDurationSelect" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none">
+            <option value="0">Permanent Ban (DataStore Enforced)</option>
+            <option value="86400">24 Hours (1 Day)</option>
+            <option value="259200">3 Days</option>
+            <option value="604800">7 Days</option>
+            <option value="2592000">30 Days</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-red-950/20 border border-red-500/30 rounded-lg text-[11px] text-red-300">
+          <i class="fa-solid fa-shield-cat mr-1"></i> Global ban will instantly redirect the player to <strong>Ban Land</strong> and save permanently in DataStore.
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeGlobalBanModal()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg card-border">Cancel</button>
+        <button onclick="executeGlobalBanDispatch()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
+          <i class="fa-solid fa-gavel text-xs"></i> Confirm Global Ban
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 4: COMMAND PALETTE -->
-  <div id="commandPaletteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-start justify-center pt-12 sm:pt-20 p-4 hidden" onclick="toggleCommandPalette(event)">
-    <div class="bg-[#121722] card-border rounded w-full max-w-xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-      <div class="p-3 border-b border-slate-800 flex items-center gap-3">
-        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm shrink-0"></i>
-        <input type="text" id="paletteInput" placeholder="Type a command... (e.g. 'kick', 'ban', 'lookup', 'settings')" class="w-full bg-transparent text-xs text-slate-100 focus:outline-none" onkeyup="filterCommandPalette()" />
-        <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded font-mono card-border shrink-0">ESC</kbd>
+  <!-- GEMINI AI ASSISTANT MODAL -->
+  <div id="aiAssistantModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121722] card-border rounded-xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative border-t-2 border-t-purple-500">
+      <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+          </div>
+          <div>
+            <h3 id="aiModalTitle" class="text-sm font-bold text-slate-100">Gemini AI Moderation Copilot</h3>
+            <p id="aiModalSubtitle" class="text-[10px] font-mono text-purple-400">MODEL: GEMINI-3-FLASH-PREVIEW</p>
+          </div>
+        </div>
+        <button onclick="closeAiModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
-      <div id="paletteResults" class="p-2 space-y-1 max-h-72 overflow-y-auto text-xs"></div>
+
+      <div id="aiModalLoading" class="p-8 text-center space-y-3">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-400"></i>
+        <div class="text-xs font-mono text-slate-300 animate-pulse" id="aiModalLoadingText">Analyzing live telemetry with Gemini AI...</div>
+      </div>
+
+      <div id="aiModalContent" class="hidden space-y-3 max-h-[60vh] overflow-y-auto text-xs text-slate-200 font-sans leading-relaxed p-4 bg-[#0b0f17] card-border rounded-lg whitespace-pre-line font-mono">
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+        <span class="text-[10px] font-mono text-slate-500">Grounded Safety Intelligence</span>
+        <button onclick="closeAiModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border">Close Assistant</button>
+      </div>
     </div>
   </div>
 
+  <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <script>
     const socket = typeof io !== 'undefined' ? io() : null;
     let previewTimer = null;
-    let isCooldownActive = false;
-    let currentUserRole = 'mod';
+    let currentUserRole = 'owner';
     let currentAdminName = 'roblox';
     let canEditProfile = true;
     let chatMessagesList = [];
-    let activeChatTarget = null;
+    let livePlayersList = [];
+    let activeBannedList = [];
+    let activeAuditLogs = [];
     let userRiskScores = new Map();
 
-    function validateNumericInput(inputEl) {
-      inputEl.value = inputEl.value.replace(/[^0-9]/g, '');
+    function notify(title, message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast-card p-3.5 bg-[#0e131f] card-border rounded-lg text-xs flex items-start gap-3 shadow-xl pointer-events-auto border-l-4 ${type === 'error' ? 'border-l-red-500' : type === 'warning' ? 'border-l-amber-500' : 'border-l-blue-500'}`;
+      toast.innerHTML = `
+        <div class="text-sm mt-0.5 ${type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-amber-400' : 'text-blue-400'}">
+          <i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-bold text-slate-100">${title}</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">${message}</div>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
     }
 
-    function updateBanBtnState() {
-      const userIdVal = document.getElementById('userId').value.trim();
-      const reasonVal = document.getElementById('reason').value.trim();
-      const banBtn = document.getElementById('globalBanBtn');
-
-      const isValidNumericId = userIdVal.length > 0 && !isNaN(Number(userIdVal));
-      const hasReason = reasonVal.length > 0;
-
-      if (isValidNumericId && hasReason) {
-        banBtn.disabled = false;
-        banBtn.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed', 'opacity-60', 'border-slate-700/50');
-        banBtn.classList.add('bg-red-500/10', 'border-red-500/40', 'hover:bg-red-600', 'hover:text-white', 'text-red-400', 'cursor-pointer');
-      } else {
-        banBtn.disabled = true;
-        banBtn.classList.add('bg-slate-800', 'text-slate-500', 'cursor-not-allowed', 'opacity-60', 'border-slate-700/50');
-        banBtn.classList.remove('bg-red-500/10', 'border-red-500/40', 'hover:bg-red-600', 'hover:text-white', 'text-red-400', 'cursor-pointer');
-      }
+    function setAppTheme(theme) {
+      document.body.classList.remove('theme-purple', 'theme-stealth');
+      if (theme === 'purple') document.body.classList.add('theme-purple');
+      if (theme === 'stealth') document.body.classList.add('theme-stealth');
+      notify('Theme Updated', `Switched theme to ${theme.toUpperCase()}`);
     }
 
-    function toggleNavGroup(groupId) {
-      const groupEl = document.getElementById(groupId);
-      const iconEl = document.getElementById(`${groupId}Icon`);
-      if (groupEl && iconEl) {
-        groupEl.classList.toggle('hidden');
-        iconEl.classList.toggle('rotate-180');
-      }
-    }
-
-    function toggleMobileSidebar(forceOpen = null) {
+    function toggleMobileSidebar(show) {
       const drawer = document.getElementById('sidebarDrawer');
       const backdrop = document.getElementById('mobileSidebarBackdrop');
-      
-      const isOpen = !drawer.classList.contains('-translate-x-full');
-      const shouldOpen = forceOpen !== null ? forceOpen : !isOpen;
-
-      if (shouldOpen) {
+      if (show) {
         drawer.classList.remove('-translate-x-full');
         backdrop.classList.remove('hidden');
         setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
@@ -889,45 +985,17 @@
       }
     }
 
-    if (socket) {
-      socket.on('initialChatLogs', (logs) => {
-        if (Array.isArray(logs)) {
-          chatMessagesList = logs;
-          renderChatStream();
-        }
-      });
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active', 'text-slate-100'));
 
-      socket.on('newChatMessage', (chatData) => {
-        chatMessagesList.unshift(chatData);
-        if (chatMessagesList.length > 300) chatMessagesList.pop();
-        renderChatStream();
-      });
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      const targetNav = document.getElementById(`nav-${tabId}`);
 
-      socket.on('playersUpdate', (players) => {
-        const countEl = document.getElementById('statLivePlayers');
-        if (countEl && Array.isArray(players)) countEl.innerText = players.length;
-      });
-    }
+      if (targetTab) targetTab.classList.remove('hidden');
+      if (targetNav) targetNav.classList.add('nav-active', 'text-slate-100');
 
-    function notify(title, message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast-card pointer-events-auto p-3 bg-[#121722] card-border rounded shadow-lg flex items-start gap-3 text-xs border-l-4 ${type === 'error' ? 'border-l-red-500' : 'border-l-emerald-500'}`;
-      
-      toast.innerHTML = `
-        <i class="fa-solid ${type === 'error' ? 'fa-circle-xmark text-red-500' : 'fa-circle-check text-emerald-500'} text-sm mt-0.5 shrink-0"></i>
-        <div>
-          <div class="font-bold text-slate-100">${title}</div>
-          <div class="text-slate-400 mt-0.5">${message}</div>
-        </div>
-      `;
-      
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 10);
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
+      toggleMobileSidebar(false);
     }
 
     async function loadCurrentUser() {
@@ -935,95 +1003,460 @@
         const res = await fetch('/api/me');
         const data = await res.json();
         if (data.username) {
-          currentUserRole = data.role;
           currentAdminName = data.username;
-          canEditProfile = data.role === 'owner' || (data.canEditProfile ?? true);
-
-          document.getElementById('currentAdminName').innerText = data.username;
-          document.getElementById('currentAdminRole').innerText = data.role.toUpperCase();
-          
-          if (data.role === 'owner') {
-            document.getElementById('ownerSection').style.display = 'block';
-            document.getElementById('roleBadge').innerText = 'OWNER CONSOLE';
-          } else {
-            document.getElementById('roleBadge').innerText = `${data.role.toUpperCase()} CONSOLE`;
-          }
+          currentUserRole = data.role || 'mod';
+          document.getElementById('sidebarAdminName').innerText = currentAdminName;
+          document.getElementById('sidebarAdminRole').innerText = currentUserRole.toUpperCase();
+          document.getElementById('sidebarUserAvatar').src = `/api/avatar/1`;
         }
       } catch (e) {}
     }
 
-    function navigateTo(path) {
-      window.history.pushState({}, '', path);
-      renderRoute();
-      toggleMobileSidebar(false);
+    async function fetchSystemNotice() {
+      try {
+        const res = await fetch('/api/notice');
+        const data = await res.json();
+        if (data.notice) renderTopNotice(data.notice);
+      } catch (e) {}
     }
 
-    function renderRoute() {
-      const path = window.location.pathname === '/' ? '/dashboard' : window.location.pathname;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
+    function renderTopNotice(notice) {
+      const banner = document.getElementById('topNoticeBanner');
+      if (!notice || !notice.active) {
+        banner.classList.add('hidden');
+        return;
+      }
+      banner.classList.remove('hidden');
+      document.getElementById('noticeBannerText').innerText = notice.message;
+      document.getElementById('noticeBannerAuthor').innerText = `— Issued by ${notice.author || 'Owner'}`;
 
-      const routeMap = {
-        '/dashboard': { id: 'tab-dashboard', section: 'Command Center', breadcrumb: 'Moderation' },
-        '/chat': { id: 'tab-chat', section: 'Telemetry', breadcrumb: 'Live Chat' },
-        '/lookup': { id: 'tab-lookup', section: 'Command Center', breadcrumb: 'User Lookup' },
-        '/banned': { id: 'tab-banned', section: 'Records', breadcrumb: 'Banned Users' },
-        '/logs': { id: 'tab-logs', section: 'Records', breadcrumb: 'Audit Logs' },
-        '/management': { id: 'tab-management', section: 'Administration', breadcrumb: 'Staff' },
-        '/system': { id: 'tab-system', section: 'System', breadcrumb: 'Server Console' }
-      };
+      banner.className = 'w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0 ';
+      if (notice.alertLevel === 'emergency') banner.classList.add('bg-red-600', 'text-white');
+      else if (notice.alertLevel === 'warning') banner.classList.add('bg-amber-500', 'text-slate-950');
+      else banner.classList.add('bg-blue-600', 'text-white');
 
-      const target = routeMap[path] || routeMap['/dashboard'];
-      const targetEl = document.getElementById(target.id);
-      if (targetEl) targetEl.classList.remove('hidden');
-
-      document.getElementById('breadcrumbSection').innerText = target.section;
-      document.getElementById('breadcrumbPage').innerText = target.breadcrumb;
-
-      const activeNav = document.querySelector(`.nav-item[data-path="${path}"]`);
-      if (activeNav) activeNav.classList.add('nav-active');
-
-      if (path === '/chat') fetchChatFeed();
-      if (path === '/banned') fetchBanned();
-      if (path === '/logs') fetchLogs();
-      if (path === '/management') fetchModerators();
+      const iconEl = document.getElementById('noticeBannerIcon');
+      iconEl.className = `fa-solid fa-${notice.icon || 'bell'} text-sm`;
     }
 
-    window.onpopstate = renderRoute;
+    function dismissTopNotice() {
+      document.getElementById('topNoticeBanner').classList.add('hidden');
+    }
 
-    function openUserSettingsModal() {
-      const modal = document.getElementById('userSettingsModal');
-      document.getElementById('settingsUsername').value = currentAdminName;
-      document.getElementById('settingsDisplayName').value = currentAdminName;
-      document.getElementById('settingsRoleTitle').innerText = `${currentUserRole.toUpperCase()} Privilege Level Active`;
+    async function saveNoticeSettings() {
+      const active = document.getElementById('noticeInputActive').checked;
+      const message = document.getElementById('noticeInputMessage').value;
+      const alertLevel = document.getElementById('noticeInputLevel').value;
+      const icon = document.getElementById('noticeInputIcon').value;
 
-      const usernameContainer = document.getElementById('usernameFieldContainer');
-      const displayNameContainer = document.getElementById('displayNameFieldContainer');
-      const passwordContainer = document.getElementById('passwordFieldContainer');
-      const profileBadge = document.getElementById('profilePermissionBadge');
-      const passwordBadge = document.getElementById('passwordPermissionBadge');
+      try {
+        const res = await fetch('/api/notice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active, message, alertLevel, icon })
+        });
+        const data = await res.json();
+        if (data.success) {
+          notify('Banner Published', 'System notice updated live across all dashboards.');
+          renderTopNotice(data.notice);
+        }
+      } catch (e) { notify('Error', 'Failed to save notice', 'error'); }
+    }
 
-      if (canEditProfile || currentUserRole === 'owner') {
-        usernameContainer.classList.remove('locked-field');
-        displayNameContainer.classList.remove('locked-field');
-        passwordContainer.classList.remove('locked-field');
+    function validateNumericInput(input) {
+      input.value = input.value.replace(/\D/g, '');
+    }
 
-        profileBadge.className = "px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-        profileBadge.innerText = "UNLOCKED";
-        passwordBadge.className = "px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-        passwordBadge.innerText = "UNLOCKED";
+    function updateBanBtnState() {
+      const userIdVal = document.getElementById('userId').value.trim();
+      const reasonVal = document.getElementById('reason').value.trim();
+      const btn = document.getElementById('globalBanBtn');
+
+      if (userIdVal.length > 3 && reasonVal.length > 2) {
+        btn.disabled = false;
+        btn.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed', 'opacity-60');
+        btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
       } else {
-        usernameContainer.classList.add('locked-field');
-        displayNameContainer.classList.add('locked-field');
-        passwordContainer.classList.add('locked-field');
+        btn.disabled = true;
+        btn.className = 'w-full sm:w-auto py-2.5 px-4 bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2';
+      }
+    }
 
-        profileBadge.className = "px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20";
-        profileBadge.innerText = "LOCKED BY ADMIN";
-        passwordBadge.className = "px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20";
-        passwordBadge.innerText = "LOCKED BY ADMIN";
+    function debounceUserPreview() {
+      clearTimeout(previewTimer);
+      const val = document.getElementById('userId').value.trim();
+      const badge = document.getElementById('userPreviewBadge');
+
+      if (val.length < 3) {
+        badge.classList.add('hidden');
+        return;
       }
 
-      modal.classList.remove('hidden');
+      previewTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/lookup/${val}`);
+          const data = await res.json();
+          if (data.success) {
+            badge.className = 'flex p-3 bg-[#0b0f17] card-border rounded-lg items-center justify-between transition-all';
+            badge.innerHTML = `
+              <div class="flex items-center gap-3">
+                <img src="/api/avatar/${data.userId}" class="w-9 h-9 rounded-md bg-slate-800 card-border object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+                <div>
+                  <div class="text-xs font-bold text-slate-100">${data.username} <span class="text-[10px] text-slate-400 font-normal">(@${data.displayName})</span></div>
+                  <div class="text-[10px] font-mono text-slate-400">ID: ${data.userId} • Age: ${data.accountAgeDays} days</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 text-[9px] font-mono font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">VERIFIED USER</span>
+            `;
+          } else { badge.classList.add('hidden'); }
+        } catch (e) { badge.classList.add('hidden'); }
+      }, 400);
+    }
+
+    function triggerGlobalBanConfirmation() {
+      const uid = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+
+      const previewBox = document.getElementById('banModalTargetPreview');
+      previewBox.innerHTML = `
+        <img src="/api/avatar/${uid}" class="w-10 h-10 rounded-md bg-slate-800 card-border object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+        <div>
+          <div class="text-xs font-bold text-slate-100">Target UserID: <span class="font-mono text-blue-400">${uid}</span></div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Reason: "${reason}"</div>
+        </div>
+      `;
+
+      document.getElementById('globalBanModal').classList.remove('hidden');
+    }
+
+    function closeGlobalBanModal() {
+      document.getElementById('globalBanModal').classList.add('hidden');
+    }
+
+    async function executeGlobalBanDispatch() {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      const durationSeconds = Number(document.getElementById('banDurationSelect').value);
+
+      closeGlobalBanModal();
+      await sendAction('BAN', { userId, reason, durationSeconds });
+    }
+
+    async function sendAction(action, extraPayload = {}) {
+      const userId = extraPayload.userId || document.getElementById('userId').value.trim();
+      const reason = extraPayload.reason || document.getElementById('reason').value.trim();
+
+      if (!userId) {
+        notify('Validation Error', 'Target UserID is required', 'error');
+        return;
+      }
+      if (['KICK', 'WARN', 'BAN'].includes(action) && !reason) {
+        notify('Validation Error', `Reason is required for ${action} action`, 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, userId, reason, ...extraPayload })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          notify('Dispatch Sent', data.message || `${action} dispatched cleanly`);
+          document.getElementById('userId').value = '';
+          document.getElementById('reason').value = '';
+          document.getElementById('userPreviewBadge').classList.add('hidden');
+          updateBanBtnState();
+          fetchBanned();
+          fetchLogs();
+        } else {
+          notify('Dispatch Failed', data.error || 'Server error', 'error');
+        }
+      } catch (e) { notify('Network Error', 'Failed to reach web server', 'error'); }
+    }
+
+    async function fetchLivePlayers() {
+      try {
+        const res = await fetch('/api/live-players');
+        const data = await res.json();
+        livePlayersList = data.players || [];
+        document.getElementById('statLivePlayers').innerText = livePlayersList.length;
+        document.getElementById('navLivePlayersBadge').innerText = livePlayersList.length;
+        renderLivePlayers();
+      } catch (e) {}
+    }
+
+    function renderLivePlayers() {
+      const container = document.getElementById('livePlayersContainer');
+      if (!livePlayersList.length) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs font-mono">No players online in active Roblox instances.</div>';
+        return;
+      }
+
+      container.innerHTML = livePlayersList.map(p => `
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <img src="/api/avatar/${p.userId}" class="w-9 h-9 rounded-md bg-slate-800 card-border object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+            <div>
+              <div class="text-xs font-bold text-slate-100">${p.username} <span class="text-[10px] text-slate-400">(@${p.displayName || p.username})</span></div>
+              <div class="text-[10px] font-mono text-slate-400">UserID: ${p.userId} • Tools: ${p.tools ? p.tools.length : 0}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button onclick="quickAction('WARN', ${p.userId}, '${p.username}')" class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold rounded hover:bg-amber-500/20 transition-colors">Warn</button>
+            <button onclick="quickAction('KICK', ${p.userId}, '${p.username}')" class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-semibold rounded hover:bg-red-500/20 transition-colors">Kick</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function quickAction(act, uid, name) {
+      document.getElementById('userId').value = uid;
+      document.getElementById('reason').value = `Direct ${act} issued to ${name}`;
+      updateBanBtnState();
+      debounceUserPreview();
+      switchTab('dashboard');
+    }
+
+    function analyzeMessageToxicity(text) {
+      const lower = text.toLowerCase();
+      const harassment = ['fat', 'ugly', 'kys', 'kill yourself', 'trash player', 'loser', 'die'];
+      const profanity = ['fuck', 'shit', 'bitch', 'ass', 'bastard', 'f*ck', 's*it'];
+      const scam = ['discord.gg', 'discord.com/invite', '.com', '.gg/', 'free robux'];
+
+      if (harassment.some(t => lower.includes(t))) return { flag: 'HARASSMENT', class: 'border-l-4 border-l-red-500/80 bg-red-950/20', badge: '🚨 HARASSMENT', aiRec: 'PERMANENT BAN' };
+      if (profanity.some(t => lower.includes(t))) return { flag: 'PROFANITY', class: 'border-l-4 border-l-amber-500/80 bg-amber-950/20', badge: '🟡 PROFANITY', aiRec: 'VERBAL WARNING' };
+      if (scam.some(t => lower.includes(t))) return { flag: 'SCAM', class: 'border-l-4 border-l-purple-500/80 bg-purple-950/20', badge: '🔗 UNSAFE LINK', aiRec: 'PERMANENT BAN' };
+      return { flag: 'CLEAN', class: 'border-l-2 border-l-slate-800', badge: '', aiRec: null };
+    }
+
+    async function fetchChatFeed() {
+      try {
+        const res = await fetch('/api/chat');
+        const data = await res.json();
+        chatMessagesList = data.messages || [];
+        renderChatFeed();
+      } catch (e) {}
+    }
+
+    function renderChatFeed() {
+      const container = document.getElementById('chatFeedList');
+      const filterFlagged = document.getElementById('chatFilterFlagged').checked;
+      const filterText = document.getElementById('chatSearchFilter').value.trim();
+
+      let filtered = [...chatMessagesList];
+
+      if (filterFlagged) {
+        filtered = filtered.filter(m => analyzeMessageToxicity(m.msg).flag !== 'CLEAN');
+      }
+
+      if (filterText) {
+        try {
+          const reg = new RegExp(filterText, 'i');
+          filtered = filtered.filter(m => reg.test(m.msg) || reg.test(m.username));
+        } catch (e) {
+          filtered = filtered.filter(m => m.msg.toLowerCase().includes(filterText.toLowerCase()));
+        }
+      }
+
+      document.getElementById('chatMessageCounter').innerText = `${filtered.length} messages`;
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="p-8 text-center text-slate-500 text-xs font-mono">No chat telemetry matching filter rules.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map((m, idx) => {
+        const tox = analyzeMessageToxicity(m.msg);
+        const isPrevSame = idx > 0 && filtered[idx - 1].username === m.username;
+
+        return `
+          <div class="p-3 bg-[#0b0f17] rounded-lg ${tox.class} flex items-start justify-between gap-3 transition-all hover:border-slate-700">
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+              ${!isPrevSame ? `<img src="/api/avatar/${m.userId}" class="w-8 h-8 rounded-md bg-slate-800 card-border shrink-0 object-cover mt-0.5" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />` : '<div class="w-8 shrink-0"></div>'}
+              <div class="flex-1 min-w-0">
+                ${!isPrevSame ? `
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-100">${m.username}</span>
+                    <span class="text-[10px] font-mono text-slate-500">ID: ${m.userId}</span>
+                    <span class="text-[10px] text-slate-500">${m.time || ''}</span>
+                    ${tox.badge ? `<span class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded bg-slate-800 text-amber-400 card-border">${tox.badge}</span>` : ''}
+                  </div>
+                ` : ''}
+                <div class="text-xs text-slate-300 mt-0.5 break-words">${m.msg}</div>
+                ${tox.aiRec ? `<div class="text-[10px] text-emerald-400 font-mono mt-1">🛡️ Auto-Mod Status: [AI REC: ${tox.aiRec}]</div>` : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="analyzeSingleMessageWithGemini('${m.userId}', '${m.username}', \`${m.msg.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)" class="p-1.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded transition-colors" title="Gemini AI Intent & Context Analysis">
+                <i class="fa-solid fa-brain text-xs"></i>
+              </button>
+              <button onclick="quickAction('WARN', ${m.userId}, '${m.username}')" class="p-1.5 text-slate-400 hover:text-amber-400 transition-colors" title="Quick Moderation">
+                <i class="fa-solid fa-gavel text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearChatFeed() {
+      chatMessagesList = [];
+      renderChatFeed();
+      notify('Chat Cleared', 'Local chat view reset');
+    }
+
+    async function fetchBanned() {
+      try {
+        const res = await fetch('/api/banned');
+        const data = await res.json();
+        activeBannedList = data.bannedUsers || [];
+        document.getElementById('statActiveBans').innerText = activeBannedList.length;
+        document.getElementById('navBannedCountBadge').innerText = activeBannedList.length;
+        renderBannedTable();
+      } catch (e) {}
+    }
+
+    function renderBannedTable() {
+      const tbody = document.getElementById('bannedUsersTableBody');
+      const filter = document.getElementById('bannedSearchFilter').value.toLowerCase();
+      const filtered = activeBannedList.filter(b => String(b.userId).includes(filter) || (b.reason && b.reason.toLowerCase().includes(filter)));
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500 font-mono">No active global bans recorded.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(b => `
+        <tr class="hover:bg-slate-800/30">
+          <td class="p-3">
+            <div class="flex items-center gap-2.5">
+              <img src="/api/avatar/${b.userId}" class="w-7 h-7 rounded bg-slate-800 object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+              <span class="font-mono text-slate-200">${b.userId}</span>
+            </div>
+          </td>
+          <td class="p-3 text-slate-300">${b.reason || 'No reason'}</td>
+          <td class="p-3 font-semibold text-blue-400">${b.admin || 'System'}</td>
+          <td class="p-3 font-mono text-slate-400">${b.caseId || '#AM-SYS'}</td>
+          <td class="p-3 text-slate-400">${b.bannedAt ? new Date(b.bannedAt).toLocaleDateString() : 'Unknown'}</td>
+          <td class="p-3 text-right">
+            <button onclick="sendAction('UNBAN', {userId: ${b.userId}})" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded hover:bg-emerald-500/20 transition-colors">Unban</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function triggerUnbanAllConfirmation() {
+      if (confirm('Are you sure you want to reset ALL active bans across DataStore?')) {
+        try {
+          const res = await fetch('/api/unban-all', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            notify('Global Reset', 'All user bans wiped cleanly.');
+            fetchBanned();
+          }
+        } catch (e) {}
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        activeAuditLogs = data.logs || [];
+        document.getElementById('statTotalLogs').innerText = activeAuditLogs.length;
+        renderLogsTable();
+      } catch (e) {}
+    }
+
+    function renderLogsTable() {
+      const container = document.getElementById('logsContainer');
+      const filter = document.getElementById('logSearchFilter').value.toLowerCase();
+      const filtered = activeAuditLogs.filter(l => String(l.userId).includes(filter) || l.action.toLowerCase().includes(filter) || (l.reason && l.reason.toLowerCase().includes(filter)));
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="p-6 text-center text-slate-500 font-mono">No action log entries found.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(l => `
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.action==='BAN'?'bg-red-500/20 text-red-400 border border-red-500/30':l.action==='KICK'?'bg-amber-500/20 text-amber-400 border border-amber-500/30':'bg-blue-500/20 text-blue-400 border border-blue-500/30'}">${l.action}</span>
+            <span class="text-slate-200">UserID: ${l.userId}</span>
+            <span class="text-slate-400">"${l.reason}"</span>
+          </div>
+          <div class="text-slate-500">By: ${l.admin} • ${new Date(l.timestamp).toLocaleTimeString()}</div>
+        </div>
+      `).join('');
+    }
+
+    async function clearAuditLogs() {
+      try {
+        await fetch('/api/logs', { method: 'DELETE' });
+        fetchLogs();
+        notify('Logs Wiped', 'Audit trail cleared.');
+      } catch (e) {}
+    }
+
+    async function executeUserLookup() {
+      const query = document.getElementById('lookupQueryInput').value.trim();
+      const card = document.getElementById('lookupCardResult');
+      if (!query) return;
+
+      card.classList.remove('hidden');
+      card.innerHTML = '<div class="p-6 text-center text-slate-500 font-mono">Querying Roblox API...</div>';
+
+      try {
+        const res = await fetch(`/api/lookup/${query}`);
+        const data = await res.json();
+
+        if (data.success) {
+          card.innerHTML = `
+            <div class="flex flex-col sm:flex-row items-start gap-4">
+              <img src="/api/avatar/${data.userId}" class="w-20 h-20 rounded-lg bg-slate-800 card-border object-cover" onerror="this.src='https://placehold.co/80x80/1e293b/ffffff?text=RBX'" />
+              <div class="space-y-1 flex-1">
+                <div class="text-base font-bold text-slate-100">${data.username} <span class="text-xs text-slate-400">(@${data.displayName})</span></div>
+                <div class="text-xs font-mono text-blue-400">UserID: ${data.userId}</div>
+                <div class="text-xs text-slate-400">Account Age: <strong class="text-slate-200">${data.accountAgeDays} days</strong> • Joined: ${new Date(data.created).toLocaleDateString()}</div>
+                <div class="text-xs text-slate-300 mt-2 p-2.5 bg-[#121722] card-border rounded-lg">${data.description}</div>
+                <div class="flex items-center gap-2 pt-2">
+                  <button onclick="quickAction('WARN', ${data.userId}, '${data.username}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg">Warn User</button>
+                  <button onclick="quickAction('BAN', ${data.userId}, '${data.username}')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg">Global Ban</button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          card.innerHTML = `<div class="p-6 text-center text-red-400 font-mono">${data.error || 'User not found'}</div>`;
+        }
+      } catch (e) { card.innerHTML = '<div class="p-6 text-center text-red-400 font-mono">Lookup failed</div>'; }
+    }
+
+    function openUserSettingsModal() {
+      document.getElementById('settingsUsername').value = currentAdminName;
+      document.getElementById('settingsDisplayName').value = currentAdminName;
+
+      const userInputs = document.querySelectorAll('#usernameFieldContainer input, #displayNameFieldContainer input, #passwordFieldContainer input');
+      const badgeProfile = document.getElementById('profilePermissionBadge');
+      const badgePassword = document.getElementById('passwordPermissionBadge');
+
+      if (!canEditProfile && currentUserRole !== 'owner') {
+        userInputs.forEach(i => i.classList.add('locked-input'));
+        badgeProfile.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20';
+        badgeProfile.innerText = 'LOCKED BY ADMIN';
+        badgePassword.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-red-500/10 text-red-400 border-red-500/20';
+        badgePassword.innerText = 'LOCKED BY ADMIN';
+      } else {
+        userInputs.forEach(i => i.classList.remove('locked-input'));
+        badgeProfile.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        badgeProfile.innerText = 'UNLOCKED';
+        badgePassword.className = 'px-2 py-0.5 text-[9px] font-mono font-bold rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        badgePassword.innerText = 'UNLOCKED';
+      }
+
+      document.getElementById('userSettingsModal').classList.remove('hidden');
     }
 
     function closeUserSettingsModal() {
@@ -1031,853 +1464,237 @@
     }
 
     async function saveUserSettings() {
-      if (!canEditProfile && currentUserRole !== 'owner') {
-        return notify('Locked Field', 'Your profile edit permissions have been restricted by an Administrator.', 'error');
-      }
-
-      notify('Settings Saved', 'Staff credentials updated successfully.');
-      closeUserSettingsModal();
-    }
-
-    function toggleCommandPalette(e) {
-      const modal = document.getElementById('commandPaletteModal');
-      modal.classList.toggle('hidden');
-      if (!modal.classList.contains('hidden')) {
-        document.getElementById('paletteInput').focus();
-        filterCommandPalette();
-      }
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        toggleCommandPalette();
-      }
-      if (e.key === 'Escape') {
-        document.getElementById('commandPaletteModal').classList.add('hidden');
-        closeChatActionModal();
-        closeBanConfirmModal();
-        closeUserSettingsModal();
-        toggleMobileSidebar(false);
-      }
-    });
-
-    function filterCommandPalette() {
-      const query = document.getElementById('paletteInput').value.toLowerCase();
-      const container = document.getElementById('paletteResults');
-      
-      const commands = [
-        { label: 'Go to Moderation Console', action: () => { navigateTo('/dashboard'); toggleCommandPalette(); } },
-        { label: 'Go to Live Game Chat Stream', action: () => { navigateTo('/chat'); toggleCommandPalette(); } },
-        { label: 'Go to Roblox User Lookup', action: () => { navigateTo('/lookup'); toggleCommandPalette(); } },
-        { label: 'Go to Banned Players List', action: () => { navigateTo('/banned'); toggleCommandPalette(); } },
-        { label: 'Go to Audit Logs', action: () => { navigateTo('/logs'); toggleCommandPalette(); } },
-        { label: 'Open Account Settings Modal', action: () => { toggleCommandPalette(); openUserSettingsModal(); } }
-      ];
-
-      const filtered = commands.filter(c => c.label.toLowerCase().includes(query));
-      container.innerHTML = filtered.map((c, i) => `
-        <div onclick="paletteAction(${i})" class="p-2.5 hover:bg-slate-800 rounded cursor-pointer text-slate-200 flex items-center justify-between">
-          <span>${c.label}</span>
-          <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
-        </div>
-      `).join('');
-
-      window._paletteFiltered = filtered;
-    }
-
-    function paletteAction(index) {
-      if (window._paletteFiltered && window._paletteFiltered[index]) {
-        window._paletteFiltered[index].action();
-      }
-    }
-
-    function analyzeMessageToxicity(text) {
-      const lower = text.toLowerCase();
-      
-      const harassmentTriggers = ['fat', 'ugly', 'kys', 'kill yourself', 'trash player', 'loser', 'hate you', 'die', 'noob idiot'];
-      const profanityTriggers = ['fuck', 'shit', 'bitch', 'ass', 'bastard', 'crap', 'f*ck', 's*it', 'f u c k'];
-      const scamTriggers = ['discord.gg', 'discord.com/invite', '.com', '.gg/', 'free robux', 'robux.com'];
-
-      const isHarassment = harassmentTriggers.some(t => lower.includes(t));
-      const isProfanity = profanityTriggers.some(t => lower.includes(t));
-      const isScam = scamTriggers.some(t => lower.includes(t));
-
-      if (isHarassment) {
-        return {
-          flag: 'HARASSMENT',
-          borderClass: 'border-l-4 border-l-red-600/90 bg-red-950/20',
-          badgeText: '🚨 HARASSMENT / BULLYING',
-          badgeClass: 'bg-red-500/20 text-red-400 border-red-500/30',
-          category: 'Harassment/Bullying'
-        };
-      } else if (isProfanity) {
-        return {
-          flag: 'PROFANITY',
-          borderClass: 'border-l-4 border-l-amber-500/80 bg-amber-950/15',
-          badgeText: '🟡 PROFANITY DETECTED',
-          badgeClass: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-          category: 'Profanity'
-        };
-      } else if (isScam) {
-        return {
-          flag: 'SCAM',
-          borderClass: 'border-l-4 border-l-purple-500/80 bg-purple-950/20',
-          badgeText: '🔗 UNSAFE LINK / SCAM',
-          badgeClass: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-          category: 'Unsafe Link/Scam'
-        };
-      }
-
-      return {
-        flag: 'SAFE',
-        borderClass: 'border-l-2 border-l-slate-800',
-        badgeText: '',
-        badgeClass: '',
-        category: 'Clean'
-      };
-    }
-
-    async function fetchChatFeed() {
+      const newPassword = document.getElementById('settingsNewPassword').value.trim();
       try {
-        const res = await fetch('/api/chat');
-        const data = await res.json();
-        if (data.messages) {
-          chatMessagesList = data.messages;
-        }
-      } catch (e) {}
-
-      renderChatStream();
-    }
-
-    async function loadChatHistory() {
-      notify('Loading Chat History', 'Syncing historical messages from Database...');
-      await fetchChatFeed();
-    }
-
-    function renderChatStream() {
-      const stream = document.getElementById('chatFeedStream');
-      const searchRaw = (document.getElementById('chatSearchInput')?.value || '').trim();
-      const flaggedOnly = document.getElementById('toggleFlaggedOnly')?.checked || false;
-      const autoModActive = document.getElementById('toggleAutoMod')?.checked ?? true;
-
-      userRiskScores.clear();
-      let filtered = chatMessagesList;
-
-      if (searchRaw) {
-        try {
-          const regex = new RegExp(searchRaw, 'i');
-          filtered = filtered.filter(m => regex.test(m.username) || regex.test(m.msg));
-        } catch (err) {
-          const lower = searchRaw.toLowerCase();
-          filtered = filtered.filter(m => m.username.toLowerCase().includes(lower) || m.msg.toLowerCase().includes(lower));
-        }
-      }
-
-      if (flaggedOnly) {
-        filtered = filtered.filter(m => analyzeMessageToxicity(m.msg).flag !== 'SAFE');
-      }
-
-      let htmlBuffer = '';
-      
-      for (let i = 0; i < filtered.length; i++) {
-        const m = filtered[i];
-        const prevMsg = filtered[i - 1];
-        const tox = analyzeMessageToxicity(m.msg);
-
-        const currentRisk = userRiskScores.get(m.userId) || 'LOW';
-        if (tox.flag === 'HARASSMENT' || tox.flag === 'SCAM') {
-          userRiskScores.set(m.userId, 'HIGH');
-        } else if (tox.flag === 'PROFANITY' && currentRisk !== 'HIGH') {
-          userRiskScores.set(m.userId, 'MEDIUM');
-        } else if (!userRiskScores.has(m.userId)) {
-          userRiskScores.set(m.userId, 'LOW');
-        }
-
-        let isGrouped = false;
-        if (prevMsg && prevMsg.userId === m.userId && !m.redacted && !prevMsg.redacted) {
-          const t1 = new Date(`1970-01-01T${m.time}Z`).getTime();
-          const t2 = new Date(`1970-01-01T${prevMsg.time}Z`).getTime();
-          if (!isNaN(t1) && !isNaN(t2) && Math.abs(t1 - t2) <= 60000) {
-            isGrouped = true;
-          }
-        }
-
-        const avatarUrl = `/api/avatar/${m.userId}`;
-
-        if (isGrouped) {
-          htmlBuffer += `
-            <div class="group relative px-3 py-1 hover:bg-slate-800/40 rounded transition-colors flex items-start justify-between text-xs pl-12 sm:pl-14 ${tox.borderClass}">
-              <div class="min-w-0 flex-1 space-y-0.5">
-                ${m.redacted ? `
-                  <p class="text-slate-500 italic text-[11px] font-mono flex items-center gap-1.5">
-                    <i class="fa-solid fa-eye-slash text-[10px]"></i> [Message removed by Staff / Auto-Mod]
-                  </p>
-                ` : `
-                  <div class="flex items-center gap-2">
-                    <p class="text-slate-200 font-normal leading-normal break-words">${m.msg}</p>
-                    <span class="text-[10px] text-slate-500 font-mono opacity-0 group-hover:opacity-100 transition-opacity">${m.time}</span>
-                  </div>
-                `}
-
-                ${tox.badgeText && !m.redacted ? `
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>
-                    ${autoModActive ? `<span class="text-[10px] text-amber-400 font-mono hidden sm:inline">🛡️ Auto-Mod: User warned for ${tox.category}</span>` : ''}
-                  </div>
-                ` : ''}
-              </div>
-
-              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-2 shrink-0">
-                <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
-                  <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-                </button>
-                <button onclick="redactChatMessage(${m.id})" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-all" title="Scrub/Redact">
-                  <i class="fa-solid fa-trash text-[11px]"></i>
-                </button>
-                <button onclick="openChatActionModal('${m.userId}', '${m.username}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all" title="Quick Punish">
-                  <i class="fa-solid fa-hammer text-[11px]"></i>
-                </button>
-              </div>
-            </div>
-          `;
-        } else {
-          htmlBuffer += `
-            <div class="group relative p-3 bg-[#0e131f] card-border rounded flex items-start justify-between text-xs transition-all hover:border-slate-700 ${tox.borderClass}">
-              <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
-                <img src="${avatarUrl}" 
-                     class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 card-border shrink-0 cursor-pointer object-cover hover:ring-2 hover:ring-blue-500 transition-all" 
-                     onclick="navigateToUserLookup('${m.userId}')" 
-                     title="Click for User Lookup" />
-
-                <div class="space-y-1 min-w-0 flex-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-bold text-slate-100 cursor-pointer hover:underline hover:text-blue-400 transition-colors" onclick="navigateToUserLookup('${m.userId}')">${m.username}</span>
-                    <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">ID: ${m.userId}</span>
-                    ${tox.badgeText ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded border ${tox.badgeClass}">${tox.badgeText}</span>` : ''}
-                    <span class="text-[10px] text-slate-500 font-mono ml-auto">${m.time}</span>
-                  </div>
-
-                  ${m.redacted ? `
-                    <p class="text-slate-500 italic text-[11px] font-mono flex items-center gap-1.5">
-                      <i class="fa-solid fa-eye-slash text-[10px]"></i> [Message removed by Staff / Auto-Mod]
-                    </p>
-                  ` : `
-                    <p class="text-slate-200 leading-relaxed font-normal break-words">${m.msg}</p>
-                  `}
-
-                  ${tox.badgeText && !m.redacted && autoModActive ? `
-                    <div class="text-[10px] text-amber-400/90 font-mono font-medium flex items-center gap-1.5 pt-0.5">
-                      <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
-                      <span>Auto-Mod: Warned for ${tox.category}</span>
-                    </div>
-                  ` : ''}
-                </div>
-              </div>
-
-              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-2 shrink-0">
-                <button onclick="navigateToUserLookup('${m.userId}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-slate-800 transition-all" title="User Lookup">
-                  <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-                </button>
-                <button onclick="redactChatMessage(${m.id})" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-all" title="Scrub/Redact">
-                  <i class="fa-solid fa-trash text-[11px]"></i>
-                </button>
-                <button onclick="openChatActionModal('${m.userId}', '${m.username}')" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all" title="Quick Punish">
-                  <i class="fa-solid fa-hammer text-[11px]"></i>
-                </button>
-              </div>
-            </div>
-          `;
-        }
-      }
-
-      stream.innerHTML = htmlBuffer || '<div class="p-6 text-center text-xs text-slate-500">No chat messages recorded in telemetry feed</div>';
-      document.getElementById('chatTotalCount').innerText = `${filtered.length} messages`;
-
-      const chattersMap = new Map();
-      chatMessagesList.forEach(m => chattersMap.set(m.userId, m));
-      const chattersContainer = document.getElementById('activeChattersList');
-      document.getElementById('activeChattersCount').innerText = `${chattersMap.size} active`;
-
-      chattersContainer.innerHTML = Array.from(chattersMap.values()).map(c => {
-        const avatarUrl = `/api/avatar/${c.userId}`;
-        const userRisk = userRiskScores.get(c.userId) || 'LOW';
-
-        let riskBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-        if (userRisk === 'HIGH') riskBadgeClass = 'bg-red-500/20 text-red-400 border-red-500/30';
-        if (userRisk === 'MEDIUM') riskBadgeClass = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-
-        return `
-          <div class="p-2.5 bg-[#0e131f] card-border rounded flex items-center justify-between text-xs cursor-pointer hover:border-slate-700 transition-colors" onclick="navigateToUserLookup('${c.userId}')">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <img src="${avatarUrl}" class="w-7 h-7 rounded-full bg-slate-800 card-border shrink-0 object-cover" />
-              <div class="truncate">
-                <span class="font-medium text-slate-200 truncate block">${c.username}</span>
-                <span class="text-[10px] text-slate-500 font-mono">ID: ${c.userId}</span>
-              </div>
-            </div>
-            <span class="px-1.5 py-0.5 text-[9px] font-bold font-mono rounded border shrink-0 ${riskBadgeClass}">
-              ${userRisk} RISK
-            </span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function filterChatFeed() { renderChatStream(); }
-    
-    function redactChatMessage(msgId) {
-      const msgObj = chatMessagesList.find(m => m.id === msgId);
-      if (msgObj) {
-        msgObj.redacted = true;
-        renderChatStream();
-        notify('Message Redacted', `Scrubbed chat entry from ${msgObj.username}`);
-      }
-    }
-
-    function clearChatFeed() { 
-      chatMessagesList = []; 
-      renderChatStream(); 
-      notify('Chat Cleared', 'Live feed stream emptied.'); 
-    }
-
-    function toggleAutoModEngine() {
-      notify('Auto-Mod Configured', 'Automated safety engine updated.');
-      renderChatStream();
-    }
-
-    async function triggerGlobalBanConfirmation() {
-      const id = document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-
-      if (!id || isNaN(Number(id))) return notify('Target Required', 'Enter a valid numeric Roblox UserID!', 'error');
-      if (!reason) return notify('Reason Required', 'You MUST enter a reason before applying a global ban!', 'error');
-
-      const card = document.getElementById('banConfirmUserCard');
-      card.innerHTML = `<div class="text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Loading player target...</div>`;
-      document.getElementById('banConfirmModal').classList.remove('hidden');
-
-      try {
-        const res = await fetch(`/api/lookup/${encodeURIComponent(id)}`);
-        const data = await res.json();
-        if (data.success) {
-          card.innerHTML = `
-            <img src="/api/avatar/${data.userId}" class="w-12 h-12 rounded-full bg-slate-800 card-border object-cover shrink-0" />
-            <div class="min-w-0 flex-1 text-xs">
-              <div class="font-bold text-slate-100 truncate">${data.displayName} <span class="font-normal text-slate-400">(@${data.username})</span></div>
-              <div class="text-slate-400 text-[10px] font-mono mt-0.5">UserID: ${data.userId}</div>
-              <div class="text-red-400 font-semibold text-[11px] mt-1">Reason: "${reason}"</div>
-            </div>
-          `;
-        } else {
-          card.innerHTML = `<div class="text-xs text-slate-300">Target UserID: <span class="font-mono font-bold text-red-400">${id}</span></div>`;
-        }
-      } catch (e) {
-        card.innerHTML = `<div class="text-xs text-slate-300">Target UserID: <span class="font-mono font-bold text-red-400">${id}</span></div>`;
-      }
-    }
-
-    function closeBanConfirmModal() {
-      document.getElementById('banConfirmModal').classList.add('hidden');
-    }
-
-    async function executeConfirmedBan() {
-      const userId = document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-      const select = document.getElementById('banDurationSelect');
-      const durationSeconds = Number(select.value);
-      const durationText = select.options[select.selectedIndex].text;
-
-      closeBanConfirmModal();
-      await executeAction('BAN', userId, reason, null, durationSeconds, durationText);
-    }
-
-    function openChatActionModal(userId, username) {
-      activeChatTarget = { userId, username };
-      const modal = document.getElementById('chatActionModal');
-      document.getElementById('chatActionUserDetails').innerHTML = `
-        <img src="/api/avatar/${userId}" class="w-10 h-10 rounded-full bg-slate-800 card-border object-cover" />
-        <div>
-          <div class="font-bold text-slate-200">${username}</div>
-          <div class="text-slate-400 font-mono text-[10px]">UserID: ${userId}</div>
-        </div>
-      `;
-      modal.classList.remove('hidden');
-    }
-
-    function closeChatActionModal() {
-      document.getElementById('chatActionModal').classList.add('hidden');
-      activeChatTarget = null;
-    }
-
-    function triggerQuickAction(action) {
-      if (!activeChatTarget) return;
-      const { userId, username } = activeChatTarget;
-      closeChatActionModal();
-      document.getElementById('userId').value = userId;
-      document.getElementById('reason').value = `Quick ${action} issued from Live Chat stream`;
-      updateBanBtnState();
-      navigateTo('/dashboard');
-      if (action === 'BAN') triggerGlobalBanConfirmation();
-      else sendAction(action, userId);
-    }
-
-    function navigateToUserLookup(userId) {
-      navigateTo('/lookup');
-      document.getElementById('lookupQuery').value = userId;
-      performLookup(userId);
-    }
-
-    async function fetchLivePlayers() {
-      try {
-        const res = await fetch('/api/live-players');
-        const data = await res.json();
-        const container = document.getElementById('livePlayersContainer');
-        const countEl = document.getElementById('statLivePlayers');
-
-        const players = data.players || [];
-        countEl.innerText = players.length;
-
-        if (players.length === 0) {
-          container.innerHTML = `
-            <div class="p-6 sm:p-8 text-center bg-[#0b0f17] card-border rounded space-y-3 flex flex-col items-center justify-center">
-              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-800/80 border border-slate-700/50 flex items-center justify-center text-slate-400 shadow-inner mb-1">
-                <i class="fa-solid fa-server text-lg sm:text-xl text-blue-400 animate-pulse"></i>
-              </div>
-              <div>
-                <div class="text-xs font-bold text-slate-200">Server is currently idle</div>
-                <p class="text-[11px] text-slate-500 mt-0.5 max-w-sm">No active player sessions reporting telemetry in live game instances.</p>
-              </div>
-              <div class="pt-2">
-                <button onclick="fetchLivePlayers()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded card-border transition-colors flex items-center gap-2">
-                  <i class="fa-solid fa-arrows-rotate text-[11px] text-blue-400"></i> Check Active Instances
-                </button>
-              </div>
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = `
-          <div class="w-full overflow-x-auto">
-            <table class="w-full text-left text-xs min-w-[500px]">
-              <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
-                <tr>
-                  <th class="p-2.5">Player</th>
-                  <th class="p-2.5">Roblox ID</th>
-                  <th class="p-2.5">Inventory Held</th>
-                  <th class="p-2.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/60">
-                ${players.map((p, i) => `
-                  <tr class="${i % 2 === 0 ? 'bg-[#121722]' : 'bg-[#0e131f]'} hover:bg-slate-800/30">
-                    <td class="p-2.5 font-semibold text-slate-200 flex items-center gap-2">
-                      <img src="/api/avatar/${p.userId}" class="w-6 h-6 rounded-full bg-slate-800 object-cover" />
-                      <span>${p.displayName} <span class="text-slate-500 font-normal">(@${p.username})</span></span>
-                    </td>
-                    <td class="p-2.5 font-mono text-slate-400">${p.userId}</td>
-                    <td class="p-2.5">
-                      ${p.tools.length === 0 ? '<span class="text-slate-500 italic">Empty</span>' : p.tools.map(t => `<span class="inline-block px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] card-border mr-1 mb-1">${t}</span>`).join('')}
-                    </td>
-                    <td class="p-2.5 text-right">
-                      <button onclick="sendToModeration('${p.userId}')" class="px-2 py-1 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded text-[11px] font-medium card-border">Target</button>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      } catch (e) {}
-    }
-
-    function debounceUserPreview() {
-      clearTimeout(previewTimer);
-      previewTimer = setTimeout(fetchUserPreview, 400);
-    }
-
-    async function fetchUserPreview() {
-      const userId = document.getElementById('userId').value.trim();
-      const badge = document.getElementById('userPreviewBadge');
-      
-      if (!userId || isNaN(Number(userId))) {
-        badge.classList.add('hidden');
-        badge.classList.remove('flex');
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/lookup/${encodeURIComponent(userId)}`);
-        const data = await res.json();
-        if (data.success) {
-          badge.classList.remove('hidden');
-          badge.classList.add('flex');
-          badge.innerHTML = `
-            <div class="flex items-center gap-3">
-              <img src="/api/avatar/${data.userId}" class="w-9 h-9 rounded-full bg-slate-800 card-border object-cover" />
-              <div class="text-xs">
-                <div class="font-bold text-slate-200">${data.displayName} <span class="text-slate-400 font-normal">(@${data.username})</span></div>
-                <div class="text-[10px] text-slate-500">Joined: ${new Date(data.created).toLocaleDateString()} (${data.accountAgeDays}d account age)</div>
-              </div>
-            </div>
-            <span class="px-2 py-0.5 text-[9px] font-bold font-mono rounded border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">ID VERIFIED</span>
-          `;
-        } else {
-          badge.classList.add('hidden');
-        }
-      } catch (e) { badge.classList.add('hidden'); }
-    }
-
-    function sendAction(action, targetId = null, toolName = null, durationSeconds = 0) {
-      const id = targetId || document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-
-      if (!id) return notify('Target Required', 'Enter target UserID!', 'error');
-      if (['KICK', 'WARN', 'BAN'].includes(action) && !reason) {
-        return notify('Reason Required', `You MUST enter a reason to ${action.toLowerCase()} this user!`, 'error');
-      }
-
-      executeAction(action, id, reason, toolName, durationSeconds);
-    }
-
-    async function executeAction(action, userId, reason, toolName, durationSeconds = 0, durationText = '') {
-      if (isCooldownActive) return notify('Cooldown Active', 'Wait 0.6s between commands.', 'error');
-
-      isCooldownActive = true;
-      setTimeout(() => { isCooldownActive = false; }, 600);
-
-      try {
-        const res = await fetch('/api/action', {
+        const res = await fetch('/api/profile/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action, userId, reason, toolName, durationSeconds, durationText })
+          body: JSON.stringify({ newPassword })
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          notify('Command Dispatched', `${action} [${data.caseId || ''}] issued for UserID ${userId}`);
-          fetchLogs();
-          if (action === 'BAN' || action === 'UNBAN') fetchBanned();
+          notify('Settings Saved', 'Profile credentials updated');
+          closeUserSettingsModal();
         } else {
-          notify('Command Rejected', data.error || 'Server rejected request', 'error');
-        }
-      } catch (err) { notify('Error', 'Server network error', 'error'); }
-    }
-
-    async function fetchBanned() {
-      const res = await fetch('/api/banned');
-      const data = await res.json();
-      const list = data.bannedUsers || [];
-      document.getElementById('statTotalBans').innerText = list.length;
-
-      const container = document.getElementById('bannedUsersList');
-      if (list.length === 0) {
-        container.innerHTML = '<div class="p-6 text-center text-xs text-slate-500">No active banned players recorded</div>';
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="w-full overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[500px]">
-            <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
-              <tr>
-                <th class="p-2.5">Banned Player</th>
-                <th class="p-2.5">Reason</th>
-                <th class="p-2.5">Moderator</th>
-                <th class="p-2.5">Duration</th>
-                <th class="p-2.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60">
-              ${list.map((u, i) => `
-                <tr class="${i % 2 === 0 ? 'bg-[#0b0f17]' : 'bg-[#0e131f]'} hover:bg-slate-800/30 transition-colors">
-                  <td class="p-2.5 font-mono font-bold text-slate-200">ID: ${u.userId}</td>
-                  <td class="p-2.5 text-slate-300">"${u.reason}"</td>
-                  <td class="p-2.5 text-slate-400 font-medium">${u.admin || 'Admin'}</td>
-                  <td class="p-2.5 font-mono text-slate-400">${u.durationText || 'Permanent'}</td>
-                  <td class="p-2.5 text-right">
-                    <button onclick="sendAction('UNBAN', '${u.userId}')" class="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded text-[11px] card-border font-medium transition-colors">
-                      Unban
-                    </button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    async function fetchLogs() {
-      const res = await fetch('/api/logs');
-      const data = await res.json();
-      const logs = data.logs || [];
-      document.getElementById('statTotalLogs').innerText = logs.length;
-
-      const getBadgeClass = (action) => {
-        if (action === 'BAN') return 'bg-red-500/10 text-red-400 border-red-500/20';
-        if (action === 'UNBAN' || action === 'UNBAN_ALL') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-        if (action === 'WARN') return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      };
-
-      const html = logs.slice(0, 5).map((l, i) => `
-        <div class="p-3 ${i % 2 === 0 ? 'bg-[#0b0f17]' : 'bg-[#0e131f]'} card-border rounded flex items-center justify-between text-xs transition-colors hover:border-slate-700">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="px-2 py-0.5 text-[10px] font-bold font-mono rounded border shrink-0 ${getBadgeClass(l.action)}">${l.action}</span>
-            <span class="text-slate-200 font-mono font-medium shrink-0">ID: ${l.userId}</span>
-            <span class="text-slate-400 font-normal truncate hidden sm:inline">"${l.reason}"</span>
-            <span class="text-slate-500 text-[10px] shrink-0">by ${l.admin || 'Console'}</span>
-          </div>
-          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-2">${new Date(l.timestamp).toLocaleTimeString()}</span>
-        </div>
-      `).join('');
-
-      const fullHtml = logs.map((l, i) => `
-        <div class="p-3 ${i % 2 === 0 ? 'bg-[#0b0f17]' : 'bg-[#0e131f]'} card-border rounded flex items-center justify-between text-xs transition-colors hover:border-slate-700">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="px-2 py-0.5 text-[10px] font-bold font-mono rounded border shrink-0 ${getBadgeClass(l.action)}">${l.action}</span>
-            <span class="text-slate-200 font-mono font-medium shrink-0">ID: ${l.userId}</span>
-            <span class="text-slate-400 font-normal truncate hidden sm:inline">"${l.reason}"</span>
-            <span class="text-slate-500 text-[10px] shrink-0">by ${l.admin || 'Console'}</span>
-          </div>
-          <span class="text-[10px] text-slate-500 font-mono text-right shrink-0 ml-2">${new Date(l.timestamp).toLocaleString()}</span>
-        </div>
-      `).join('');
-
-      document.getElementById('recentLogs').innerHTML = html || '<div class="text-xs text-slate-500 p-3 bg-[#0b0f17] card-border rounded">No recent audit logs recorded in this session.</div>';
-      document.getElementById('fullLogs').innerHTML = fullHtml || '<div class="text-xs text-slate-500 p-3 bg-[#0b0f17] card-border rounded">No audit logs recorded.</div>';
-    }
-
-    async function clearAuditLogs() {
-      if (!confirm('Are you sure you want to clear all audit logs?')) return;
-      try {
-        const res = await fetch('/api/logs', { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Logs Cleared', 'Audit log history emptied.');
-          fetchLogs();
-        }
-      } catch (e) { notify('Error', 'Failed to clear logs', 'error'); }
-    }
-
-    async function performLookup(forcedQuery = null) {
-      const query = forcedQuery || document.getElementById('lookupQuery').value.trim();
-      const container = document.getElementById('lookupResultContainer');
-
-      if (!query) return notify('Search Required', 'Please enter a Username or UserID!', 'error');
-
-      container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Querying Roblox API...</div>';
-
-      try {
-        const res = await fetch(`/api/lookup/${encodeURIComponent(query)}`);
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          container.innerHTML = `<div class="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded">${data.error || 'User not found.'}</div>`;
-          return;
-        }
-
-        const logsRes = await fetch('/api/logs');
-        const logsData = await logsRes.json();
-        const userPastLogs = (logsData.logs || []).filter(l => Number(l.userId) === Number(data.userId));
-
-        const riskLevel = userPastLogs.length > 2 ? 'HIGH RISK' : userPastLogs.length > 0 ? 'MODERATE' : 'LOW RISK';
-        const riskBadgeColor = userPastLogs.length > 2 ? 'bg-red-500/20 text-red-400 border-red-500/30' : userPastLogs.length > 0 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-
-        container.innerHTML = `
-          <div class="space-y-4">
-            <div class="p-4 sm:p-5 bg-[#121722] card-border rounded flex flex-col sm:flex-row gap-4 text-xs">
-              <a href="https://www.roblox.com/users/${data.userId}/profile" target="_blank" title="Click to view official Roblox Profile" class="shrink-0 self-center sm:self-start group">
-                <img src="/api/avatar/${data.userId}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#0b0f17] card-border object-cover group-hover:ring-2 group-hover:ring-blue-500 transition-all" />
-                <span class="text-[9px] text-blue-400 block text-center mt-1 group-hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Profile</span>
-              </a>
-              <div class="space-y-2 flex-1">
-                <div class="flex items-start justify-between">
-                  <div>
-                    <h3 class="text-base font-bold text-slate-100">${data.displayName} <span class="text-xs font-normal text-slate-400">@${data.username}</span></h3>
-                    <div class="text-slate-400 text-[11px] mt-0.5">UserID: <code class="text-blue-400 font-mono">${data.userId}</code></div>
-                  </div>
-                  <span class="px-2 py-0.5 text-[10px] font-bold rounded border ${riskBadgeColor}">${riskLevel}</span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-slate-300">
-                  <div>Joined: ${new Date(data.created).toLocaleDateString()} (${data.accountAgeDays}d ago)</div>
-                  <div>Status: <span class="font-bold text-emerald-400">${data.presenceType || 'Offline'}</span></div>
-                </div>
-                <div class="pt-2 flex gap-2">
-                  <button onclick="sendToModeration('${data.userId}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-xs transition-colors">Target in Moderation</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="p-4 sm:p-5 bg-[#121722] card-border rounded space-y-3">
-              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
-                <span>Previous Offenses (${userPastLogs.length})</span>
-              </h4>
-
-              ${userPastLogs.length === 0 ? '<p class="text-xs text-slate-500">No previous recorded moderation actions on file for this user.</p>' : `
-                <div class="w-full overflow-x-auto">
-                  <table class="w-full text-left text-xs min-w-[400px]">
-                    <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
-                      <tr>
-                        <th class="p-2">Action</th>
-                        <th class="p-2">Reason</th>
-                        <th class="p-2">Moderator</th>
-                        <th class="p-2 text-right">Timestamp</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60">
-                      ${userPastLogs.map(l => `
-                        <tr>
-                          <td class="p-2 font-mono font-bold text-blue-400">${l.action}</td>
-                          <td class="p-2 text-slate-300">"${l.reason}"</td>
-                          <td class="p-2 text-slate-400">${l.admin || 'Console'}</td>
-                          <td class="p-2 text-right font-mono text-slate-500">${new Date(l.timestamp).toLocaleString()}</td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                  </table>
-                </div>
-              `}
-            </div>
-          </div>
-        `;
-      } catch (err) {
-        container.innerHTML = `<div class="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded">Failed to reach lookup endpoint.</div>`;
-      }
-    }
-
-    function sendToModeration(userId) {
-      document.getElementById('userId').value = userId;
-      updateBanBtnState();
-      fetchUserPreview();
-      navigateTo('/dashboard');
-      notify('Target Updated', `UserID ${userId} pre-filled in Command Actions.`);
-    }
-
-    async function fetchModerators() {
-      if (currentUserRole !== 'owner') return;
-      try {
-        const res = await fetch('/api/users');
-        const data = await res.json();
-        const list = data.users || [];
-        const container = document.getElementById('moderatorsList');
-
-        if (list.length === 0) {
-          container.innerHTML = '<p class="text-xs text-slate-500 p-2">No custom staff accounts created yet.</p>';
-          return;
-        }
-
-        const getRoleBadge = (role) => {
-          if (role === 'owner') return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-          if (role === 'admin') return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-          return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20';
-        };
-
-        container.innerHTML = `
-          <div class="w-full overflow-x-auto">
-            <table class="w-full text-left text-xs min-w-[550px]">
-              <thead class="bg-[#0b0f17] text-[10px] font-bold text-slate-500 uppercase tracking-wider card-border">
-                <tr>
-                  <th class="p-2.5">Staff User</th>
-                  <th class="p-2.5">Role Level</th>
-                  <th class="p-2.5">Edit Profile Permission</th>
-                  <th class="p-2.5">Email Contact</th>
-                  <th class="p-2.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/60">
-                ${list.map((u, i) => `
-                  <tr class="${i % 2 === 0 ? 'bg-[#0b0f17]' : 'bg-[#0e131f]'}">
-                    <td class="p-2.5 font-bold text-slate-200">${u.username}</td>
-                    <td class="p-2.5">
-                      <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${getRoleBadge(u.role)}">${u.role || 'MOD'}</span>
-                    </td>
-                    <td class="p-2.5">
-                      <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                        <input type="checkbox" ${u.canEditProfile !== false ? 'checked' : ''} onchange="toggleStaffPermission('${u.username}', this.checked)" class="w-3.5 h-3.5 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" />
-                        <span class="text-[11px] font-mono text-slate-300">${u.canEditProfile !== false ? 'Allowed' : 'Locked'}</span>
-                      </label>
-                    </td>
-                    <td class="p-2.5 text-slate-400 font-mono">${u.email || 'No email'}</td>
-                    <td class="p-2.5 text-right">
-                      <button onclick="deleteModerator('${u.username}')" class="px-2 py-1 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded text-[11px] card-border font-medium">Remove</button>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      } catch (e) {}
-    }
-
-    function toggleStaffPermission(username, isAllowed) {
-      notify('Permission Updated', `Set profile edit permission for ${username} to ${isAllowed ? 'Allowed' : 'Locked'}`);
-    }
-
-    async function createModerator() {
-      const username = document.getElementById('newUsername').value.trim();
-      const email = document.getElementById('newEmail').value.trim();
-      const password = document.getElementById('newPassword').value.trim();
-      const role = document.getElementById('newRole').value;
-
-      if (!username || !password) return notify('Missing Fields', 'Username and Password required!', 'error');
-
-      try {
-        const res = await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password, role })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          notify('Account Created', data.message);
-          document.getElementById('newUsername').value = '';
-          document.getElementById('newEmail').value = '';
-          document.getElementById('newPassword').value = '';
-          fetchModerators();
-        } else {
-          notify('Creation Failed', data.error || 'Could not create account', 'error');
+          notify('Update Blocked', data.error || 'Your profile is locked.', 'error');
         }
       } catch (e) { notify('Error', 'Server request failed', 'error'); }
     }
 
-    async function deleteModerator(username) {
-      try {
-        const res = await fetch(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Removed', `Staff account ${username} deleted.`);
-          fetchModerators();
-        }
-      } catch (e) {}
+    function drawToxicityCanvas() {
+      const canvas = document.getElementById('toxicityHeatmapCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.beginPath();
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+
+      const points = [10, 15, 8, 25, 40, 80, 55, 30, 20, 12, 18, 22];
+      const step = w / (points.length - 1);
+
+      for (let i = 0; i < points.length; i++) {
+        const x = i * step;
+        const y = h - (points[i] / 100) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+      grad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
     }
 
-    async function forceUnbanAll() {
-      try {
-        const res = await fetch('/api/unban-all', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Global Reset', 'All user bans removed globally.');
-          fetchBanned();
-        }
-      } catch (e) {}
+    function toggleCommandPalette() {
+      const query = prompt('Enter Command / Quick Action:\n• switch dashboard/players/chat/banned/lookup\n• kick <userId>\n• unban <userId>');
+      if (!query) return;
+      const parts = query.trim().split(' ');
+      const cmd = parts[0].toLowerCase();
+
+      if (cmd === 'switch' && parts[1]) switchTab(parts[1]);
+      else if (cmd === 'kick' && parts[1]) sendAction('KICK', { userId: parts[1], reason: 'Command Palette Quick Kick' });
+      else if (cmd === 'unban' && parts[1]) sendAction('UNBAN', { userId: parts[1] });
     }
 
-    function clearConsoleTerminal() {
-      document.getElementById('consoleTerminalWindow').innerHTML = '<div class="text-slate-500">[CONSOLE CLEARED] Telemetry stream listening...</div>';
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        toggleCommandPalette();
+      }
+    });
+
+    // =========================================================================
+    // GEMINI 3 FLASH LLM INTEGRATION HELPERS
+    // =========================================================================
+    async function callGeminiApi(userPrompt, systemInstruction = "", retries = 3) {
+      const apiKey = ""; // API key automatically injected by environment runtime
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }]
+      };
+      if (systemInstruction) {
+        payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+      }
+
+      let delay = 1000;
+      for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (response.ok) {
+            const result = await response.json();
+            const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) return text;
+          }
+        } catch (err) {
+          console.warn(`Gemini API attempt ${attempt + 1} failed, retrying...`);
+        }
+        await new Promise(res => setTimeout(res, delay));
+        delay *= 2;
+      }
+      throw new Error("Unable to reach Gemini AI service. Please check network connection.");
+    }
+
+    function showAiModal(title, subtitle = "POWERED BY GEMINI 3 FLASH") {
+      document.getElementById('aiModalTitle').innerText = title;
+      document.getElementById('aiModalSubtitle').innerText = subtitle;
+      document.getElementById('aiModalLoading').classList.remove('hidden');
+      document.getElementById('aiModalContent').classList.add('hidden');
+      document.getElementById('aiAssistantModal').classList.remove('hidden');
+    }
+
+    function closeAiModal() {
+      document.getElementById('aiAssistantModal').classList.add('hidden');
+    }
+
+    async function deepScanChatWithGemini() {
+      if (!chatMessagesList.length) {
+        notify('AI Scanner', 'No chat messages available in stream to analyze.', 'warning');
+        return;
+      }
+
+      showAiModal("AI Chat Telemetry Deep Scan", "DEEP RISK & BYPASS PATTERN SCANNER");
+
+      const recentLogs = chatMessagesList.slice(0, 20).map(c => `[${c.username} (ID:${c.userId})]: "${c.msg}"`).join('\n');
+      const systemPrompt = "Act as an expert Roblox game safety analyst and trust & safety officer. Analyze player chat history for bypass slang, targeted harassment, scam links, grooming behavior, and toxic player clusters. Provide a concise bulleted analysis including Overall Risk Level (Low/Medium/High), Identified Players of Concern, and Recommended Staff Actions.";
+
+      try {
+        const aiOutput = await callGeminiApi(`Analyze these recent 20 live in-game chat messages from Escape Tsunami:\n\n${recentLogs}`, systemPrompt);
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        const contentEl = document.getElementById('aiModalContent');
+        contentEl.innerText = aiOutput;
+        contentEl.classList.remove('hidden');
+      } catch (e) {
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        notify('Gemini AI Error', e.message, 'error');
+        closeAiModal();
+      }
+    }
+
+    async function analyzeSingleMessageWithGemini(userId, username, msg) {
+      showAiModal(`AI Analysis: @${username}`, `USER ID: ${userId}`);
+
+      const systemPrompt = "Act as a Roblox chat moderation analyst. Evaluate the given chat message for intent, toxicity, profanity bypasses, or safety violations. Respond with: 1) Severity Rating (Low/Medium/High), 2) Intent Breakdown, 3) Recommended Staff Action (Dismiss, Warn, Kick, or Global Ban), and 4) A polite player warning text.";
+
+      try {
+        const aiOutput = await callGeminiApi(`Player @${username} (UserID ${userId}) said in chat: "${msg}"`, systemPrompt);
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        const contentEl = document.getElementById('aiModalContent');
+        contentEl.innerText = aiOutput;
+        contentEl.classList.remove('hidden');
+      } catch (e) {
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        notify('Gemini AI Error', e.message, 'error');
+        closeAiModal();
+      }
+    }
+
+    async function generateAiIncidentReport() {
+      if (!activeAuditLogs.length && !activeBannedList.length) {
+        notify('AI Report', 'No audit logs or ban records to summarize.', 'warning');
+        return;
+      }
+
+      showAiModal("AI Executive Incident Briefing", "HISTORICAL AUDIT & RISK ANALYSIS");
+
+      const logsSummary = activeAuditLogs.slice(0, 15).map(l => `- [${l.action}] Target UserID ${l.userId} by Admin ${l.admin}: "${l.reason}"`).join('\n');
+      const banSummary = activeBannedList.slice(0, 10).map(b => `- Banned UserID ${b.userId}: "${b.reason}"`).join('\n');
+
+      const systemPrompt = "Act as a senior lead security manager for Roblox games. Generate an executive moderation briefing report based on recent staff actions and bans. Outline Key Incidents, Common Rule Infractions, Staff Performance Summary, and Safety Recommendations.";
+      const userPrompt = `Recent Action Dispatches:\n${logsSummary}\n\nActive Global Bans:\n${banSummary}`;
+
+      try {
+        const aiOutput = await callGeminiApi(userPrompt, systemPrompt);
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        const contentEl = document.getElementById('aiModalContent');
+        contentEl.innerText = aiOutput;
+        contentEl.classList.remove('hidden');
+      } catch (e) {
+        document.getElementById('aiModalLoading').classList.add('hidden');
+        notify('Gemini AI Error', e.message, 'error');
+        closeAiModal();
+      }
+    }
+
+    async function aiPolishReason() {
+      const reasonInput = document.getElementById('reason');
+      const currentReason = reasonInput.value.trim();
+      if (!currentReason) {
+        notify('AI Assistant', 'Please enter a brief reason draft first.', 'warning');
+        return;
+      }
+
+      notify('AI Refiner', 'Refining moderation reason with Gemini...', 'info');
+
+      const systemPrompt = "Act as a professional Roblox moderation coordinator. Rephrase the provided rough moderation note into a single concise, objective, and formal ban/kick reason suitable for permanent DataStore records and public notices (under 15 words). Return ONLY the refined text.";
+
+      try {
+        const polished = await callGeminiApi(`Refine this note into a formal moderation reason: "${currentReason}"`, systemPrompt);
+        reasonInput.value = polished.replace(/^["']|["']$/g, '').trim();
+        updateBanBtnState();
+        notify('AI Refiner', 'Reason updated cleanly!');
+      } catch (e) {
+        notify('AI Error', e.message, 'error');
+      }
+    }
+
+    if (socket) {
+      socket.on('noticeUpdate', (notice) => renderTopNotice(notice));
+      socket.on('newChatMessage', (chat) => {
+        chatMessagesList.unshift(chat);
+        if (chatMessagesList.length > 200) chatMessagesList.pop();
+        renderChatFeed();
+      });
+      socket.on('playersUpdate', (players) => {
+        livePlayersList = players || [];
+        document.getElementById('statLivePlayers').innerText = livePlayersList.length;
+        document.getElementById('navLivePlayersBadge').innerText = livePlayersList.length;
+        renderLivePlayers();
+      });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadCurrentUser();
-      renderRoute();
+      await fetchSystemNotice();
       fetchLivePlayers();
       fetchBanned();
       fetchLogs();
+      fetchChatFeed();
       updateBanBtnState();
+      drawToxicityCanvas();
       setInterval(fetchLivePlayers, 4000);
       setInterval(fetchChatFeed, 3000);
     });
