@@ -8,6 +8,13 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
 
+let mongoose;
+try {
+  mongoose = require('mongoose');
+} catch (e) {
+  console.warn('⚠️ Mongoose package not installed or missing in node_modules.');
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
@@ -21,6 +28,68 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
+
+let isMongoConnected = false;
+let ApplicationModel, SubmissionModel, BannedUserModel, UserModel, SecurityGateModel;
+
+if (mongoose) {
+  const ApplicationSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    title: String,
+    description: String,
+    questions: Array,
+    settings: Object,
+    active: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now }
+  });
+
+  const SubmissionSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    appId: String,
+    appTitle: String,
+    applicantUsername: String,
+    discordTag: String,
+    deviceSignature: String,
+    answers: Object,
+    notes: Array,
+    blacklisted: { type: Boolean, default: false },
+    submittedAt: { type: Date, default: Date.now },
+    status: { type: String, default: 'PENDING' },
+    reviewedBy: String,
+    reviewedAt: Date,
+    ndaSigned: Boolean,
+    onboardingCompletedAt: Date
+  });
+
+  const BannedUserSchema = new mongoose.Schema({
+    userId: { type: Number, required: true, unique: true },
+    reason: String,
+    admin: String,
+    caseId: String,
+    durationText: String,
+    bannedAt: { type: Date, default: Date.now }
+  });
+
+  const UserSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: String,
+    password: String,
+    role: String,
+    createdAt: { type: Date, default: Date.now }
+  });
+
+  const SecurityGateSchema = new mongoose.Schema({
+    configId: { type: String, default: 'default', unique: true },
+    blockedSignatures: Array,
+    securityLogs: Array
+  });
+
+  ApplicationModel = mongoose.models.Application || mongoose.model('Application', ApplicationSchema);
+  SubmissionModel = mongoose.models.Submission || mongoose.model('Submission', SubmissionSchema);
+  BannedUserModel = mongoose.models.BannedUser || mongoose.model('BannedUser', BannedUserSchema);
+  UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
+  SecurityGateModel = mongoose.models.SecurityGate || mongoose.model('SecurityGate', SecurityGateSchema);
+}
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -132,12 +201,69 @@ if (fs.existsSync(SECURITY_FILE)) {
   } catch (err) { console.error('Error loading security_gate.json:', err.message); }
 }
 
+if (mongoose && process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(async () => {
+      console.log('🍃 Connected to MongoDB Atlas Cloud Database!');
+      isMongoConnected = true;
+
+      try {
+        const dbApps = await ApplicationModel.find({});
+        if (dbApps.length > 0) {
+          applicationsMap.clear();
+          dbApps.forEach(a => applicationsMap.set(a.id, a.toObject()));
+        }
+
+        const dbSubs = await SubmissionModel.find({}).sort({ submittedAt: -1 });
+        if (dbSubs.length > 0) {
+          applicationSubmissions = dbSubs.map(s => s.toObject());
+        }
+
+        const dbBans = await BannedUserModel.find({});
+        if (dbBans.length > 0) {
+          bannedUsersMap.clear();
+          dbBans.forEach(b => bannedUsersMap.set(Number(b.userId), b.toObject()));
+        }
+
+        const dbUsers = await UserModel.find({});
+        if (dbUsers.length > 0) {
+          dbUsers.forEach(u => usersMap.set(u.username.toLowerCase(), u.toObject()));
+        }
+
+        const dbSec = await SecurityGateModel.findOne({ configId: 'default' });
+        if (dbSec) {
+          if (Array.isArray(dbSec.blockedSignatures)) blockedSignatures = new Set(dbSec.blockedSignatures);
+          if (Array.isArray(dbSec.securityLogs)) securityLogs = dbSec.securityLogs;
+        }
+
+        console.log(`✅ Loaded ${dbApps.length} Apps & ${dbSubs.length} Submissions from MongoDB Atlas cloud database.`);
+      } catch (err) {
+        console.error('⚠️ Error loading MongoDB data on startup:', err.message);
+      }
+    })
+    .catch(err => {
+      console.error('❌ MongoDB Atlas Connection Failed:', err.message);
+    });
+} else {
+  console.log('ℹ️ MONGODB_URI not set. Operating on local JSON persistence.');
+}
+
 function saveBansToFile() {
   fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
+  if (isMongoConnected) {
+    Array.from(bannedUsersMap.values()).forEach(b => {
+      BannedUserModel.updateOne({ userId: b.userId }, b, { upsert: true }).catch(() => {});
+    });
+  }
 }
 
 function saveUsersToFile() {
   fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
+  if (isMongoConnected) {
+    Array.from(usersMap.values()).forEach(u => {
+      UserModel.updateOne({ username: u.username }, u, { upsert: true }).catch(() => {});
+    });
+  }
 }
 
 function saveApplicationsToFile() {
@@ -152,6 +278,14 @@ function saveSecurityGateToFile() {
     blockedSignatures: Array.from(blockedSignatures),
     securityLogs: securityLogs.slice(0, 300)
   }, null, 2));
+
+  if (isMongoConnected) {
+    SecurityGateModel.updateOne(
+      { configId: 'default' },
+      { blockedSignatures: Array.from(blockedSignatures), securityLogs: securityLogs.slice(0, 300) },
+      { upsert: true }
+    ).catch(err => console.error('MongoDB Gate Save Error:', err.message));
+  }
 }
 
 function generateFallbackAiAnalysis(promptText) {
@@ -272,9 +406,6 @@ const requireOwner = (req, res, next) => {
   next();
 };
 
-// ==========================================
-// CONNECTION GATEWAY & SECURITY ENDPOINTS
-// ==========================================
 app.post('/api/gate/verify', (req, res) => {
   const signature = String(req.body.signature || '').trim() || 'SIG-UNKNOWN-DEVICE';
   const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
@@ -282,7 +413,6 @@ app.post('/api/gate/verify', (req, res) => {
   const isBlocked = blockedSignatures.has(signature);
   const status = isBlocked ? 'Blocked' : 'Allowed';
 
-  // Prevent duplicate log spamming if same signature verifies within 5 minutes
   const recentLog = securityLogs.find(l => l.signature === signature && (Date.now() - new Date(l.timestamp).getTime()) < 5 * 60 * 1000);
   if (recentLog) {
     recentLog.timestamp = new Date().toISOString();
@@ -459,29 +589,42 @@ app.post('/api/ai/generate', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/api/profile/update', requireAuth, (req, res) => {
-  const username = req.session.adminName;
-  const userObj = Array.from(usersMap.values()).find(u => u.username.toLowerCase() === username.toLowerCase());
-
-  const isOwner = req.session.role === 'owner';
-  const canEdit = isOwner || (userObj && userObj.canEditProfile !== false);
-
-  if (!canEdit) {
-    return res.status(403).json({ success: false, error: 'Your profile is locked by a System Administrator.' });
-  }
-
-  const { newPassword } = req.body;
-  if (userObj && newPassword && newPassword.trim().length > 0) {
-    userObj.password = newPassword.trim();
-    saveUsersToFile();
-  }
-
-  res.json({ success: true, message: 'Profile updated successfully.' });
-});
-
 app.get('/api/users', requireAuth, requireOwner, (req, res) => {
   const list = Array.from(usersMap.values()).map(u => ({ username: u.username, email: u.email, role: u.role || 'mod', createdAt: u.createdAt }));
   res.json({ users: list });
+});
+
+app.get('/api/applications', requireAuth, (req, res) => {
+  res.json({
+    applications: Array.from(applicationsMap.values()),
+    submissions: applicationSubmissions
+  });
+});
+
+app.get('/api/public/applications/:id', async (req, res) => {
+  const appItem = applicationsMap.get(req.params.id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+  res.json({ success: true, application: appItem });
+});
+
+app.get('/api/public/applications/:id/roster', async (req, res) => {
+  const appId = req.params.id;
+  const appItem = applicationsMap.get(appId);
+
+  if (!appItem || !appItem.settings?.enablePublicRoster) {
+    return res.status(403).json({ success: false, error: 'Public status roster disabled for this form.' });
+  }
+
+  const publicSubmissions = applicationSubmissions
+    .filter(s => s.appId === appId)
+    .map(s => ({
+      applicantUsername: s.applicantUsername,
+      status: s.status,
+      submittedAt: s.submittedAt,
+      reviewedBy: s.reviewedBy || 'Pending'
+    }));
+
+  res.json({ success: true, applicationTitle: appItem.title, submissions: publicSubmissions });
 });
 
 app.get('/api/public/applications/:id/check', async (req, res) => {
@@ -521,6 +664,49 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
   });
 });
 
+app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
+  const { title, description, questions, settings } = req.body;
+  if (!title) return res.status(400).json({ success: false, error: 'Application title is required.' });
+
+  const appObj = {
+    id: 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    title: title.trim(),
+    description: description ? description.trim() : '',
+    questions: Array.isArray(questions) ? questions : [],
+    settings: settings || { limitOneResponse: true, acceptingResponses: true },
+    active: true,
+    createdAt: new Date()
+  };
+
+  applicationsMap.set(appObj.id, appObj);
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await ApplicationModel.create(appObj);
+    } catch (err) { console.error('MongoDB Application Create Error:', err.message); }
+  }
+
+  res.json({ success: true, message: 'Application form created cleanly!', application: appObj });
+});
+
+app.post('/api/applications/:id/toggle', requireAuth, requireOwner, async (req, res) => {
+  const id = req.params.id;
+  const appItem = applicationsMap.get(id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+
+  appItem.active = !appItem.active;
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await ApplicationModel.updateOne({ id }, { active: appItem.active });
+    } catch (err) { console.error('MongoDB Toggle Error:', err.message); }
+  }
+
+  res.json({ success: true, message: `Application ${appItem.active ? 'Opened' : 'Closed'}.`, active: appItem.active });
+});
+
 app.post('/api/applications/submit', async (req, res) => {
   const { appId, applicantUsername, discordTag, answers, deviceSignature } = req.body;
   const appItem = applicationsMap.get(appId);
@@ -534,7 +720,6 @@ app.post('/api/applications/submit', async (req, res) => {
     return res.status(403).json({ success: false, error: 'Device Authorization Failed: Access Restricted.' });
   }
 
-  // OPTION 1 SERVER REJECTION: Prevent duplicates by Username OR Device Signature
   if (appItem.settings && appItem.settings.limitOneResponse) {
     let existing = null;
 
@@ -581,7 +766,7 @@ app.post('/api/applications/submit', async (req, res) => {
   if (isMongoConnected) {
     try {
       await SubmissionModel.create(submission);
-    } catch (err) {}
+    } catch (err) { console.error('MongoDB Submission Error:', err.message); }
   }
 
   applicationSubmissions.unshift(submission);
@@ -590,7 +775,7 @@ app.post('/api/applications/submit', async (req, res) => {
   res.json({ success: true, message: 'Application submitted successfully!', submissionId: submission.id });
 });
 
-app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, (req, res) => {
+app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, async (req, res) => {
   const { subId } = req.params;
   const { status, note, blacklisted } = req.body;
   const sub = applicationSubmissions.find(s => s.id === subId);
@@ -607,10 +792,16 @@ app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwne
   sub.reviewedAt = new Date();
   saveApplicationsToFile();
 
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id: subId }, sub);
+    } catch (err) {}
+  }
+
   res.json({ success: true, submission: sub, message: `Submission updated cleanly.` });
 });
 
-app.post('/api/applications/submissions/:subId/reject-block-device', requireAuth, requireOwner, (req, res) => {
+app.post('/api/applications/submissions/:subId/reject-block-device', requireAuth, requireOwner, async (req, res) => {
   const { subId } = req.params;
   const sub = applicationSubmissions.find(s => s.id === subId);
   if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
@@ -625,10 +816,17 @@ app.post('/api/applications/submissions/:subId/reject-block-device', requireAuth
   }
 
   saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id: subId }, { status: 'DENIED', reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
+    } catch (err) {}
+  }
+
   res.json({ success: true, message: `Application rejected and Device Signature ${sub.deviceSignature || ''} restricted from Connection Gateway.` });
 });
 
-app.post('/api/public/applications/submissions/:subId/withdraw', (req, res) => {
+app.post('/api/public/applications/submissions/:subId/withdraw', async (req, res) => {
   const { subId } = req.params;
   const { applicantUsername } = req.body;
   const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
@@ -638,10 +836,16 @@ app.post('/api/public/applications/submissions/:subId/withdraw', (req, res) => {
   sub.withdrawnAt = new Date();
   saveApplicationsToFile();
 
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id: subId }, { status: 'WITHDRAWN' });
+    } catch (err) {}
+  }
+
   res.json({ success: true, message: 'Application successfully withdrawn.' });
 });
 
-app.post('/api/public/applications/submissions/:subId/onboard', (req, res) => {
+app.post('/api/public/applications/submissions/:subId/onboard', async (req, res) => {
   const { subId } = req.params;
   const { applicantUsername, ndaSigned } = req.body;
   const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
@@ -650,6 +854,12 @@ app.post('/api/public/applications/submissions/:subId/onboard', (req, res) => {
   sub.ndaSigned = Boolean(ndaSigned);
   sub.onboardingCompletedAt = new Date();
   saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id: subId }, { ndaSigned: sub.ndaSigned });
+    } catch (err) {}
+  }
 
   res.json({ success: true, message: 'Staff agreement and NDA signed successfully!' });
 });
