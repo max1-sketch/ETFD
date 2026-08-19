@@ -484,135 +484,44 @@ app.get('/api/users', requireAuth, requireOwner, (req, res) => {
   res.json({ users: list });
 });
 
-app.post('/api/users', requireAuth, requireOwner, async (req, res) => {
-  const { username, email, password, role } = req.body;
-  if (!username || !password) return res.status(400).json({ success: false, error: 'Username and password required.' });
-
-  const cleanUser = username.trim();
-  if (usersMap.has(cleanUser.toLowerCase())) return res.status(400).json({ success: false, error: 'User with this username already exists.' });
-
-  const assignedRole = (role === 'admin') ? 'admin' : 'mod';
-  const newUser = { username: cleanUser, email: email ? email.trim() : '', password: String(password).trim(), role: assignedRole, createdAt: new Date() };
-
-  usersMap.set(cleanUser.toLowerCase(), newUser);
-  saveUsersToFile();
-
-  if (newUser.email) await sendInviteEmail(newUser.email, newUser.username, newUser.password, newUser.role);
-  res.json({ success: true, message: `${assignedRole.toUpperCase()} account created!` });
-});
-
-app.delete('/api/users/:username', requireAuth, requireOwner, (req, res) => {
-  const target = req.params.username.toLowerCase();
-  if (usersMap.has(target)) {
-    usersMap.delete(target);
-    saveUsersToFile();
-    return res.json({ success: true, message: 'User account removed.' });
-  }
-  res.status(404).json({ success: false, error: 'User not found.' });
-});
-
-app.get('/api/applications', (req, res) => {
-  res.json({ applications: Array.from(applicationsMap.values()), submissions: applicationSubmissions });
-});
-
-app.get('/api/public/applications/:id', (req, res) => {
-  const appId = req.params.id;
-  const appItem = applicationsMap.get(appId);
-  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
-  res.json({ success: true, application: appItem });
-});
-
-app.get('/api/public/applications/:id/check', (req, res) => {
+app.get('/api/public/applications/:id/check', async (req, res) => {
   const appId = req.params.id;
   const username = String(req.query.username || '').trim().toLowerCase();
+  const deviceSig = String(req.query.deviceSignature || '').trim();
   const appItem = applicationsMap.get(appId);
   
   if (!appItem) return res.status(404).json({ success: false, error: 'Form not found' });
-  if (!username) return res.json({ alreadySubmitted: false });
 
-  const existing = applicationSubmissions.find(s => s.appId === appId && s.applicantUsername.toLowerCase() === username);
-  res.json({ alreadySubmitted: Boolean(existing && appItem.settings?.limitOneResponse), submission: existing || null });
-});
+  let existing = null;
 
-app.get('/api/public/applications/:id/roster', (req, res) => {
-  const appId = req.params.id;
-  const appItem = applicationsMap.get(appId);
-  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+  if (isMongoConnected) {
+    try {
+      const query = { appId, $or: [] };
+      if (username) query.$or.push({ applicantUsername: new RegExp(`^${username}$`, 'i') });
+      if (deviceSig && deviceSig !== 'SIG-UNTRACKED') query.$or.push({ deviceSignature: deviceSig });
 
-  const relevantSubmissions = applicationSubmissions.filter(s => s.appId === appId).map(s => ({
-    id: s.id,
-    applicantUsername: s.applicantUsername,
-    discordTag: s.discordTag,
-    submittedAt: s.submittedAt,
-    status: s.status,
-    reviewedBy: s.reviewedBy,
-    reviewedAt: s.reviewedAt
-  }));
+      if (query.$or.length > 0) {
+        existing = await SubmissionModel.findOne(query);
+      }
+    } catch (e) {}
+  }
 
-  res.json({
-    success: true,
-    title: appItem.title,
-    active: appItem.active,
-    enablePublicRoster: Boolean(appItem.settings && appItem.settings.enablePublicRoster),
-    submissions: relevantSubmissions
+  if (!existing) {
+    existing = applicationSubmissions.find(s => 
+      s.appId === appId && (
+        (username && s.applicantUsername.toLowerCase() === username) ||
+        (deviceSig && s.deviceSignature && s.deviceSignature === deviceSig && deviceSig !== 'SIG-UNTRACKED')
+      )
+    );
+  }
+
+  res.json({ 
+    alreadySubmitted: Boolean(existing && appItem.settings?.limitOneResponse), 
+    submission: existing || null 
   });
 });
 
-app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
-  const { title, description, questions, settings } = req.body;
-  if (!title || !title.trim()) return res.status(400).json({ success: false, error: 'Application title is required.' });
-
-  const id = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-  const newApp = {
-    id,
-    title: title.trim(),
-    description: description ? description.trim() : '',
-    questions: Array.isArray(questions) ? questions : [],
-    settings: settings || {
-      limitOneResponse: true,
-      acceptingResponses: true,
-      collectDiscord: true,
-      minAccountAge: 30,
-      enablePublicRoster: true
-    },
-    active: settings && settings.acceptingResponses !== undefined ? Boolean(settings.acceptingResponses) : true,
-    createdAt: new Date(),
-    createdBy: req.session.adminName || 'Owner'
-  };
-
-  applicationsMap.set(id, newApp);
-  saveApplicationsToFile();
-
-  actionLogs.unshift({ id: Date.now(), action: 'CREATE_APP', userId: 0, admin: req.session.adminName || 'Owner', reason: `Created application: ${newApp.title}`, timestamp: new Date() });
-
-  res.json({ success: true, application: newApp, message: 'Application form created successfully!' });
-});
-
-app.post('/api/applications/:id/toggle', requireAuth, requireOwner, (req, res) => {
-  const appId = req.params.id;
-  const appItem = applicationsMap.get(appId);
-  if (!appItem) return res.status(404).json({ success: false, error: 'Application not found.' });
-
-  appItem.active = !appItem.active;
-  if (!appItem.settings) appItem.settings = {};
-  appItem.settings.acceptingResponses = appItem.active;
-
-  saveApplicationsToFile();
-
-  res.json({ success: true, active: appItem.active, message: `Application status updated to ${appItem.active ? 'OPEN' : 'CLOSED'}` });
-});
-
-app.delete('/api/applications/:id', requireAuth, requireOwner, (req, res) => {
-  const appId = req.params.id;
-  if (applicationsMap.has(appId)) {
-    applicationsMap.delete(appId);
-    saveApplicationsToFile();
-    return res.json({ success: true, message: 'Application form deleted.' });
-  }
-  res.status(404).json({ success: false, error: 'Application not found.' });
-});
-
-app.post('/api/applications/submit', (req, res) => {
+app.post('/api/applications/submit', async (req, res) => {
   const { appId, applicantUsername, discordTag, answers, deviceSignature } = req.body;
   const appItem = applicationsMap.get(appId);
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
@@ -625,10 +534,33 @@ app.post('/api/applications/submit', (req, res) => {
     return res.status(403).json({ success: false, error: 'Device Authorization Failed: Access Restricted.' });
   }
 
+  // OPTION 1 SERVER REJECTION: Prevent duplicates by Username OR Device Signature
   if (appItem.settings && appItem.settings.limitOneResponse) {
-    const existing = applicationSubmissions.find(s => s.appId === appId && s.applicantUsername.toLowerCase() === cleanUser.toLowerCase());
+    let existing = null;
+
+    if (isMongoConnected) {
+      try {
+        existing = await SubmissionModel.findOne({
+          appId,
+          $or: [
+            { applicantUsername: new RegExp(`^${cleanUser}$`, 'i') },
+            { deviceSignature: cleanSignature }
+          ]
+        });
+      } catch (e) {}
+    }
+
+    if (!existing) {
+      existing = applicationSubmissions.find(s => 
+        s.appId === appId && (
+          s.applicantUsername.toLowerCase() === cleanUser.toLowerCase() ||
+          (s.deviceSignature && s.deviceSignature === cleanSignature && cleanSignature !== 'SIG-UNTRACKED')
+        )
+      );
+    }
+
     if (existing) {
-      return res.status(400).json({ success: false, error: 'You have already submitted an application for this form.' });
+      return res.status(400).json({ success: false, error: 'You or this device has already submitted an application for this form.' });
     }
   }
 
@@ -645,6 +577,12 @@ app.post('/api/applications/submit', (req, res) => {
     submittedAt: new Date(),
     status: 'PENDING'
   };
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.create(submission);
+    } catch (err) {}
+  }
 
   applicationSubmissions.unshift(submission);
   saveApplicationsToFile();

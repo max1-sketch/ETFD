@@ -3,28 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami - Staff Command Center</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS & FontAwesome CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-  <!-- Pre-render Head Check for Zero-Flicker Gate State -->
+  <!-- Pre-render Head Check for Zero-Flicker Gate State & Public Portal Isolation -->
   <script>
     if (sessionStorage.getItem('gate_verified') === 'true') {
       document.documentElement.classList.add('gate-verified');
+    }
+    if (window.location.pathname.startsWith('/apply/')) {
+      document.documentElement.classList.add('is-public-portal');
     }
   </script>
 
   <style>
     html.gate-verified #securityGateOverlay {
       display: none !important;
+    }
+
+    /* STRICT ISOLATION: Prevent staff dashboard from ever displaying on public application URLs */
+    html.is-public-portal #mainDashboardApp {
+      display: none !important;
+    }
+
+    html.is-public-portal #standaloneApplicantPortal {
+      display: flex !important;
     }
 
     :root {
@@ -2144,24 +2144,25 @@
           </div>
         `).join('');
 
-        const savedUser = localStorage.getItem('submitted_user_' + appId);
-        if (savedUser) {
-          const userField = document.getElementById('standaloneApplicantUser');
-          if (userField) {
-            userField.value = savedUser;
-            checkLimitOneStatus();
-          }
+        const savedUser = localStorage.getItem('submitted_user_' + appId) || '';
+        const userField = document.getElementById('standaloneApplicantUser');
+        if (userField && savedUser) {
+          userField.value = savedUser;
         }
+
+        // OPTION 1: INSTANT DEVICE SIGNATURE CHECK ON PAGE LOAD IN ANY TAB
+        checkLimitOneStatus();
       } catch (e) {}
     }
 
     async function checkLimitOneStatus() {
       const appId = document.getElementById('standaloneAppId').value;
       const username = document.getElementById('standaloneApplicantUser').value.trim();
-      if (!appId || !username || !currentStandaloneApp?.settings?.limitOneResponse) return;
+      if (!appId || !currentStandaloneApp?.settings?.limitOneResponse) return;
 
       try {
-        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}`);
+        // Query server using BOTH username and browser Device Signature immediately
+        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}&deviceSignature=${encodeURIComponent(currentDeviceSignature)}`);
         const data = await res.json();
         const notice = document.getElementById('alreadySubmittedNotice');
         const formFields = document.getElementById('standaloneFormFieldsContainer');
