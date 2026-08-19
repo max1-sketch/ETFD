@@ -68,6 +68,7 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.
 const BANS_FILE = path.join(__dirname, 'banned_users.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
 const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
+const SECURITY_FILE = path.join(__dirname, 'security_gate.json');
 
 let bannedUsersMap = new Map();
 let usersMap = new Map();
@@ -78,6 +79,9 @@ let liveChatMessages = [];
 let actionLogs = [];
 let lastActionTimestamp = 0;
 const avatarUrlCache = new Map();
+
+let blockedSignatures = new Set();
+let securityLogs = [];
 
 let systemNotice = {
   active: false,
@@ -115,6 +119,19 @@ if (fs.existsSync(APPLICATIONS_FILE)) {
   } catch (err) { console.error('Error loading applications.json:', err.message); }
 }
 
+if (fs.existsSync(SECURITY_FILE)) {
+  try {
+    const rawSec = fs.readFileSync(SECURITY_FILE, 'utf8');
+    const parsedSec = JSON.parse(rawSec);
+    if (Array.isArray(parsedSec.blockedSignatures)) {
+      blockedSignatures = new Set(parsedSec.blockedSignatures);
+    }
+    if (Array.isArray(parsedSec.securityLogs)) {
+      securityLogs = parsedSec.securityLogs;
+    }
+  } catch (err) { console.error('Error loading security_gate.json:', err.message); }
+}
+
 function saveBansToFile() {
   fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
 }
@@ -127,6 +144,13 @@ function saveApplicationsToFile() {
   fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify({
     apps: Array.from(applicationsMap.values()),
     submissions: applicationSubmissions
+  }, null, 2));
+}
+
+function saveSecurityGateToFile() {
+  fs.writeFileSync(SECURITY_FILE, JSON.stringify({
+    blockedSignatures: Array.from(blockedSignatures),
+    securityLogs: securityLogs.slice(0, 300)
   }, null, 2));
 }
 
@@ -247,6 +271,73 @@ const requireOwner = (req, res, next) => {
   }
   next();
 };
+
+// ==========================================
+// CONNECTION GATEWAY & SECURITY ENDPOINTS
+// ==========================================
+app.post('/api/gate/verify', (req, res) => {
+  const signature = String(req.body.signature || '').trim() || 'SIG-UNKNOWN-DEVICE';
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
+  const isBlocked = blockedSignatures.has(signature);
+  const status = isBlocked ? 'Blocked' : 'Allowed';
+
+  const logEntry = {
+    id: 'GATE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    timestamp: new Date().toISOString(),
+    signature,
+    ip: clientIp,
+    status
+  };
+
+  securityLogs.unshift(logEntry);
+  if (securityLogs.length > 300) securityLogs.pop();
+  saveSecurityGateToFile();
+
+  if (isBlocked) {
+    return res.status(403).json({
+      success: false,
+      blocked: true,
+      signature,
+      message: 'Device Authorization Failed: Access Restricted.'
+    });
+  }
+
+  res.json({
+    success: true,
+    blocked: false,
+    signature,
+    message: 'Device Signature Verified Cleanly.'
+  });
+});
+
+app.get('/api/gate/logs', requireAuth, requireOwner, (req, res) => {
+  res.json({
+    success: true,
+    logs: securityLogs,
+    blockedSignatures: Array.from(blockedSignatures)
+  });
+});
+
+app.post('/api/gate/block', requireAuth, requireOwner, (req, res) => {
+  const { signature, action } = req.body;
+  const cleanSig = String(signature || '').trim();
+
+  if (!cleanSig) return res.status(400).json({ success: false, error: 'Device signature is required.' });
+
+  if (action === 'unblock') {
+    blockedSignatures.delete(cleanSig);
+  } else {
+    blockedSignatures.add(cleanSig);
+  }
+
+  saveSecurityGateToFile();
+  res.json({
+    success: true,
+    blockedSignatures: Array.from(blockedSignatures),
+    message: `Device Signature ${cleanSig} ${action === 'unblock' ? 'Unblocked' : 'Restricted'}.`
+  });
+});
 
 app.get('/api/avatar/:userId', async (req, res) => {
   const userId = req.params.userId;
@@ -515,12 +606,17 @@ app.delete('/api/applications/:id', requireAuth, requireOwner, (req, res) => {
 });
 
 app.post('/api/applications/submit', (req, res) => {
-  const { appId, applicantUsername, discordTag, answers } = req.body;
+  const { appId, applicantUsername, discordTag, answers, deviceSignature } = req.body;
   const appItem = applicationsMap.get(appId);
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
   if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
 
   const cleanUser = applicantUsername ? applicantUsername.trim() : 'Anonymous';
+  const cleanSignature = deviceSignature ? String(deviceSignature).trim() : 'SIG-UNTRACKED';
+
+  if (blockedSignatures.has(cleanSignature)) {
+    return res.status(403).json({ success: false, error: 'Device Authorization Failed: Access Restricted.' });
+  }
 
   if (appItem.settings && appItem.settings.limitOneResponse) {
     const existing = applicationSubmissions.find(s => s.appId === appId && s.applicantUsername.toLowerCase() === cleanUser.toLowerCase());
@@ -535,6 +631,7 @@ app.post('/api/applications/submit', (req, res) => {
     appTitle: appItem.title,
     applicantUsername: cleanUser,
     discordTag: discordTag ? discordTag.trim() : 'Not provided',
+    deviceSignature: cleanSignature,
     answers: answers || {},
     notes: [],
     blacklisted: false,
@@ -566,6 +663,24 @@ app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwne
   saveApplicationsToFile();
 
   res.json({ success: true, submission: sub, message: `Submission updated cleanly.` });
+});
+
+app.post('/api/applications/submissions/:subId/reject-block-device', requireAuth, requireOwner, (req, res) => {
+  const { subId } = req.params;
+  const sub = applicationSubmissions.find(s => s.id === subId);
+  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
+
+  sub.status = 'DENIED';
+  sub.reviewedBy = req.session.adminName || 'Owner';
+  sub.reviewedAt = new Date();
+
+  if (sub.deviceSignature && sub.deviceSignature !== 'SIG-UNTRACKED') {
+    blockedSignatures.add(sub.deviceSignature);
+    saveSecurityGateToFile();
+  }
+
+  saveApplicationsToFile();
+  res.json({ success: true, message: `Application rejected and Device Signature ${sub.deviceSignature || ''} restricted from Connection Gateway.` });
 });
 
 app.post('/api/public/applications/submissions/:subId/withdraw', (req, res) => {
@@ -757,7 +872,7 @@ app.post('/api/action', requireAuth, async (req, res) => {
   res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
 });
 
-app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications'], requireAuth, (req, res) => {
+app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 

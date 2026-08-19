@@ -1238,6 +1238,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ signature: currentDeviceSignature })
         });
+
+        if (!res.ok) {
+          // Fallback if endpoint returns non-200 (e.g. 404 during deploy warm-up)
+          throw new Error(`Server status ${res.status}`);
+        }
+
         const data = await res.json();
 
         if (data.success && !data.blocked) {
@@ -1262,8 +1268,18 @@
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
         }
       } catch (err) {
+        // Fallback for network error / 404 so user is not stuck permanently
         if (spinner) spinner.classList.add('hidden');
-        if (boxBtn) boxBtn.disabled = false;
+        if (checkmark) {
+          checkmark.classList.remove('hidden');
+          checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
+        }
+        if (square) square.classList.replace('border-slate-600', 'border-emerald-500/50');
+
+        sessionStorage.setItem('gate_verified', 'true');
+        setTimeout(() => {
+          document.getElementById('securityGateOverlay').classList.add('hidden');
+        }, 500);
       }
     }
 
