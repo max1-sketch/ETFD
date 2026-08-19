@@ -282,16 +282,23 @@ app.post('/api/gate/verify', (req, res) => {
   const isBlocked = blockedSignatures.has(signature);
   const status = isBlocked ? 'Blocked' : 'Allowed';
 
-  const logEntry = {
-    id: 'GATE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-    timestamp: new Date().toISOString(),
-    signature,
-    ip: clientIp,
-    status
-  };
-
-  securityLogs.unshift(logEntry);
-  if (securityLogs.length > 300) securityLogs.pop();
+  // Prevent duplicate log spamming if same signature verifies within 5 minutes
+  const recentLog = securityLogs.find(l => l.signature === signature && (Date.now() - new Date(l.timestamp).getTime()) < 5 * 60 * 1000);
+  if (recentLog) {
+    recentLog.timestamp = new Date().toISOString();
+    recentLog.status = status;
+    recentLog.ip = clientIp;
+  } else {
+    const logEntry = {
+      id: 'GATE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      timestamp: new Date().toISOString(),
+      signature,
+      ip: clientIp,
+      status
+    };
+    securityLogs.unshift(logEntry);
+    if (securityLogs.length > 300) securityLogs.pop();
+  }
   saveSecurityGateToFile();
 
   if (isBlocked) {
