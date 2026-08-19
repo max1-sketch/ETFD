@@ -265,7 +265,6 @@ if (mongoose && process.env.MONGODB_URI) {
   console.log('ℹ️ MONGODB_URI not set or mongoose package missing. Operating on local JSON persistence.');
 }
 
-        const dbSubs = await SubmissionModel.find({}).sort({ submittedAt: -1 });
 app.get('/api/system/db-status', requireAuth, (req, res) => {
   res.json({
     isMongoConnected,
