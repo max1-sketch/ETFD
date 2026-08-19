@@ -131,16 +131,26 @@ function saveApplicationsToFile() {
 }
 
 function generateFallbackAiAnalysis(promptText) {
+  const upper = promptText.toUpperCase();
+
+  if (promptText.includes("staff application submission") || promptText.includes("Question:") || promptText.includes("Answer:")) {
+    const aiKeywords = ["FIRST AND FOREMOST", "FURTHERMORE", "MOREOVER", "IN CONCLUSION", "PROFOUND INTEREST", "EXEMPLARY", "INDISPENSABLE ASSET", "ESTEEMED", "TENURE AS AN AVID", "DIPLOMATIC CONFLICT RESOLUTION"];
+    const foundKeywords = aiKeywords.filter(kw => upper.includes(kw));
+
+    if (foundKeywords.length >= 1 || upper.includes("HIGH CONFIDENCE AI")) {
+      return `HIGH CONFIDENCE AI GENERATED\n\n• Key Synthetic Indicators Found:\n  - Robotic transition phrases detected: ${foundKeywords.join(', ')}\n  - Overly formal SaaS phrasing uncharacteristic of human gaming staff applications.\n  - Highly structured, symmetrical response layout.\n\n• Recommendation: REJECT submission for violating the No-AI application policy.`;
+    }
+
+    return `HUMAN WRITTEN\n\n• Key Indicators:\n  - Natural phrasing and personalized context.\n  - Standard conversational tone with no obvious ChatGPT synthetic transitions.\n\n• Recommendation: Safe to proceed with manual staff review.`;
+  }
+
   if (promptText.includes("Refine this note")) {
-    return "Inappropriate behavior and chat policy violation.";
+    return "Automated Warning: Disruptive behavior and chat policy violation.";
   }
   if (promptText.includes("Analyze these recent")) {
-    return "• Risk Assessment: Medium Risk\n• Primary Findings: Slang profanity and repeated chat telemetry detected.\n• Identified Users: UserID 4258516633 (Flagged for slang bypass).\n• Recommended Staff Action: Issue formal verbal warning notice.";
+    return "• Risk Assessment: Medium Risk\n• Primary Findings: Slang profanity and repeated chat telemetry detected.\n• Identified Users: Flagged for chat policy review.\n• Recommended Action: Issue verbal warning notice.";
   }
-  if (promptText.includes("said in chat:")) {
-    return "1) Severity Rating: Moderate (Medium Risk)\n2) Intent Breakdown: Player is expressing frustration using filtered slang.\n3) Recommended Staff Action: Issue Warn action.\n4) Warning Text: Please maintain respectful language in public chat.";
-  }
-  return "Staff Security Briefing:\n• Live System Status: Stable with normal player activity.\n• Action Log Summary: Dispatches executed cleanly.\n• Recommendation: Maintain standard automated chat monitoring.";
+  return "Staff Security Briefing:\n• Live System Status: Stable with normal activity.\n• Action Log Summary: Dispatches executed cleanly.";
 }
 
 async function deleteRobloxDataStoreEntry(userId) {
@@ -216,7 +226,6 @@ async function sendModActionToRoblox(userId, action, reason, toolName = null, du
     );
 
     return { success: true, caseId };
-
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -415,6 +424,30 @@ app.get('/api/public/applications/:id', (req, res) => {
   res.json({ success: true, application: appItem });
 });
 
+app.get('/api/public/applications/:id/roster', (req, res) => {
+  const appId = req.params.id;
+  const appItem = applicationsMap.get(appId);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+
+  const relevantSubmissions = applicationSubmissions.filter(s => s.appId === appId).map(s => ({
+    id: s.id,
+    applicantUsername: s.applicantUsername,
+    discordTag: s.discordTag,
+    submittedAt: s.submittedAt,
+    status: s.status,
+    reviewedBy: s.reviewedBy,
+    reviewedAt: s.reviewedAt
+  }));
+
+  res.json({
+    success: true,
+    title: appItem.title,
+    active: appItem.active,
+    enablePublicRoster: Boolean(appItem.settings && appItem.settings.enablePublicRoster),
+    submissions: relevantSubmissions
+  });
+});
+
 app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
   const { title, description, questions, settings } = req.body;
   if (!title || !title.trim()) return res.status(400).json({ success: false, error: 'Application title is required.' });
@@ -429,7 +462,8 @@ app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
       limitOneResponse: true,
       acceptingResponses: true,
       collectDiscord: true,
-      minAccountAge: 30
+      minAccountAge: 30,
+      enablePublicRoster: true
     },
     active: settings && settings.acceptingResponses !== undefined ? Boolean(settings.acceptingResponses) : true,
     createdAt: new Date(),
@@ -490,6 +524,8 @@ app.post('/api/applications/submit', (req, res) => {
     applicantUsername: cleanUser,
     discordTag: discordTag ? discordTag.trim() : 'Not provided',
     answers: answers || {},
+    notes: [],
+    blacklisted: false,
     submittedAt: new Date(),
     status: 'PENDING'
   };
@@ -502,16 +538,22 @@ app.post('/api/applications/submit', (req, res) => {
 
 app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, (req, res) => {
   const { subId } = req.params;
-  const { status } = req.body;
+  const { status, note, blacklisted } = req.body;
   const sub = applicationSubmissions.find(s => s.id === subId);
   if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
 
-  sub.status = status || 'PENDING';
+  if (status) sub.status = status;
+  if (blacklisted !== undefined) sub.blacklisted = Boolean(blacklisted);
+  if (note && note.trim()) {
+    if (!sub.notes) sub.notes = [];
+    sub.notes.push({ author: req.session.adminName || 'Owner', text: note.trim(), time: new Date() });
+  }
+
   sub.reviewedBy = req.session.adminName || 'Owner';
   sub.reviewedAt = new Date();
   saveApplicationsToFile();
 
-  res.json({ success: true, submission: sub, message: `Submission marked as ${status}` });
+  res.json({ success: true, submission: sub, message: `Submission updated cleanly.` });
 });
 
 app.get('/api/lookup/:query', requireAuth, async (req, res) => {
@@ -681,7 +723,7 @@ app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-app.get('/apply/:id', (req, res) => {
+app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
