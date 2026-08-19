@@ -308,6 +308,16 @@
 
           <div id="standaloneQuestionsList" class="space-y-3 pt-1"></div>
 
+          <!-- FORM GUIDELINES AGREEMENT CHECKBOX -->
+          <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+              <input type="checkbox" id="standaloneAgreeGuidelines" required class="mt-0.5 w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0 shrink-0 cursor-pointer" />
+              <span class="text-[11px] text-slate-300 leading-relaxed">
+                I have read and agree to the <strong>Form Guidelines</strong>, and confirm that all submitted details are true, original, and accurate. <span class="text-indigo-400">*</span>
+              </span>
+            </label>
+          </div>
+
           <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
             <label class="font-medium text-slate-200 block text-xs">
               Portfolio Link (Optional)
@@ -1397,12 +1407,41 @@
 
           const questionsList = document.getElementById('standaloneQuestionsList');
           if (questionsList && Array.isArray(app.questions)) {
-            questionsList.innerHTML = app.questions.map((q, idx) => `
-              <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
-                <label class="text-[11px] font-medium text-slate-300 block">${q.text} ${q.required ? '<span class="text-indigo-400">*</span>' : ''}</label>
-                <textarea id="standalone_q_${idx}" data-question="${q.text}" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>
-              </div>
-            `).join('');
+            questionsList.innerHTML = app.questions.map((q, idx) => {
+              const qType = q.type || 'textarea';
+              const reqAsterisk = q.required ? '<span class="text-indigo-400">*</span>' : '';
+              let inputFieldHtml = '';
+
+              if (qType === 'text') {
+                inputFieldHtml = `<input type="text" id="standalone_q_${idx}" data-question="${q.text}" data-type="text" ${q.required ? 'required' : ''} placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />`;
+              } else if (qType === 'select') {
+                const options = (q.options || '').split(',').map(o => o.trim()).filter(Boolean);
+                inputFieldHtml = `
+                  <select id="standalone_q_${idx}" data-question="${q.text}" data-type="select" ${q.required ? 'required' : ''} class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs">
+                    <option value="">-- Select an option --</option>
+                    ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                  </select>
+                `;
+              } else if (qType === 'checkbox') {
+                inputFieldHtml = `
+                  <label class="flex items-center gap-2 cursor-pointer pt-1">
+                    <input type="checkbox" id="standalone_q_${idx}" data-question="${q.text}" data-type="checkbox" ${q.required ? 'required' : ''} class="w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-xs text-slate-300">${q.text}</span>
+                  </label>
+                `;
+              } else if (qType === 'number') {
+                inputFieldHtml = `<input type="number" id="standalone_q_${idx}" data-question="${q.text}" data-type="number" ${q.required ? 'required' : ''} placeholder="Enter a number..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />`;
+              } else {
+                inputFieldHtml = `<textarea id="standalone_q_${idx}" data-question="${q.text}" data-type="textarea" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>`;
+              }
+
+              return `
+                <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
+                  ${qType !== 'checkbox' ? `<label class="text-[11px] font-medium text-slate-300 block">${q.text} ${reqAsterisk}</label>` : ''}
+                  ${inputFieldHtml}
+                </div>
+              `;
+            }).join('');
           }
           loadSavedDraft();
         }
@@ -1689,7 +1728,14 @@
       const applicantUsername = document.getElementById('standaloneApplicantUser').value.trim();
       const discordTag = document.getElementById('standaloneApplicantDiscord').value.trim();
       const proof = document.getElementById('standaloneApplicantProof').value.trim();
+      const agreeGuidelines = document.getElementById('standaloneAgreeGuidelines');
       const submitBtn = document.getElementById('standaloneSubmitBtn');
+
+      if (!agreeGuidelines || !agreeGuidelines.checked) {
+        showToast('You must agree to the Form Guidelines to submit your application!', 'warning');
+        agreeGuidelines.focus();
+        return;
+      }
 
       if (!appId || !applicantUsername) {
         showToast('Please enter your Roblox Username!', 'warning');
@@ -1703,9 +1749,14 @@
       }
 
       const answers = {};
-      document.querySelectorAll('#standaloneQuestionsList textarea').forEach(textarea => {
-        const qText = textarea.getAttribute('data-question') || 'Answer';
-        answers[qText] = textarea.value.trim();
+      document.querySelectorAll('#standaloneQuestionsList [data-question]').forEach(input => {
+        const qText = input.getAttribute('data-question') || 'Answer';
+        const qType = input.getAttribute('data-type');
+        if (qType === 'checkbox') {
+          answers[qText] = input.checked ? 'Yes / Agreed' : 'No / Disagreed';
+        } else {
+          answers[qText] = input.value.trim();
+        }
       });
 
       if (proof) answers['Portfolio Link'] = proof;
@@ -1975,40 +2026,62 @@
       }
 
       container.innerHTML = appBuilderQuestions.map((q, idx) => `
-        <div class="p-3 bg-[#0b0f17] card-border rounded-lg space-y-2 text-xs">
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg space-y-3 text-xs">
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-300 font-mono">Question #${idx + 1}</span>
-            <button onclick="removeQuestionFromBuilder(${idx})" class="text-slate-500 hover:text-red-400 text-xs transition-colors">
+            <button onclick="removeQuestionFromBuilder(${idx})" class="text-slate-500 hover:text-red-400 text-xs transition-colors" title="Delete Question">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
-          <input type="text" value="${q.text}" oninput="appBuilderQuestions[${idx}].text = this.value" placeholder="Enter question text..." class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />
-          <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" ${q.required ? 'checked' : ''} onchange="appBuilderQuestions[${idx}].required = this.checked" class="w-3.5 h-3.5 rounded bg-slate-800 text-indigo-600 focus:ring-0" />
-            <span class="text-[11px] text-slate-400">Mark as Required Field</span>
-          </label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <div class="sm:col-span-8 space-y-1">
+              <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Question Prompt</label>
+              <input type="text" value="${q.text || ''}" oninput="appBuilderQuestions[${idx}].text = this.value" placeholder="Enter question text..." class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />
+            </div>
+
+            <div class="sm:col-span-4 space-y-1">
+              <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Question Type</label>
+              <select onchange="appBuilderQuestions[${idx}].type = this.value; renderAppBuilderQuestions();" class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-medium">
+                <option value="textarea" ${(q.type || 'textarea') === 'textarea' ? 'selected' : ''}>📝 Paragraph (Long Text)</option>
+                <option value="text" ${q.type === 'text' ? 'selected' : ''}>✍️ Short Answer</option>
+                <option value="select" ${q.type === 'select' ? 'selected' : ''}>🔽 Dropdown Options</option>
+                <option value="checkbox" ${q.type === 'checkbox' ? 'selected' : ''}>☑️ Single Checkbox (Yes/No)</option>
+                <option value="number" ${q.type === 'number' ? 'selected' : ''}>🔢 Numeric Input</option>
+              </select>
+            </div>
+          </div>
+
+          ${q.type === 'select' ? `
+            <div class="space-y-1 pt-1">
+              <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Dropdown Options (Comma Separated)</label>
+              <input type="text" value="${q.options || ''}" oninput="appBuilderQuestions[${idx}].options = this.value" placeholder="e.g. Option 1, Option 2, Option 3" class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />
+            </div>
+          ` : ''}
+
+          <div class="pt-1 flex items-center justify-between">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" ${q.required ? 'checked' : ''} onchange="appBuilderQuestions[${idx}].required = this.checked" class="w-3.5 h-3.5 rounded bg-slate-800 text-indigo-600 focus:ring-0" />
+              <span class="text-[11px] text-slate-400">Mark as Required Field</span>
+            </label>
+          </div>
         </div>
       `).join('');
     }
 
     function addQuestionToBuilder() {
-      appBuilderQuestions.push({ text: '', required: true });
-      renderAppBuilderQuestions();
-    }
-
-    function removeQuestionFromBuilder(idx) {
-      appBuilderQuestions.splice(idx, 1);
+      appBuilderQuestions.push({ text: '', type: 'textarea', required: true, options: '' });
       renderAppBuilderQuestions();
     }
 
     function insertPresetQuestion(type) {
       const presets = {
-        catch_rule: 'What is Rule #7 in our server rules, and what does it mean to you?',
-        secret_word: 'Enter the codeword hidden inside our #rules channel.',
-        friend_bias: 'How would you handle moderating a situation where your best friend is accused of breaking a major rule?'
+        catch_rule: { text: 'What is Rule #7 in our server rules, and what does it mean to you?', type: 'textarea' },
+        secret_word: { text: 'Enter the codeword hidden inside our #rules channel.', type: 'text' },
+        friend_bias: { text: 'How would you handle moderating a situation where your best friend is accused of breaking a major rule?', type: 'textarea' }
       };
       if (presets[type]) {
-        appBuilderQuestions.push({ text: presets[type], required: true });
+        appBuilderQuestions.push({ text: presets[type].text, type: presets[type].type, required: true, options: '' });
         renderAppBuilderQuestions();
         showToast('Template question inserted!', 'success');
       }
