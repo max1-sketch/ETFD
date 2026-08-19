@@ -404,13 +404,19 @@ app.delete('/api/users/:username', requireAuth, requireOwner, (req, res) => {
   res.status(404).json({ success: false, error: 'User not found.' });
 });
 
-// APPLICATIONS API
-app.get('/api/applications', requireAuth, (req, res) => {
+app.get('/api/applications', (req, res) => {
   res.json({ applications: Array.from(applicationsMap.values()), submissions: applicationSubmissions });
 });
 
+app.get('/api/public/applications/:id', (req, res) => {
+  const appId = req.params.id;
+  const appItem = applicationsMap.get(appId);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+  res.json({ success: true, application: appItem });
+});
+
 app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
-  const { title, description, questions } = req.body;
+  const { title, description, questions, settings } = req.body;
   if (!title || !title.trim()) return res.status(400).json({ success: false, error: 'Application title is required.' });
 
   const id = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -419,7 +425,13 @@ app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
     title: title.trim(),
     description: description ? description.trim() : '',
     questions: Array.isArray(questions) ? questions : [],
-    active: true,
+    settings: settings || {
+      limitOneResponse: true,
+      acceptingResponses: true,
+      collectDiscord: true,
+      minAccountAge: 30
+    },
+    active: settings && settings.acceptingResponses !== undefined ? Boolean(settings.acceptingResponses) : true,
     createdAt: new Date(),
     createdBy: req.session.adminName || 'Owner'
   };
@@ -438,6 +450,9 @@ app.post('/api/applications/:id/toggle', requireAuth, requireOwner, (req, res) =
   if (!appItem) return res.status(404).json({ success: false, error: 'Application not found.' });
 
   appItem.active = !appItem.active;
+  if (!appItem.settings) appItem.settings = {};
+  appItem.settings.acceptingResponses = appItem.active;
+
   saveApplicationsToFile();
 
   res.json({ success: true, active: appItem.active, message: `Application status updated to ${appItem.active ? 'OPEN' : 'CLOSED'}` });
@@ -453,17 +468,27 @@ app.delete('/api/applications/:id', requireAuth, requireOwner, (req, res) => {
   res.status(404).json({ success: false, error: 'Application not found.' });
 });
 
-app.post('/api/applications/submit', requireAuth, (req, res) => {
-  const { appId, applicantUsername, answers } = req.body;
+app.post('/api/applications/submit', (req, res) => {
+  const { appId, applicantUsername, discordTag, answers } = req.body;
   const appItem = applicationsMap.get(appId);
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
-  if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed.' });
+  if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
+
+  const cleanUser = applicantUsername ? applicantUsername.trim() : 'Anonymous';
+
+  if (appItem.settings && appItem.settings.limitOneResponse) {
+    const existing = applicationSubmissions.find(s => s.appId === appId && s.applicantUsername.toLowerCase() === cleanUser.toLowerCase());
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'You have already submitted an application for this form.' });
+    }
+  }
 
   const submission = {
     id: 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
     appId,
     appTitle: appItem.title,
-    applicantUsername: applicantUsername || req.session.adminName || 'Anonymous',
+    applicantUsername: cleanUser,
+    discordTag: discordTag ? discordTag.trim() : 'Not provided',
     answers: answers || {},
     submittedAt: new Date(),
     status: 'PENDING'
@@ -472,7 +497,7 @@ app.post('/api/applications/submit', requireAuth, (req, res) => {
   applicationSubmissions.unshift(submission);
   saveApplicationsToFile();
 
-  res.json({ success: true, message: 'Application submitted successfully!' });
+  res.json({ success: true, message: 'Application submitted successfully!', submissionId: submission.id });
 });
 
 app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, (req, res) => {
@@ -653,6 +678,10 @@ app.post('/api/action', requireAuth, async (req, res) => {
 });
 
 app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications'], requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+});
+
+app.get('/apply/:id', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
