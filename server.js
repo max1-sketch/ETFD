@@ -207,6 +207,15 @@ if (mongoose && process.env.MONGODB_URI) {
       console.log('🍃 Connected to MongoDB Atlas Cloud Database!');
       isMongoConnected = true;
 
+      actionLogs.unshift({
+        id: Date.now(),
+        action: 'DB_CONNECT',
+        userId: 0,
+        admin: 'SYSTEM',
+        reason: '🍃 Connected to MongoDB Atlas Cloud Database cleanly!',
+        timestamp: new Date()
+      });
+
       try {
         const dbApps = await ApplicationModel.find({});
         if (dbApps.length > 0) {
@@ -243,424 +252,27 @@ if (mongoose && process.env.MONGODB_URI) {
     })
     .catch(err => {
       console.error('❌ MongoDB Atlas Connection Failed:', err.message);
+      actionLogs.unshift({
+        id: Date.now(),
+        action: 'DB_ERROR',
+        userId: 0,
+        admin: 'SYSTEM',
+        reason: `❌ MongoDB Connection Failed: ${err.message}`,
+        timestamp: new Date()
+      });
     });
 } else {
-  console.log('ℹ️ MONGODB_URI not set. Operating on local JSON persistence.');
+  console.log('ℹ️ MONGODB_URI not set or mongoose package missing. Operating on local JSON persistence.');
 }
 
-function saveBansToFile() {
-  fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
-  if (isMongoConnected) {
-    Array.from(bannedUsersMap.values()).forEach(b => {
-      BannedUserModel.updateOne({ userId: b.userId }, b, { upsert: true }).catch(() => {});
-    });
-  }
-}
-
-function saveUsersToFile() {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
-  if (isMongoConnected) {
-    Array.from(usersMap.values()).forEach(u => {
-      UserModel.updateOne({ username: u.username }, u, { upsert: true }).catch(() => {});
-    });
-  }
-}
-
-function saveApplicationsToFile() {
-  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify({
-    apps: Array.from(applicationsMap.values()),
-    submissions: applicationSubmissions
-  }, null, 2));
-}
-
-function saveSecurityGateToFile() {
-  fs.writeFileSync(SECURITY_FILE, JSON.stringify({
-    blockedSignatures: Array.from(blockedSignatures),
-    securityLogs: securityLogs.slice(0, 300)
-  }, null, 2));
-
-  if (isMongoConnected) {
-    SecurityGateModel.updateOne(
-      { configId: 'default' },
-      { blockedSignatures: Array.from(blockedSignatures), securityLogs: securityLogs.slice(0, 300) },
-      { upsert: true }
-    ).catch(err => console.error('MongoDB Gate Save Error:', err.message));
-  }
-}
-
-function generateFallbackAiAnalysis(promptText) {
-  const upper = promptText.toUpperCase();
-
-  if (promptText.includes("staff application submission") || promptText.includes("Question:") || promptText.includes("Answer:")) {
-    const aiKeywords = ["FIRST AND FOREMOST", "FURTHERMORE", "MOREOVER", "IN CONCLUSION", "PROFOUND INTEREST", "EXEMPLARY", "INDISPENSABLE ASSET", "ESTEEMED", "TENURE AS AN AVID", "DIPLOMATIC CONFLICT RESOLUTION"];
-    const foundKeywords = aiKeywords.filter(kw => upper.includes(kw));
-
-    if (foundKeywords.length >= 1 || upper.includes("HIGH CONFIDENCE AI")) {
-      return `HIGH CONFIDENCE AI GENERATED\n\n• Key Synthetic Indicators Found:\n  - Robotic transition phrases detected: ${foundKeywords.join(', ')}\n  - Overly formal SaaS phrasing uncharacteristic of human gaming staff applications.\n  - Highly structured, symmetrical response layout.\n\n• Recommendation: REJECT submission for violating the No-AI application policy.`;
-    }
-
-    return `HUMAN WRITTEN\n\n• Key Indicators:\n  - Natural phrasing and personalized context.\n  - Standard conversational tone with no obvious ChatGPT synthetic transitions.\n\n• Recommendation: Safe to proceed with manual staff review.`;
-  }
-
-  if (promptText.includes("Refine this note")) {
-    return "Automated Warning: Disruptive behavior and chat policy violation.";
-  }
-  if (promptText.includes("Analyze these recent")) {
-    return "• Risk Assessment: Medium Risk\n• Primary Findings: Slang profanity and repeated chat telemetry detected.\n• Identified Users: Flagged for chat policy review.\n• Recommended Action: Issue verbal warning notice.";
-  }
-  return "Staff Security Briefing:\n• Live System Status: Stable with normal activity.\n• Action Log Summary: Dispatches executed cleanly.";
-}
-
-async function deleteRobloxDataStoreEntry(userId) {
-  if (!process.env.ROBLOX_API_KEY || !process.env.UNIVERSE_ID) return;
-  const url = `https://apis.roblox.com/datastores/v1/universes/${process.env.UNIVERSE_ID}/standard-datastores/datastore/entries/entry?datastoreName=WebBanList_v3&entryKey=${userId}`;
-  try {
-    await axios.delete(url, { headers: { 'x-api-key': process.env.ROBLOX_API_KEY } });
-  } catch (err) {}
-}
-
-async function sendDiscordLog(action, userId, reason, toolName, durationText, adminName) {
-  if (!DISCORD_WEBHOOK_URL) return;
-  let color = action === 'BAN' || action === 'KICK' ? 0xef4444 : action === 'WARN' ? 0xf59e0b : 0x10b981;
-  const fields = [
-    { name: 'Target UserID', value: `\`${userId}\``, inline: true },
-    { name: 'Action', value: `\`${action}\``, inline: true },
-    { name: 'Moderator', value: `\`${adminName || 'Unknown'}\``, inline: true },
-    { name: 'Reason', value: reason || 'No reason provided', inline: false }
-  ];
-  if (durationText) fields.push({ name: 'Duration', value: `\`${durationText}\``, inline: true });
-  if (toolName) fields.push({ name: 'Tool Targeted', value: `\`${toolName}\``, inline: true });
-
-  try {
-    await axios.post(DISCORD_WEBHOOK_URL, {
-      embeds: [{ title: `🛡️ Moderation Log: ${action}`, color, fields, timestamp: new Date().toISOString() }]
-    });
-  } catch (err) {}
-}
-
-function checkToxicity(msgText) {
-  if (!msgText) return { isBad: false };
-  const lower = msgText.toLowerCase();
-
-  const harassmentTriggers = ['fat', 'ugly', 'kys', 'kill yourself', 'trash player', 'loser', 'hate you', 'die', 'noob idiot'];
-  const profanityTriggers = ['fuck', 'shit', 'bitch', 'ass', 'bastard', 'crap', 'f*ck', 's*it', 'f u c k'];
-  const scamTriggers = ['discord.gg', 'discord.com/invite', '.com', '.gg/', 'free robux', 'robux.com'];
-
-  if (harassmentTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Harassment/Bullying' };
-  if (profanityTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Profanity' };
-  if (scamTriggers.some(t => lower.includes(t))) return { isBad: true, category: 'Unsafe Link/Scam' };
-
-  return { isBad: false };
-}
-
-async function sendModActionToRoblox(userId, action, reason, toolName = null, durationSeconds = 0, durationText = '', adminName = 'AI Auto-Mod') {
-  if (!process.env.UNIVERSE_ID || !process.env.ROBLOX_API_KEY) {
-    return { success: false, error: 'Open Cloud credentials missing' };
-  }
-
-  const caseId = `#AM-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-  const url = `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/ModChannel`;
-
-  const dataForRoblox = JSON.stringify({
-    action,
-    userId: Number(userId),
-    reason: reason || 'Automated Action',
-    toolName,
-    durationSeconds: Number(durationSeconds) || 0,
-    admin: adminName,
-    caseId
-  });
-
-  try {
-    await axios.post(url, 
-      { message: dataForRoblox },
-      {
-        headers: {
-          'x-api-key': process.env.ROBLOX_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        timeout: 5000
-      }
-    );
-
-    return { success: true, caseId };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
-}
-
-const requireAuth = (req, res, next) => {
-  if (!req.session.isLoggedIn) {
-    if (req.originalUrl.startsWith('/api/')) {
-      return res.status(403).json({ success: false, error: 'Unauthorized session' });
-    }
-    return res.redirect('/login');
-  }
-  next();
-};
-
-const requireOwner = (req, res, next) => {
-  if (req.session.role !== 'owner') {
-    return res.status(403).json({ success: false, error: 'Access denied: Owner permissions required.' });
-  }
-  next();
-};
-
-app.post('/api/gate/verify', (req, res) => {
-  const signature = String(req.body.signature || '').trim() || 'SIG-UNKNOWN-DEVICE';
-  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
-
-  const isBlocked = blockedSignatures.has(signature);
-  const status = isBlocked ? 'Blocked' : 'Allowed';
-
-  const recentLog = securityLogs.find(l => l.signature === signature && (Date.now() - new Date(l.timestamp).getTime()) < 5 * 60 * 1000);
-  if (recentLog) {
-    recentLog.timestamp = new Date().toISOString();
-    recentLog.status = status;
-    recentLog.ip = clientIp;
-  } else {
-    const logEntry = {
-      id: 'GATE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-      timestamp: new Date().toISOString(),
-      signature,
-      ip: clientIp,
-      status
-    };
-    securityLogs.unshift(logEntry);
-    if (securityLogs.length > 300) securityLogs.pop();
-  }
-  saveSecurityGateToFile();
-
-  if (isBlocked) {
-    return res.json({
-      success: false,
-      blocked: true,
-      signature,
-      message: 'Device Authorization Failed: Access Restricted.'
-    });
-  }
-
+        const dbSubs = await SubmissionModel.find({}).sort({ submittedAt: -1 });
+app.get('/api/system/db-status', requireAuth, (req, res) => {
   res.json({
-    success: true,
-    blocked: false,
-    signature,
-    message: 'Device Signature Verified Cleanly.'
-  });
-});
-
-app.get('/api/gate/logs', requireAuth, requireOwner, (req, res) => {
-  res.json({
-    success: true,
-    logs: securityLogs,
-    blockedSignatures: Array.from(blockedSignatures)
-  });
-});
-
-app.post('/api/gate/block', requireAuth, requireOwner, (req, res) => {
-  const { signature, action } = req.body;
-  const cleanSig = String(signature || '').trim();
-
-  if (!cleanSig) return res.status(400).json({ success: false, error: 'Device signature is required.' });
-
-  if (action === 'unblock') {
-    blockedSignatures.delete(cleanSig);
-  } else {
-    blockedSignatures.add(cleanSig);
-  }
-
-  saveSecurityGateToFile();
-  res.json({
-    success: true,
-    blockedSignatures: Array.from(blockedSignatures),
-    message: `Device Signature ${cleanSig} ${action === 'unblock' ? 'Unblocked' : 'Restricted'}.`
-  });
-});
-
-app.get('/api/avatar/:userId', async (req, res) => {
-  const userId = req.params.userId;
-  if (!userId || isNaN(Number(userId))) {
-    return res.redirect('https://tr.rbxcdn.com/30day-avatar-headshot');
-  }
-
-  try {
-    let imageUrl = avatarUrlCache.get(userId);
-
-    if (!imageUrl) {
-      const response = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, {
-        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-        timeout: 4000
-      });
-
-      imageUrl = response.data?.data?.[0]?.imageUrl;
-      if (imageUrl) {
-        avatarUrlCache.set(userId, imageUrl);
-      }
-    }
-
-    if (imageUrl) {
-      const imageStream = await axios.get(imageUrl, { responseType: 'stream', timeout: 5000 });
-      res.setHeader('Content-Type', imageStream.headers['content-type'] || 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return imageStream.data.pipe(res);
-    }
-  } catch (err) {}
-
-  res.redirect('https://tr.rbxcdn.com/30day-avatar-headshot');
-});
-
-app.post('/auth/login', (req, res) => {
-  const inputPass = String(req.body.password || '').trim();
-  const inputUser = String(req.body.username || '').trim();
-  const OWNER_PASSCODE = process.env.ADMIN_PASSWORD || '9981';
-
-  if (inputPass === '9981' || inputPass === OWNER_PASSCODE) {
-    req.session.isLoggedIn = true;
-    req.session.role = 'owner';
-    req.session.adminName = inputUser || 'roblox';
-    return res.json({ success: true, role: 'owner' });
-  }
-
-  if (!inputUser) return res.status(400).json({ success: false, message: 'Username is required!' });
-
-  const foundUser = Array.from(usersMap.values()).find(
-    u => (u.username.toLowerCase() === inputUser.toLowerCase() || (u.email && u.email.toLowerCase() === inputUser.toLowerCase())) && u.password === inputPass
-  );
-
-  if (foundUser) {
-    req.session.isLoggedIn = true;
-    req.session.role = foundUser.role || 'mod';
-    req.session.adminName = foundUser.username;
-    return res.json({ success: true, role: foundUser.role || 'mod' });
-  }
-
-  res.status(401).json({ success: false, message: 'Invalid Username or Passcode!' });
-});
-
-app.get('/auth/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
-});
-
-app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
-
-app.get('/api/me', requireAuth, (req, res) => {
-  res.json({ username: req.session.adminName || 'roblox', role: req.session.role || 'mod' });
-});
-
-app.get('/api/notice', (req, res) => {
-  res.json({ notice: systemNotice });
-});
-
-app.post('/api/notice', requireAuth, requireOwner, (req, res) => {
-  const { active, message, alertLevel, icon } = req.body;
-  systemNotice = {
-    active: Boolean(active),
-    message: String(message || '').trim(),
-    alertLevel: alertLevel || 'info',
-    icon: icon || 'bell',
-    author: req.session.adminName || 'Owner'
-  };
-  io.emit('noticeUpdate', systemNotice);
-  res.json({ success: true, notice: systemNotice });
-});
-
-app.post('/api/ai/generate', requireAuth, async (req, res) => {
-  const { prompt, systemInstruction } = req.body;
-  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-
-  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required' });
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-  const payload = { contents: [{ parts: [{ text: prompt }] }] };
-  if (systemInstruction) {
-    payload.systemInstruction = { parts: [{ text: systemInstruction }] };
-  }
-
-  try {
-    const response = await axios.post(url, payload, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 10000
-    });
-    const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (text) return res.json({ success: true, text });
-    return res.json({ success: true, text: generateFallbackAiAnalysis(prompt) });
-  } catch (err) {
-    return res.json({ success: true, text: generateFallbackAiAnalysis(prompt) });
-  }
-});
-
-app.get('/api/users', requireAuth, requireOwner, (req, res) => {
-  const list = Array.from(usersMap.values()).map(u => ({ username: u.username, email: u.email, role: u.role || 'mod', createdAt: u.createdAt }));
-  res.json({ users: list });
-});
-
-app.get('/api/applications', requireAuth, (req, res) => {
-  res.json({
-    applications: Array.from(applicationsMap.values()),
-    submissions: applicationSubmissions
-  });
-});
-
-app.get('/api/public/applications/:id', async (req, res) => {
-  const appItem = applicationsMap.get(req.params.id);
-  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
-  res.json({ success: true, application: appItem });
-});
-
-app.get('/api/public/applications/:id/roster', async (req, res) => {
-  const appId = req.params.id;
-  const appItem = applicationsMap.get(appId);
-
-  if (!appItem || !appItem.settings?.enablePublicRoster) {
-    return res.status(403).json({ success: false, error: 'Public status roster disabled for this form.' });
-  }
-
-  const publicSubmissions = applicationSubmissions
-    .filter(s => s.appId === appId)
-    .map(s => ({
-      applicantUsername: s.applicantUsername,
-      status: s.status,
-      submittedAt: s.submittedAt,
-      reviewedBy: s.reviewedBy || 'Pending'
-    }));
-
-  res.json({ success: true, applicationTitle: appItem.title, submissions: publicSubmissions });
-});
-
-app.get('/api/public/applications/:id/check', async (req, res) => {
-  const appId = req.params.id;
-  const username = String(req.query.username || '').trim().toLowerCase();
-  const deviceSig = String(req.query.deviceSignature || '').trim();
-  const appItem = applicationsMap.get(appId);
-  
-  if (!appItem) return res.status(404).json({ success: false, error: 'Form not found' });
-
-  let existing = null;
-
-  if (isMongoConnected) {
-    try {
-      const query = { appId, $or: [] };
-      if (username) query.$or.push({ applicantUsername: new RegExp(`^${username}$`, 'i') });
-      if (deviceSig && deviceSig !== 'SIG-UNTRACKED') query.$or.push({ deviceSignature: deviceSig });
-
-      if (query.$or.length > 0) {
-        existing = await SubmissionModel.findOne(query);
-      }
-    } catch (e) {}
-  }
-
-  if (!existing) {
-    existing = applicationSubmissions.find(s => 
-      s.appId === appId && (
-        (username && s.applicantUsername.toLowerCase() === username) ||
-        (deviceSig && s.deviceSignature && s.deviceSignature === deviceSig && deviceSig !== 'SIG-UNTRACKED')
-      )
-    );
-  }
-
-  res.json({ 
-    alreadySubmitted: Boolean(existing && appItem.settings?.limitOneResponse), 
-    submission: existing || null 
+    isMongoConnected,
+    hasMongoUri: Boolean(process.env.MONGODB_URI),
+    hasMongoosePackage: Boolean(mongoose),
+    appsCount: applicationsMap.size,
+    submissionsCount: applicationSubmissions.length
   });
 });
 
@@ -683,7 +295,7 @@ app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
 
   if (isMongoConnected) {
     try {
-      await ApplicationModel.create(appObj);
+      await ApplicationModel.findOneAndUpdate({ id: appObj.id }, appObj, { upsert: true, new: true });
     } catch (err) { console.error('MongoDB Application Create Error:', err.message); }
   }
 
@@ -765,7 +377,7 @@ app.post('/api/applications/submit', async (req, res) => {
 
   if (isMongoConnected) {
     try {
-      await SubmissionModel.create(submission);
+      await SubmissionModel.findOneAndUpdate({ id: submission.id }, submission, { upsert: true, new: true });
     } catch (err) { console.error('MongoDB Submission Error:', err.message); }
   }
 
