@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Tsunami - Command Center & Public Portal</title>
+  
   <!-- Pre-render Head Check for Zero-Flicker Gate State & Public Portal Isolation -->
   <script>
     if (sessionStorage.getItem('gate_verified') === 'true') {
@@ -13,7 +15,18 @@
     }
   </script>
 
+  <!-- Tailwind CSS CDN & FontAwesome Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
+    .hidden {
+      display: none !important;
+    }
+
     html.gate-verified #securityGateOverlay {
       display: none !important;
     }
@@ -141,7 +154,6 @@
 </head>
 <body class="h-full flex flex-col min-h-screen select-none">
 
-  <!-- PRE-FLIGHT CONNECTION GATEWAY OVERLAY -->
   <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f]/95 backdrop-blur-xl z-[100] flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
     <div class="relative max-w-sm w-full bg-[#0d121d] border border-slate-800/80 rounded-2xl p-6 shadow-2xl shadow-black/80 space-y-4 overflow-hidden">
       <!-- Ambient Backlight Glow -->
@@ -195,7 +207,6 @@
     </div>
   </div>
 
-  <!-- PUBLIC APPLICATION PORTAL ISOLATED VIEW -->
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-center justify-center min-h-screen">
     <div class="max-w-3xl w-full bg-[#121722]/95 backdrop-blur-xl card-border rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
       
@@ -344,7 +355,6 @@
     </div>
   </div>
 
-  <!-- MAIN STAFF DASHBOARD APP -->
   <div id="mainDashboardApp" class="flex-1 flex flex-col min-h-0 overflow-hidden">
     <!-- TOP NOTICE BANNER -->
     <div id="topNoticeBanner" class="hidden w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0">
@@ -627,7 +637,6 @@
             </div>
           </section>
 
-          <!-- LIVE PLAYERS TAB -->
           <section id="tab-players" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -649,7 +658,6 @@
             </div>
           </section>
 
-          <!-- LIVE CHAT TAB -->
           <section id="tab-chat" class="tab-content space-y-4 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4 flex flex-col justify-between" id="chatFeedCard">
@@ -721,7 +729,6 @@
             </div>
           </section>
 
-          <!-- BANNED USERS TAB -->
           <section id="tab-banned" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -761,7 +768,6 @@
             </div>
           </section>
 
-          <!-- SECURITY COMMAND CENTER TAB -->
           <section id="tab-security" class="tab-content space-y-6 hidden">
             <!-- BOX A: LIVE CONNECTION GATEWAY LOGS -->
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
@@ -822,7 +828,6 @@
             </div>
           </section>
 
-          <!-- ACTION LOGS TAB -->
           <section id="tab-logs" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -851,7 +856,6 @@
             </div>
           </section>
 
-          <!-- ROBLOX LOOKUP TAB -->
           <section id="tab-lookup" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3">
@@ -873,7 +877,6 @@
             </div>
           </section>
 
-          <!-- STAFF CENTER TAB -->
           <section id="tab-management" class="tab-content space-y-6 hidden">
             <div id="noticeConfigCard" class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -961,7 +964,6 @@
             </div>
           </section>
 
-          <!-- APPLICATIONS TAB -->
           <section id="tab-applications" class="tab-content space-y-6 hidden">
             <!-- RECRUITMENT DESIGNER -->
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
@@ -1131,7 +1133,6 @@
             </div>
           </section>
 
-          <!-- CONSOLE TERMINAL TAB -->
           <section id="tab-system" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -1214,7 +1215,7 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-        <div class="bento-card p-4 rounded-lg space-y-3">
+        <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3">
           <div class="font-bold text-slate-200 border-b border-slate-800/60 pb-2">Profile Details</div>
           <div id="usernameFieldContainer" class="locked-container space-y-1">
             <div class="locked-tooltip">Locked by System Administrator</div>
@@ -1223,7 +1224,7 @@
           </div>
         </div>
 
-        <div class="bento-card p-4 rounded-lg space-y-3">
+        <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3">
           <div class="font-bold text-slate-200 border-b border-slate-800/60 pb-2">Security Passcode</div>
           <div id="passwordFieldContainer" class="locked-container space-y-1">
             <div class="locked-tooltip">Locked by System Administrator</div>
@@ -1285,7 +1286,6 @@
       if (restrictedNotice) restrictedNotice.classList.add('hidden');
       if (labelText) labelText.innerText = 'Verifying...';
 
-      // 1.4s minimum delay so the verification spinner feels authentic
       const minDelayPromise = new Promise(resolve => setTimeout(resolve, 1400));
 
       try {
@@ -1301,7 +1301,6 @@
         const data = await res.json();
 
         if (data.blocked) {
-          // Device signature is blocked by administrator
           document.documentElement.classList.remove('gate-verified');
           sessionStorage.removeItem('gate_verified');
           if (spinner) spinner.classList.add('hidden');
@@ -1320,7 +1319,6 @@
         }
 
         if (data.success) {
-          // Device signature verified clean
           if (spinner) spinner.classList.add('hidden');
           if (checkmark) {
             checkmark.classList.remove('hidden');
@@ -1337,7 +1335,6 @@
           }, 500);
         }
       } catch (err) {
-        // Fallback for network connection error during warm-up
         if (spinner) spinner.classList.add('hidden');
         if (checkmark) {
           checkmark.classList.remove('hidden');
@@ -2150,7 +2147,6 @@
           userField.value = savedUser;
         }
 
-        // OPTION 1: INSTANT DEVICE SIGNATURE CHECK ON PAGE LOAD IN ANY TAB
         checkLimitOneStatus();
       } catch (e) {}
     }
@@ -2161,7 +2157,6 @@
       if (!appId || !currentStandaloneApp?.settings?.limitOneResponse) return;
 
       try {
-        // Query server using BOTH username and browser Device Signature immediately
         const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}&deviceSignature=${encodeURIComponent(currentDeviceSignature)}`);
         const data = await res.json();
         const notice = document.getElementById('alreadySubmittedNotice');
@@ -2261,7 +2256,6 @@
       const restrictedNotice = document.getElementById('gateRestrictedNotice');
       const restrictedSigTag = document.getElementById('restrictedSigTag');
 
-      // Verify gate status against server on load
       fetch('/api/gate/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
