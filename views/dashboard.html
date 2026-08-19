@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS & FontAwesome CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><W/script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
@@ -126,36 +126,54 @@
 <body class="h-full flex flex-col min-h-screen select-none">
 
   <!-- PRE-FLIGHT CONNECTION GATEWAY OVERLAY -->
-  <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f] z-[100] flex items-center justify-center p-4">
-    <div class="max-w-sm w-full bg-[#121722] card-border rounded-xl p-5 shadow-2xl space-y-3">
-      
+  <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f]/95 backdrop-blur-xl z-[100] flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
+    <div class="relative max-w-sm w-full bg-[#0d121d] border border-slate-800/80 rounded-2xl p-6 shadow-2xl shadow-black/80 space-y-4 overflow-hidden">
+      <!-- Ambient Backlight Glow -->
+      <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- Header Title -->
+      <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+          <span class="text-[11px] font-bold tracking-wider uppercase text-slate-300 font-mono">Security Gate Check</span>
+        </div>
+        <span class="text-[10px] text-slate-500 font-mono font-medium">v2.5.0</span>
+      </div>
+
       <!-- reCAPTCHA STYLE VERIFICATION BOX -->
-      <div class="p-4 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between shadow-inner">
+      <div class="p-4 bg-[#070a0f] border border-slate-800/90 rounded-xl flex items-center justify-between shadow-inner group hover:border-slate-700/80 transition-all duration-300">
         <button type="button" onclick="executeSecurityGateCheck()" id="gateBoxBtn" class="flex items-center gap-3.5 group select-none text-left focus:outline-none">
-          <div id="gateCheckboxSquare" class="w-7 h-7 rounded border-2 border-slate-600 bg-[#121722] group-hover:border-slate-400 transition-colors flex items-center justify-center shrink-0">
+          <div id="gateCheckboxSquare" class="w-7 h-7 rounded-lg border-2 border-slate-600 bg-[#0d121d] group-hover:border-blue-400/80 transition-all duration-300 flex items-center justify-center shrink-0 shadow-sm">
             <i id="gateSpinner" class="fa-solid fa-circle-notch fa-spin text-blue-400 text-xs hidden"></i>
             <i id="gateCheckmark" class="fa-solid fa-check text-emerald-400 text-sm hidden"></i>
           </div>
-          <span id="gateLabelText" class="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">I'm not a robot</span>
+          <span id="gateLabelText" class="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">I'm not a robot</span>
         </button>
 
         <div class="flex flex-col items-end text-[9px] text-slate-500 font-mono leading-tight shrink-0 select-none">
-          <div class="flex items-center gap-1 text-blue-400/90 font-bold">
-            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-            <span>reCAPTCHA</span>
+          <div class="flex items-center gap-1.5 text-blue-400 font-bold tracking-tight">
+            <i class="fa-solid fa-arrows-rotate text-[11px] text-blue-400/90"></i>
+            <span class="tracking-wider">reCAPTCHA</span>
           </div>
-          <div class="mt-0.5 opacity-80">
-            <span class="hover:underline cursor-pointer">Privacy</span> - <span class="hover:underline cursor-pointer">Terms</span>
+          <div class="mt-1 opacity-70 flex items-center gap-1 text-[8px]">
+            <span class="hover:underline hover:text-slate-300 cursor-pointer">Privacy</span>
+            <span>•</span>
+            <span class="hover:underline hover:text-slate-300 cursor-pointer">Terms</span>
           </div>
         </div>
       </div>
 
       <!-- RESTRICTION ALERT NOTICE -->
-      <div id="gateRestrictedNotice" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-center space-y-1">
-        <div class="text-xs font-bold text-red-400 flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-circle-xmark text-sm"></i> Access Restricted
+      <div id="gateRestrictedNotice" class="hidden p-4 bg-red-950/20 border border-red-500/30 rounded-xl text-center space-y-2 backdrop-blur-md">
+        <div class="w-9 h-9 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto text-sm shadow-lg shadow-red-500/10">
+          <i class="fa-solid fa-circle-xmark"></i>
         </div>
-        <p class="text-[11px] text-slate-300">Your device signature has been restricted by system administration.</p>
+        <div>
+          <div class="text-xs font-bold text-red-400 tracking-wide uppercase">Access Restricted</div>
+          <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Your device signature has been restricted by system administration.</p>
+        </div>
+        <div id="restrictedSigTag" class="text-[9px] font-mono text-red-400/70 bg-red-950/40 px-2 py-0.5 rounded border border-red-500/20 inline-block mt-1"></div>
       </div>
 
     </div>
@@ -1242,17 +1260,27 @@
       const spinner = document.getElementById('gateSpinner');
       const checkmark = document.getElementById('gateCheckmark');
       const restrictedNotice = document.getElementById('gateRestrictedNotice');
+      const restrictedSigTag = document.getElementById('restrictedSigTag');
+      const labelText = document.getElementById('gateLabelText');
 
       if (boxBtn) boxBtn.disabled = true;
       if (spinner) spinner.classList.remove('hidden');
+      if (checkmark) checkmark.classList.add('hidden');
       if (restrictedNotice) restrictedNotice.classList.add('hidden');
+      if (labelText) labelText.innerText = 'Verifying...';
+
+      // 1.4s minimum delay so the verification spinner feels authentic
+      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 1400));
 
       try {
-        const res = await fetch('/api/gate/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: currentDeviceSignature })
-        });
+        const [res] = await Promise.all([
+          fetch('/api/gate/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ signature: currentDeviceSignature })
+          }),
+          minDelayPromise
+        ]);
 
         const data = await res.json();
 
@@ -1265,8 +1293,10 @@
             checkmark.classList.remove('hidden');
             checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
           }
-          if (square) square.className = 'w-7 h-7 rounded border-2 border-red-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-red-500/70 bg-red-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20';
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
+          if (restrictedSigTag) restrictedSigTag.innerText = `ID: ${currentDeviceSignature}`;
+          if (labelText) labelText.innerText = "I'm not a robot";
           const overlay = document.getElementById('securityGateOverlay');
           if (overlay) overlay.classList.remove('hidden');
           if (boxBtn) boxBtn.disabled = false;
@@ -1280,7 +1310,8 @@
             checkmark.classList.remove('hidden');
             checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
           }
-          if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-emerald-500/70 bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20';
+          if (labelText) labelText.innerText = "Verified";
 
           sessionStorage.setItem('gate_verified', 'true');
           document.documentElement.classList.add('gate-verified');
@@ -1296,7 +1327,8 @@
           checkmark.classList.remove('hidden');
           checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
         }
-        if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+        if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-emerald-500/70 bg-emerald-950/20 flex items-center justify-center shrink-0';
+        if (labelText) labelText.innerText = "Verified";
 
         sessionStorage.setItem('gate_verified', 'true');
         document.documentElement.classList.add('gate-verified');
@@ -2210,6 +2242,7 @@
       currentDeviceSignature = generateDeviceSignature();
       const overlay = document.getElementById('securityGateOverlay');
       const restrictedNotice = document.getElementById('gateRestrictedNotice');
+      const restrictedSigTag = document.getElementById('restrictedSigTag');
 
       // Verify gate status against server on load
       fetch('/api/gate/verify', {
@@ -2224,9 +2257,10 @@
           document.documentElement.classList.remove('gate-verified');
           if (overlay) overlay.classList.remove('hidden');
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
+          if (restrictedSigTag) restrictedSigTag.innerText = `ID: ${currentDeviceSignature}`;
           const square = document.getElementById('gateCheckboxSquare');
           const checkmark = document.getElementById('gateCheckmark');
-          if (square) square.className = 'w-7 h-7 rounded border-2 border-red-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-red-500/70 bg-red-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20';
           if (checkmark) {
             checkmark.classList.remove('hidden');
             checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
