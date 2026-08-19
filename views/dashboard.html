@@ -2131,6 +2131,29 @@
         document.getElementById('standalonePortalTitle').innerText = app.title;
         document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out all fields accurately.';
 
+        const formFields = document.getElementById('standaloneFormFieldsContainer');
+        const notice = document.getElementById('alreadySubmittedNotice');
+
+        if (!app.active || (app.settings && app.settings.acceptingResponses === false)) {
+          if (formFields) formFields.classList.add('hidden');
+          if (notice) {
+            notice.classList.remove('hidden');
+            notice.innerHTML = `
+              <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-lg">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+              <h3 class="text-sm font-bold text-slate-100">Applications Closed</h3>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">This position is currently closed and no longer accepting responses. If you have already applied, you can track your status under "My Status".</p>
+              <div class="pt-2 flex items-center justify-center gap-2">
+                <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2">
+                  <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
+                </button>
+              </div>
+            `;
+          }
+          return;
+        }
+
         const qContainer = document.getElementById('standaloneQuestionsList');
         qContainer.innerHTML = app.questions.map((q, idx) => `
           <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-2">
