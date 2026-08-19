@@ -67,9 +67,12 @@ async function sendInviteEmail(toEmail, username, password, role) {
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1502472347729526854/z5SR-vhO2U_3w_DsE0IaqM6XH9zKWQan7GScvv7aI8tZm89HcUuBSJPAVfMGqwQYoTMx';
 const BANS_FILE = path.join(__dirname, 'banned_users.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
+const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
 
 let bannedUsersMap = new Map();
 let usersMap = new Map();
+let applicationsMap = new Map();
+let applicationSubmissions = [];
 let liveInGamePlayers = new Map();
 let liveChatMessages = [];
 let actionLogs = [];
@@ -103,12 +106,28 @@ if (fs.existsSync(USERS_FILE)) {
   } catch (err) { console.error('Error loading users.json:', err.message); }
 }
 
+if (fs.existsSync(APPLICATIONS_FILE)) {
+  try {
+    const rawApps = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
+    const parsed = JSON.parse(rawApps);
+    if (parsed.apps) parsed.apps.forEach(a => applicationsMap.set(a.id, a));
+    if (parsed.submissions) applicationSubmissions = parsed.submissions;
+  } catch (err) { console.error('Error loading applications.json:', err.message); }
+}
+
 function saveBansToFile() {
   fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
 }
 
 function saveUsersToFile() {
   fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
+}
+
+function saveApplicationsToFile() {
+  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify({
+    apps: Array.from(applicationsMap.values()),
+    submissions: applicationSubmissions
+  }, null, 2));
 }
 
 function generateFallbackAiAnalysis(promptText) {
@@ -385,6 +404,91 @@ app.delete('/api/users/:username', requireAuth, requireOwner, (req, res) => {
   res.status(404).json({ success: false, error: 'User not found.' });
 });
 
+// APPLICATIONS API
+app.get('/api/applications', requireAuth, (req, res) => {
+  res.json({ applications: Array.from(applicationsMap.values()), submissions: applicationSubmissions });
+});
+
+app.post('/api/applications', requireAuth, requireOwner, (req, res) => {
+  const { title, description, questions } = req.body;
+  if (!title || !title.trim()) return res.status(400).json({ success: false, error: 'Application title is required.' });
+
+  const id = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  const newApp = {
+    id,
+    title: title.trim(),
+    description: description ? description.trim() : '',
+    questions: Array.isArray(questions) ? questions : [],
+    active: true,
+    createdAt: new Date(),
+    createdBy: req.session.adminName || 'Owner'
+  };
+
+  applicationsMap.set(id, newApp);
+  saveApplicationsToFile();
+
+  actionLogs.unshift({ id: Date.now(), action: 'CREATE_APP', userId: 0, admin: req.session.adminName || 'Owner', reason: `Created application: ${newApp.title}`, timestamp: new Date() });
+
+  res.json({ success: true, application: newApp, message: 'Application form created successfully!' });
+});
+
+app.post('/api/applications/:id/toggle', requireAuth, requireOwner, (req, res) => {
+  const appId = req.params.id;
+  const appItem = applicationsMap.get(appId);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application not found.' });
+
+  appItem.active = !appItem.active;
+  saveApplicationsToFile();
+
+  res.json({ success: true, active: appItem.active, message: `Application status updated to ${appItem.active ? 'OPEN' : 'CLOSED'}` });
+});
+
+app.delete('/api/applications/:id', requireAuth, requireOwner, (req, res) => {
+  const appId = req.params.id;
+  if (applicationsMap.has(appId)) {
+    applicationsMap.delete(appId);
+    saveApplicationsToFile();
+    return res.json({ success: true, message: 'Application form deleted.' });
+  }
+  res.status(404).json({ success: false, error: 'Application not found.' });
+});
+
+app.post('/api/applications/submit', requireAuth, (req, res) => {
+  const { appId, applicantUsername, answers } = req.body;
+  const appItem = applicationsMap.get(appId);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+  if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed.' });
+
+  const submission = {
+    id: 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    appId,
+    appTitle: appItem.title,
+    applicantUsername: applicantUsername || req.session.adminName || 'Anonymous',
+    answers: answers || {},
+    submittedAt: new Date(),
+    status: 'PENDING'
+  };
+
+  applicationSubmissions.unshift(submission);
+  saveApplicationsToFile();
+
+  res.json({ success: true, message: 'Application submitted successfully!' });
+});
+
+app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, (req, res) => {
+  const { subId } = req.params;
+  const { status } = req.body;
+  const sub = applicationSubmissions.find(s => s.id === subId);
+  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
+
+  sub.status = status || 'PENDING';
+  sub.reviewedBy = req.session.adminName || 'Owner';
+  sub.reviewedAt = new Date();
+  saveApplicationsToFile();
+
+  res.json({ success: true, submission: sub, message: `Submission marked as ${status}` });
+});
+
 app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   const query = req.params.query ? req.params.query.trim() : '';
   if (!query) return res.status(400).json({ success: false, error: 'Search term required.' });
@@ -548,7 +652,7 @@ app.post('/api/action', requireAuth, async (req, res) => {
   res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
 });
 
-app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management'], requireAuth, (req, res) => {
+app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
