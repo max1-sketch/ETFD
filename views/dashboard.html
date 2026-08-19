@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
     .hidden {
@@ -68,7 +68,7 @@
       overflow-x: hidden;
     }
 
-    /* Force Dark Theme for Browser Autofill Text Inputs */
+    /* Dark Theme Browser Autofill Overrides */
     input:-webkit-autofill,
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus, 
@@ -89,17 +89,17 @@
 
     .sidebar-badge {
       font-size: 9px;
-      font-weight: 800;
+      font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
       letter-spacing: 0.5px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
     }
 
     .nav-active {
-      background: rgba(59, 130, 246, 0.15) !important;
+      background: rgba(59, 130, 246, 0.12) !important;
       color: #ffffff !important;
       border-left: 3px solid var(--accent-blue);
     }
@@ -208,45 +208,46 @@
   </div>
 
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-center justify-center min-h-screen">
-    <div class="max-w-3xl w-full bg-[#121722]/95 backdrop-blur-xl card-border rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
+    <div class="max-w-2xl w-full bg-[#121722] border border-white/5 rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
       
-      <div class="border-b border-slate-800/80 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <!-- PORTAL HEADER -->
+      <div class="border-b border-slate-800/80 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-bold uppercase tracking-wider mb-1">
-            <i class="fa-solid fa-users text-xs"></i>
-            <span>Join the Team — Escape Tsunami</span>
+          <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-medium uppercase tracking-wider mb-1">
+            <i class="fa-solid fa-shield-halved text-xs"></i>
+            <span>Escape Tsunami</span>
           </div>
-          <h1 id="standalonePortalTitle" class="text-xl font-black text-slate-100">Staff & Moderator Application</h1>
-          <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-1">Submit your candidate details for staff review.</p>
+          <h1 id="standalonePortalTitle" class="text-lg font-bold text-slate-100">New Staff Application</h1>
+          <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-0.5">Fill out the form below</p>
         </div>
 
-        <!-- PORTAL TAB NAVIGATION -->
-        <div class="flex items-center gap-1.5 bg-[#0b0f17] card-border p-1 rounded-lg text-xs font-semibold">
-          <button onclick="switchPortalTab('form')" id="portalTabForm" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5">
+        <!-- PORTAL TAB NAVIGATION (FLAT / ENTERPRISE STYLING) -->
+        <div class="flex items-center gap-1 bg-[#0b0f17] border border-white/5 p-1 rounded-lg text-xs">
+          <button onclick="switchPortalTab('form')" id="portalTabForm" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-file-pen text-xs"></i> Application Form
           </button>
-          <button onclick="switchPortalTab('my_apps')" id="portalTabMyApps" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5">
+          <button onclick="switchPortalTab('my_apps')" id="portalTabMyApps" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-chart-line text-xs"></i> My Status
           </button>
-          <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5">
+          <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-table-list text-xs"></i> Public Roster
           </button>
         </div>
       </div>
 
-      <!-- ELIGIBILITY & STATS VERIFICATION BANNER -->
-      <div id="portalVerificationCard" class="p-3.5 bg-indigo-950/20 border border-indigo-500/25 rounded-xl flex items-center justify-between text-xs">
+      <!-- REQUIREMENTS BANNER -->
+      <div id="portalVerificationCard" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center justify-between text-xs">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-user-check text-sm"></i>
+          <div class="w-7 h-7 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-user-check text-xs"></i>
           </div>
           <div>
-            <div class="font-bold text-slate-200 text-xs">Candidate Eligibility Requirements</div>
-            <div class="text-[11px] text-slate-400">Must have a Roblox account age of 30+ days and a clean moderation history.</div>
+            <div class="font-medium text-slate-200 text-xs">Requirements</div>
+            <div class="text-[11px] text-slate-400">Roblox account age 30+ days and clean moderation history.</div>
           </div>
         </div>
-        <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold rounded-md shrink-0 hidden sm:inline">
-          ✓ VERIFIED ELIGIBLE
+        <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium rounded shrink-0 hidden sm:inline">
+          ✓ ELIGIBLE
         </span>
       </div>
 
@@ -254,71 +255,75 @@
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
         <input type="hidden" id="standaloneAppId" />
 
-        <div id="alreadySubmittedNotice" class="hidden p-6 bg-slate-900/90 border border-indigo-500/30 rounded-xl text-center space-y-3">
-          <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto text-lg">
+        <div id="alreadySubmittedNotice" class="hidden p-6 bg-[#0b0f17] border border-indigo-500/20 rounded-xl text-center space-y-3">
+          <div class="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-base">
             <i class="fa-solid fa-circle-check"></i>
           </div>
-          <h3 class="text-sm font-bold text-slate-100">Application Recorded</h3>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">This form is limited to 1 response per applicant. You can track your status in "My Status".</p>
+          <h3 class="text-sm font-semibold text-slate-100">Application Recorded</h3>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">This form is limited to 1 response per applicant. Track your progress under "My Status".</p>
           <div class="pt-2 flex items-center justify-center gap-2">
-            <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2">
+            <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors inline-flex items-center gap-2">
               <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
             </button>
           </div>
         </div>
 
-        <div id="standaloneFormFieldsContainer" class="space-y-5">
+        <div id="standaloneFormFieldsContainer" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
-              <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-semibold" onblur="checkLimitOneStatus()" oninput="checkLimitOneStatus(); loadSavedDraft();" />
+              <label class="text-[11px] font-medium text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
+              <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3 py-2 bg-[#0b0f17] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" onblur="checkLimitOneStatus()" oninput="checkLimitOneStatus(); loadSavedDraft();" />
             </div>
 
             <div class="space-y-1.5" id="standaloneDiscordContainer">
-              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Discord Handle *</label>
-              <input type="text" id="standaloneApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500" />
+              <label class="text-[11px] font-medium text-slate-300 uppercase tracking-wider block">Discord Handle *</label>
+              <input type="text" id="standaloneApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3 py-2 bg-[#0b0f17] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock text-indigo-400"></i> Est. completion time: ~8 Mins</span>
-            <span id="draftSaveIndicator" class="text-emerald-400 hidden">✓ Draft Saved</span>
-          </div>
-
-          <div id="standaloneQuestionsList" class="space-y-4 pt-1">
+          <div id="standaloneQuestionsList" class="space-y-3 pt-1">
             <!-- Dynamic Form Questions Rendered Here -->
           </div>
 
-          <!-- OPTIONAL PROOF / PORTFOLIO ATTACHMENT -->
-          <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-2">
-            <label class="font-semibold text-slate-200 block text-xs">
-              Upload Proof / Portfolio Link (Optional)
+          <!-- OPTIONAL PROOF / PORTFOLIO LINK -->
+          <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
+            <label class="font-medium text-slate-200 block text-xs">
+              Portfolio Link (Optional)
             </label>
-            <input type="text" id="standaloneApplicantProof" placeholder="Link to Medal clips, portfolio document, or screenshot proof..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs" />
+            <input type="url" id="standaloneApplicantProof" placeholder="https://portfolio.example.com" class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs" />
           </div>
 
-          <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-            <button type="button" onclick="saveFormDraft()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition-colors flex items-center gap-2 text-xs card-border">
-              <i class="fa-solid fa-floppy-disk text-xs"></i> Save Draft
-            </button>
-            
-            <button type="submit" id="standaloneSubmitBtn" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
-              <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
-            </button>
+          <!-- ESTIMATED TIME & SUBMIT BUTTON -->
+          <div class="pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
+              <i class="fa-solid fa-clock text-indigo-400 text-xs"></i>
+              <span>Est. completion time: ~8 Mins</span>
+              <span id="draftSaveIndicator" class="text-emerald-400 hidden ml-2">✓ Draft Saved</span>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button type="button" onclick="saveFormDraft()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition-colors flex items-center gap-1.5 text-xs">
+                <i class="fa-solid fa-floppy-disk text-xs"></i> Save Draft
+              </button>
+              
+              <button type="submit" id="standaloneSubmitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
+              </button>
+            </div>
           </div>
         </div>
       </form>
 
       <!-- MY APPLICATIONS CANDIDATE TRACKER -->
-      <div id="standaloneMyAppsView" class="hidden space-y-5">
-        <div class="border-b border-slate-800/80 pb-3">
-          <h2 class="text-sm font-bold text-slate-200">My Application Tracker</h2>
-          <p class="text-[11px] text-slate-400">Track your recruitment stage, reviewer comments, and onboarding checklist</p>
+      <div id="standaloneMyAppsView" class="hidden space-y-4">
+        <div class="border-b border-slate-800/80 pb-2.5">
+          <h2 class="text-sm font-semibold text-slate-200">Application Status</h2>
+          <p class="text-[11px] text-slate-400">Track your recruitment stage and reviewer feedback</p>
         </div>
 
         <div id="myAppsStatusContainer" class="space-y-4">
           <div class="p-6 text-center text-slate-500 text-xs font-mono">
-            Enter your Roblox username in the Application Form tab to load your submission status.
+            Enter your Roblox username in the Application Form tab to load status.
           </div>
         </div>
       </div>
@@ -327,26 +332,27 @@
       <div id="standaloneRosterView" class="hidden space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-sm font-bold text-slate-200">Public Application Status Roster</h2>
-            <p class="text-[11px] text-slate-400">Live candidate status log for this recruitment drive</p>
+            <h2 class="text-sm font-semibold text-slate-200">Latest Applicants</h2>
+            <p class="text-[11px] text-slate-400">Live candidate log for this recruitment drive</p>
           </div>
-          <button onclick="switchPortalTab('form')" class="px-3 py-1.5 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded-lg hover:bg-indigo-600/30 transition-colors flex items-center gap-1.5">
+          <button onclick="switchPortalTab('form')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-pen-to-square"></i> Back to Form
           </button>
         </div>
 
-        <div class="w-full overflow-x-auto bg-[#0b0f17] card-border rounded-lg">
+        <div class="w-full overflow-x-auto bg-[#0b0f17] border border-white/5 rounded-lg">
           <table class="w-full text-left text-xs min-w-[550px]">
-            <thead class="bg-[#121722] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
+            <thead class="bg-[#121722] text-[10px] font-medium text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
               <tr>
                 <th class="p-3">Applicant</th>
                 <th class="p-3">Submitted</th>
                 <th class="p-3">Status</th>
-                <th class="p-3 text-right">Reviewer</th>
+                <th class="p-3">Reviewer</th>
+                <th class="p-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody id="standaloneRosterTableBody" class="divide-y divide-slate-800/60 font-mono">
-              <tr><td colspan="4" class="p-6 text-center text-slate-500">Loading live status roster...</td></tr>
+              <tr><td colspan="5" class="p-6 text-center text-slate-500">Loading roster...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1362,7 +1368,7 @@
         const blockedContainer = document.getElementById('blockedSignaturesContainer');
 
         if (!data.logs.length) {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No gateway logs recorded yet.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No gateway logs recorded yet.</td></tr>`;
         } else {
           tbody.innerHTML = data.logs.map(log => `
             <tr class="hover:bg-slate-800/30">
@@ -1478,20 +1484,20 @@
       document.getElementById('standaloneMyAppsView').classList.add('hidden');
       document.getElementById('standaloneRosterView').classList.add('hidden');
 
-      formTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
-      myAppsTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
-      rosterTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+      formTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
+      myAppsTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
+      rosterTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
 
       if (mode === 'roster') {
-        rosterTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+        rosterTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
         document.getElementById('standaloneRosterView').classList.remove('hidden');
         loadStandaloneRoster(appId);
       } else if (mode === 'my_apps') {
-        myAppsTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+        myAppsTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
         document.getElementById('standaloneMyAppsView').classList.remove('hidden');
         loadCandidateMyApps();
       } else {
-        formTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+        formTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
         document.getElementById('standalonePublicForm').classList.remove('hidden');
       }
     }
@@ -1533,7 +1539,7 @@
       const container = document.getElementById('myAppsStatusContainer');
 
       if (!username) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Please enter your Roblox username in the Application Form tab first.</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Enter your Roblox username in the Application Form tab to check status.</div>`;
         return;
       }
 
@@ -1547,52 +1553,82 @@
           return;
         }
 
-        const stages = ['APPLIED', 'UNDER_REVIEW', 'INTERVIEW_SCHEDULED', sub.status === 'DENIED' ? 'DENIED' : 'ACCEPTED'];
-        const currentIdx = sub.status === 'DENIED' ? 3 : sub.status === 'ACCEPTED' ? 3 : sub.status === 'INTERVIEW_SCHEDULED' ? 2 : sub.status === 'UNDER_REVIEW' ? 1 : 0;
+        const stages = [
+          { key: 'APPLIED', label: 'Applied' },
+          { key: 'UNDER_REVIEW', label: 'Under Review' },
+          { key: 'INTERVIEW_SCHEDULED', label: 'Interview' },
+          { key: sub.status === 'DENIED' ? 'DENIED' : sub.status === 'ON_HOLD' ? 'ON_HOLD' : 'ACCEPTED', label: sub.status === 'DENIED' ? 'Declined' : sub.status === 'ON_HOLD' ? 'Paused' : 'Accepted' }
+        ];
+
+        const currentIdx = sub.status === 'DENIED' || sub.status === 'ACCEPTED' ? 3 : sub.status === 'INTERVIEW_SCHEDULED' ? 2 : sub.status === 'UNDER_REVIEW' || sub.status === 'ON_HOLD' ? 1 : 0;
+        const formattedStatus = sub.status === 'UNDER_REVIEW' ? 'Under Review' : sub.status === 'INTERVIEW_SCHEDULED' ? 'Interview Scheduled' : sub.status === 'ON_HOLD' ? 'Paused' : sub.status;
 
         container.innerHTML = `
-          <div class="p-5 bg-[#0b0f17] card-border rounded-xl space-y-5 text-xs">
+          <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6 text-xs">
             <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
               <div>
-                <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
+                <div class="text-xs font-semibold text-slate-100 flex items-center gap-2">
                   <span>Candidate: ${sub.applicantUsername}</span>
                   <span class="text-[10px] font-mono text-slate-500">(${sub.id})</span>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Submitted: ${new Date(sub.submittedAt).toLocaleString()}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</div>
               </div>
-              <span class="px-2.5 py-1 rounded text-[10px] font-bold ${sub.status === 'ACCEPTED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : sub.status === 'DENIED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
-                ${sub.status}
+              <span class="px-2.5 py-1 rounded text-[10px] font-medium ${sub.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : sub.status === 'DENIED' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+                ${formattedStatus}
               </span>
             </div>
 
+            <!-- CONNECTED STEPPER TIMELINE -->
             <div class="space-y-2">
-              <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Recruitment Stage Progress</div>
-              <div class="grid grid-cols-4 gap-2">
-                ${stages.map((st, idx) => `
-                  <div class="p-2 rounded-lg text-center border ${idx <= currentIdx ? (st === 'DENIED' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300 font-bold') : 'bg-[#121722] border-slate-800 text-slate-500'}">
-                    <div class="text-[10px] font-mono">${idx + 1}. ${st.replace('_', ' ')}</div>
-                  </div>
-                `).join('')}
+              <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Application Status</div>
+              
+              <div class="relative my-4 py-2">
+                <!-- Connected Background Line -->
+                <div class="absolute top-1/2 left-4 right-4 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+                <div class="absolute top-1/2 left-4 h-0.5 bg-indigo-600 -translate-y-1/2 z-0 transition-all duration-500" style="width: ${(currentIdx / (stages.length - 1)) * 100}%;"></div>
+
+                <div class="relative z-10 flex items-center justify-between">
+                  ${stages.map((st, idx) => {
+                    const isCompleted = idx < currentIdx;
+                    const isCurrent = idx === currentIdx;
+                    const isDenied = st.key === 'DENIED';
+
+                    return `
+                      <div class="flex flex-col items-center gap-1.5 group">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                          isCompleted ? 'bg-indigo-600 text-white shadow-md' :
+                          isCurrent ? (isDenied ? 'bg-red-600 text-white ring-4 ring-red-600/20' : 'bg-indigo-600 text-white ring-4 ring-indigo-600/25') :
+                          'bg-[#121722] border border-slate-700 text-slate-500'
+                        }">
+                          ${isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : idx + 1}
+                        </div>
+                        <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-semibold' : isCompleted ? 'text-slate-200' : 'text-slate-500'}">
+                          ${st.label}
+                        </span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
               </div>
             </div>
 
             ${sub.notes && sub.notes.length ? `
-              <div class="p-3 bg-[#121722] card-border rounded-lg space-y-1">
-                <div class="font-bold text-slate-200 text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-comment-dots text-indigo-400"></i> Staff Comments & Feedback</div>
+              <div class="p-3 bg-[#121722] border border-white/5 rounded-lg space-y-1">
+                <div class="font-medium text-slate-200 text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-comment-dots text-indigo-400"></i> Reviewer Feedback</div>
                 ${sub.notes.map(n => `<div class="text-slate-300 text-xs">• ${n.text} <span class="text-[10px] text-slate-500 font-mono">— ${n.author}</span></div>`).join('')}
               </div>
             ` : ''}
 
             ${sub.status === 'ACCEPTED' ? `
-              <div class="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-3">
-                <div class="font-bold text-emerald-400 flex items-center gap-2">
+              <div class="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-xl space-y-3">
+                <div class="font-medium text-emerald-400 flex items-center gap-2">
                   <i class="fa-solid fa-circle-check"></i>
-                  <span>Congratulations! Onboarding Checklist</span>
+                  <span>Onboarding Checklist</span>
                 </div>
                 <div class="space-y-2 text-slate-300">
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" ${sub.ndaSigned ? 'checked disabled' : ''} onchange="signCandidateNda('${sub.id}')" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-600" />
-                    <span>I agree to uphold server rules and keep internal staff tools confidential (NDA Sign-off).</span>
+                    <span>I agree to uphold server rules and keep internal tools confidential (NDA Sign-off).</span>
                   </label>
                   <div class="text-[11px] text-slate-400 pl-6">Step 2: Join the Staff Discord and request Junior Moderator roles.</div>
                 </div>
@@ -1601,8 +1637,8 @@
 
             ${sub.status !== 'ACCEPTED' && sub.status !== 'DENIED' && sub.status !== 'WITHDRAWN' ? `
               <div class="pt-2 flex justify-end">
-                <button onclick="withdrawCandidateApp('${sub.id}')" class="px-3.5 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
-                  <i class="fa-solid fa-xmark"></i> Withdraw Application
+                <button onclick="withdrawCandidateApp('${sub.id}')" class="text-[11px] text-slate-500 hover:text-red-400 transition-colors underline flex items-center gap-1">
+                  Withdraw Application
                 </button>
               </div>
             ` : ''}
@@ -1624,7 +1660,7 @@
         });
         const data = await res.json();
         if (data.success) {
-          alert('Application withdrawn cleanly.');
+          alert('Application withdrawn.');
           loadCandidateMyApps();
         }
       } catch (e) {}
@@ -2124,15 +2160,14 @@
         const res = await fetch(`/api/public/applications/${appId}`);
         const data = await res.json();
         if (!data.success || !data.application) {
-          document.getElementById('standalonePortalTitle').innerText = 'Application Form Closed or Not Found';
           return;
         }
 
         const app = data.application;
         currentStandaloneApp = app;
         document.getElementById('standaloneAppId').value = app.id;
-        document.getElementById('standalonePortalTitle').innerText = app.title;
-        document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out all fields accurately.';
+        document.getElementById('standalonePortalTitle').innerText = app.title || 'New Staff Application';
+        document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out the form below';
 
         const formFields = document.getElementById('standaloneFormFieldsContainer');
         const notice = document.getElementById('alreadySubmittedNotice');
@@ -2142,13 +2177,13 @@
           if (notice) {
             notice.classList.remove('hidden');
             notice.innerHTML = `
-              <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-lg">
+              <div class="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-base">
                 <i class="fa-solid fa-lock"></i>
               </div>
-              <h3 class="text-sm font-bold text-slate-100">Applications Closed</h3>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">This position is currently closed and no longer accepting responses. If you have already applied, you can track your status under "My Status".</p>
+              <h3 class="text-sm font-semibold text-slate-100">Applications Closed</h3>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">This position is currently closed. Track your status under "My Status".</p>
               <div class="pt-2 flex items-center justify-center gap-2">
-                <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2">
+                <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors inline-flex items-center gap-2">
                   <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
                 </button>
               </div>
@@ -2159,11 +2194,11 @@
 
         const qContainer = document.getElementById('standaloneQuestionsList');
         qContainer.innerHTML = app.questions.map((q, idx) => `
-          <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-2">
-            <label class="font-semibold text-slate-200 block text-xs">
+          <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
+            <label class="font-medium text-slate-200 block text-xs">
               <span class="text-indigo-400 font-mono font-bold">Q${idx + 1}.</span> ${q.label}
             </label>
-            ${q.type === 'paragraph' ? `<textarea name="q_${idx}" rows="3" required placeholder="Type your response here..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>` : `<input type="text" name="q_${idx}" required placeholder="Your answer..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />`}
+            ${q.type === 'paragraph' ? `<textarea name="q_${idx}" rows="2" required placeholder="Type your response here..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs"></textarea>` : `<input type="text" name="q_${idx}" required placeholder="Your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs" />`}
           </div>
         `).join('');
 
@@ -2208,22 +2243,39 @@
         const tbody = document.getElementById('standaloneRosterTableBody');
 
         if (!data.success || !data.submissions.length) {
-          tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-500">No applicant submissions on public roster yet.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No applicant submissions on public roster yet.</td></tr>`;
           return;
         }
 
-        tbody.innerHTML = data.submissions.map(s => `
-          <tr class="hover:bg-slate-800/30">
-            <td class="p-3 font-bold text-slate-200">${s.applicantUsername}</td>
-            <td class="p-3 text-slate-400">${new Date(s.submittedAt).toLocaleDateString()}</td>
-            <td class="p-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.status === 'ACCEPTED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : s.status === 'DENIED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
-                ${s.status}
-              </span>
-            </td>
-            <td class="p-3 text-right text-slate-400">${s.reviewedBy || 'Pending'}</td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = data.submissions.map(s => {
+          const formattedStatus = s.status === 'UNDER_REVIEW' ? 'Under Review' : s.status === 'INTERVIEW_SCHEDULED' ? 'Interview' : s.status === 'ON_HOLD' ? 'Paused' : s.status;
+          const reviewerLabel = s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Pending';
+
+          return `
+            <tr class="hover:bg-slate-800/30 transition-colors">
+              <td class="p-3 font-semibold text-slate-200">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-6 h-6 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-slate-700/80">
+                    <img src="/api/avatar/1" onerror="this.src='https://placehold.co/24x24/1e293b/64748b?text=U'" class="w-full h-full object-cover" />
+                  </div>
+                  <span>${s.applicantUsername}</span>
+                </div>
+              </td>
+              <td class="p-3 text-slate-400">${new Date(s.submittedAt).toLocaleDateString()}</td>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-medium ${s.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : s.status === 'DENIED' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+                  ${formattedStatus}
+                </span>
+              </td>
+              <td class="p-3 text-slate-400 font-mono text-[11px]">${reviewerLabel}</td>
+              <td class="p-3 text-right">
+                <button onclick="switchPortalTab('my_apps')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] font-medium transition-colors">
+                  View
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
       } catch (e) {}
     }
 
