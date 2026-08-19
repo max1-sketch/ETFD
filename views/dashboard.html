@@ -15,7 +15,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
+  <script>
+    if (sessionStorage.getItem('gate_verified') === 'true') {
+      document.documentElement.classList.add('gate-verified');
+    }
+  </script>
+
   <style>
+    html.gate-verified #securityGateOverlay {
+      display: none !important;
+    }
+
     :root {
       --bg-main: #080b11;
       --bg-sidebar: #0e131f;
@@ -1248,6 +1258,8 @@
 
         if (data.blocked) {
           // Device signature is blocked by administrator
+          document.documentElement.classList.remove('gate-verified');
+          sessionStorage.removeItem('gate_verified');
           if (spinner) spinner.classList.add('hidden');
           if (checkmark) {
             checkmark.classList.remove('hidden');
@@ -1255,7 +1267,8 @@
           }
           if (square) square.className = 'w-7 h-7 rounded border-2 border-red-500/50 bg-[#121722] flex items-center justify-center shrink-0';
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
-          sessionStorage.removeItem('gate_verified');
+          const overlay = document.getElementById('securityGateOverlay');
+          if (overlay) overlay.classList.remove('hidden');
           if (boxBtn) boxBtn.disabled = false;
           return;
         }
@@ -1270,6 +1283,7 @@
           if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
 
           sessionStorage.setItem('gate_verified', 'true');
+          document.documentElement.classList.add('gate-verified');
           setTimeout(() => {
             const overlay = document.getElementById('securityGateOverlay');
             if (overlay) overlay.classList.add('hidden');
@@ -1285,6 +1299,7 @@
         if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
 
         sessionStorage.setItem('gate_verified', 'true');
+        document.documentElement.classList.add('gate-verified');
         setTimeout(() => {
           const overlay = document.getElementById('securityGateOverlay');
           if (overlay) overlay.classList.add('hidden');
@@ -2206,6 +2221,7 @@
       .then(data => {
         if (data.blocked) {
           sessionStorage.removeItem('gate_verified');
+          document.documentElement.classList.remove('gate-verified');
           if (overlay) overlay.classList.remove('hidden');
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
           const square = document.getElementById('gateCheckboxSquare');
@@ -2216,13 +2232,16 @@
             checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
           }
         } else if (sessionStorage.getItem('gate_verified') === 'true') {
+          document.documentElement.classList.add('gate-verified');
           if (overlay) overlay.classList.add('hidden');
         } else {
+          document.documentElement.classList.remove('gate-verified');
           if (overlay) overlay.classList.remove('hidden');
         }
       })
       .catch(() => {
         if (sessionStorage.getItem('gate_verified') === 'true') {
+          document.documentElement.classList.add('gate-verified');
           if (overlay) overlay.classList.add('hidden');
         }
       });
