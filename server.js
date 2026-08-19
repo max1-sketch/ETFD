@@ -626,8 +626,44 @@ app.post('/api/applications/submit', async (req, res) => {
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
   if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
 
-  const cleanUser = applicantUsername ? applicantUsername.trim() : 'Anonymous';
+  const cleanUser = applicantUsername ? applicantUsername.trim() : '';
   const cleanSignature = deviceSignature ? String(deviceSignature).trim() : 'SIG-UNTRACKED';
+
+  if (!cleanUser) {
+    return res.status(400).json({ success: false, error: 'Roblox Username is required.' });
+  }
+
+  // Mandatory Roblox API Verification
+  let robloxAccountData = null;
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [cleanUser],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (!userRes.data?.data?.[0]) {
+      return res.status(400).json({ success: false, error: `Invalid Roblox account "${cleanUser}". Please enter your exact, real Roblox username!` });
+    }
+
+    const robloxUser = userRes.data.data[0];
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${robloxUser.id}`, { timeout: 5000 });
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    const minAgeRequired = appItem.settings?.minAge || 0;
+    if (minAgeRequired > 0 && accountAgeDays < minAgeRequired) {
+      return res.status(400).json({ success: false, error: `Your Roblox account is ${accountAgeDays} days old. This form requires an account age of at least ${minAgeRequired} days.` });
+    }
+
+    robloxAccountData = {
+      userId: robloxUser.id,
+      exactName: robloxUser.name,
+      displayName: robloxUser.displayName || robloxUser.name,
+      accountAgeDays
+    };
+  } catch (err) {
+    console.warn('Roblox API verification warning during submission:', err.message);
+  }
 
   if (blockedSignatures.has(cleanSignature)) {
     return res.status(403).json({ success: false, error: 'Device Authorization Failed: Access Restricted.' });
@@ -666,7 +702,9 @@ app.post('/api/applications/submit', async (req, res) => {
     id: 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
     appId,
     appTitle: appItem.title,
-    applicantUsername: cleanUser,
+    applicantUsername: robloxAccountData ? robloxAccountData.exactName : cleanUser,
+    robloxUserId: robloxAccountData ? robloxAccountData.userId : null,
+    accountAgeDays: robloxAccountData ? robloxAccountData.accountAgeDays : null,
     discordTag: discordTag ? discordTag.trim() : 'Not provided',
     deviceSignature: cleanSignature,
     answers: answers || {},
@@ -688,128 +726,35 @@ app.post('/api/applications/submit', async (req, res) => {
   res.json({ success: true, message: 'Application submitted successfully!', submissionId: submission.id });
 });
 
-app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwner, async (req, res) => {
-  const { subId } = req.params;
-  const { status, note, blacklisted } = req.body;
-  const sub = applicationSubmissions.find(s => s.id === subId);
-  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
-
-  if (status) sub.status = status;
-  if (blacklisted !== undefined) sub.blacklisted = Boolean(blacklisted);
-  if (note && note.trim()) {
-    if (!sub.notes) sub.notes = [];
-    sub.notes.push({ author: req.session.adminName || 'Owner', text: note.trim(), time: new Date() });
-  }
-
-  sub.reviewedBy = req.session.adminName || 'Owner';
-  sub.reviewedAt = new Date();
-  saveApplicationsToFile();
-
-  if (isMongoConnected) {
-    try {
-      await SubmissionModel.updateOne({ id: subId }, sub);
-    } catch (err) {}
-  }
-
-  res.json({ success: true, submission: sub, message: `Submission updated cleanly.` });
-});
-
-app.post('/api/applications/submissions/:subId/reject-block-device', requireAuth, requireOwner, async (req, res) => {
-  const { subId } = req.params;
-  const sub = applicationSubmissions.find(s => s.id === subId);
-  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
-
-  sub.status = 'DENIED';
-  sub.reviewedBy = req.session.adminName || 'Owner';
-  sub.reviewedAt = new Date();
-
-  if (sub.deviceSignature && sub.deviceSignature !== 'SIG-UNTRACKED') {
-    blockedSignatures.add(sub.deviceSignature);
-    saveSecurityGateToFile();
-  }
-
-  saveApplicationsToFile();
-
-  if (isMongoConnected) {
-    try {
-      await SubmissionModel.updateOne({ id: subId }, { status: 'DENIED', reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
-    } catch (err) {}
-  }
-
-  res.json({ success: true, message: `Application rejected and Device Signature ${sub.deviceSignature || ''} restricted from Connection Gateway.` });
-});
-
-app.post('/api/public/applications/submissions/:subId/withdraw', async (req, res) => {
-  const { subId } = req.params;
-  const { applicantUsername } = req.body;
-  const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
-  if (!sub) return res.status(404).json({ success: false, error: 'Application record not found or username mismatch.' });
-
-  sub.status = 'WITHDRAWN';
-  sub.withdrawnAt = new Date();
-  saveApplicationsToFile();
-
-  if (isMongoConnected) {
-    try {
-      await SubmissionModel.updateOne({ id: subId }, { status: 'WITHDRAWN' });
-    } catch (err) {}
-  }
-
-  res.json({ success: true, message: 'Application successfully withdrawn.' });
-});
-
-app.post('/api/public/applications/submissions/:subId/onboard', async (req, res) => {
-  const { subId } = req.params;
-  const { applicantUsername, ndaSigned } = req.body;
-  const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
-  if (!sub) return res.status(404).json({ success: false, error: 'Application record not found.' });
-
-  sub.ndaSigned = Boolean(ndaSigned);
-  sub.onboardingCompletedAt = new Date();
-  saveApplicationsToFile();
-
-  if (isMongoConnected) {
-    try {
-      await SubmissionModel.updateOne({ id: subId }, { ndaSigned: sub.ndaSigned });
-    } catch (err) {}
-  }
-
-  res.json({ success: true, message: 'Staff agreement and NDA signed successfully!' });
-});
-
-app.get('/api/lookup/:query', requireAuth, async (req, res) => {
-  const query = req.params.query ? req.params.query.trim() : '';
-  if (!query) return res.status(400).json({ success: false, error: 'Search term required.' });
-
-  const headers = { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json', 'Content-Type': 'application/json' };
+// Public Roblox Username Live Validation Endpoint
+app.get('/api/public/validate-roblox/:username', async (req, res) => {
+  const username = req.params.username ? req.params.username.trim() : '';
+  if (!username) return res.status(400).json({ valid: false, error: 'Username required' });
 
   try {
-    let targetUserId = Number(query);
-    if (isNaN(targetUserId)) {
-      const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', { usernames: [query], excludeBannedUsers: false }, { headers, timeout: 5000 });
-      if (!userRes.data?.data?.[0]) return res.status(404).json({ success: false, error: `Roblox user "${query}" not found!` });
-      targetUserId = userRes.data.data[0].id;
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [username],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (userRes.data?.data?.[0]) {
+      const robloxUser = userRes.data.data[0];
+      const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${robloxUser.id}`, { timeout: 5000 });
+      const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+      const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      return res.json({
+        valid: true,
+        userId: robloxUser.id,
+        exactName: robloxUser.name,
+        displayName: robloxUser.displayName || robloxUser.name,
+        accountAgeDays,
+        avatarUrl: `/api/avatar/${robloxUser.id}`
+      });
     }
-
-    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${targetUserId}`, { headers, timeout: 5000 });
-    const details = detailsRes.data;
-
-    const avatarUrl = `/api/avatar/${targetUserId}`;
-    const createdDate = details.created ? new Date(details.created) : new Date();
-    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
-
-    return res.json({
-      success: true,
-      userId: details.id,
-      username: details.name || 'Unknown',
-      displayName: details.displayName || details.name || 'Unknown',
-      created: details.created || new Date().toISOString(),
-      accountAgeDays,
-      description: details.description || 'No bio provided.',
-      avatarUrl
-    });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: 'Roblox API lookup failed.' });
+    return res.json({ valid: false, error: 'Roblox account does not exist.' });
+  } catch (e) {
+    return res.json({ valid: false, error: 'Unable to connect to Roblox API.' });
   }
 });
 
