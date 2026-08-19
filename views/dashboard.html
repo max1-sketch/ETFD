@@ -210,24 +210,24 @@
             
             <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all nav-active text-slate-100">
               <span class="flex items-center gap-2.5"><i class="fa-solid fa-gauge-high text-blue-400 w-4 text-center"></i> Moderation</span>
-              <span class="sidebar-badge text-blue-300 border-blue-500/30 bg-blue-500/10">CORE</span>
+              <span class="sidebar-badge">CORE</span>
             </button>
 
             <button onclick="switchTab('players')" id="nav-players" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
               <span class="flex items-center gap-2.5"><i class="fa-solid fa-users text-emerald-400 w-4 text-center"></i> Live Players</span>
-              <span id="navLivePlayersBadge" class="sidebar-badge text-slate-400">0</span>
+              <span id="navLivePlayersBadge" class="sidebar-badge">0</span>
             </button>
 
             <button onclick="switchTab('chat')" id="nav-chat" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
               <span class="flex items-center gap-2.5"><i class="fa-solid fa-comments text-amber-400 w-4 text-center"></i> Live Chat Feed</span>
-              <span id="navChatCountBadge" class="sidebar-badge text-amber-300 border-amber-500/30 bg-amber-500/10">LIVE</span>
+              <span id="navChatCountBadge" class="sidebar-badge">LIVE</span>
             </button>
 
             <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Records & Security</div>
 
             <button onclick="switchTab('banned')" id="nav-banned" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
               <span class="flex items-center gap-2.5"><i class="fa-solid fa-ban text-red-400 w-4 text-center"></i> Banned Users</span>
-              <span id="navBannedCountBadge" class="sidebar-badge text-slate-400">0</span>
+              <span id="navBannedCountBadge" class="sidebar-badge">0</span>
             </button>
 
             <button onclick="switchTab('logs')" id="nav-logs" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
@@ -245,8 +245,8 @@
             </button>
 
             <button onclick="switchTab('applications')" id="nav-applications" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-              <span class="flex items-center gap-2.5"><i class="fa-solid fa-file-signature text-pink-400 w-4 text-center"></i> Applications</span>
-              <span class="sidebar-badge text-pink-400 border-pink-500/30 bg-pink-500/10">OWNER</span>
+              <span class="flex items-center gap-2.5"><i class="fa-solid fa-file-signature text-indigo-400 w-4 text-center"></i> Applications</span>
+              <span class="sidebar-badge">ADMIN</span>
             </button>
 
             <button onclick="switchTab('system')" id="nav-system" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
@@ -255,10 +255,10 @@
           </nav>
         </div>
 
-        <div class="p-3 bg-[#0a0d14] border-t border-slate-800/60 flex items-center justify-between">
-          <div onclick="openUserSettingsModal()" class="flex items-center gap-2.5 cursor-pointer group flex-1 truncate pr-2">
+        <div class="p-3.5 bg-[#0a0d14] border-t border-slate-800/60 flex items-center justify-between">
+          <div onclick="openUserSettingsModal()" class="flex items-center gap-3 cursor-pointer group flex-1 truncate pr-2">
             <div class="relative shrink-0">
-              <img id="sidebarUserAvatar" src="/api/avatar/1" class="w-8 h-8 rounded-md bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
+              <img id="sidebarUserAvatar" src="/api/avatar/1" class="w-9 h-9 rounded-md bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='https://placehold.co/48x48/1e293b/ffffff?text=RBX'" />
               <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0a0d14] rounded-full"></span>
             </div>
             <div class="truncate">
@@ -266,12 +266,12 @@
               <div id="sidebarAdminRole" class="text-[9px] font-mono font-semibold text-amber-400 uppercase tracking-wider">OWNER</div>
             </div>
           </div>
-          <div class="flex items-center gap-1">
-            <button onclick="openUserSettingsModal()" class="p-1.5 text-slate-400 hover:text-blue-400 transition-colors rounded hover:bg-slate-800/60" title="Account Settings">
-              <i class="fa-solid fa-gear text-xs"></i>
+          <div class="flex items-center gap-1.5">
+            <button onclick="openUserSettingsModal()" class="p-2 text-slate-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-slate-800/60" title="Account Settings">
+              <i class="fa-solid fa-gear text-sm"></i>
             </button>
-            <a href="/auth/logout" class="p-1.5 text-slate-400 hover:text-red-400 transition-colors rounded hover:bg-slate-800/60" title="Logout Session">
-              <i class="fa-solid fa-right-from-bracket text-xs"></i>
+            <a href="/auth/logout" class="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-lg hover:bg-slate-800/60" title="Logout Session">
+              <i class="fa-solid fa-right-from-bracket text-sm"></i>
             </a>
           </div>
         </div>
@@ -775,60 +775,64 @@
 
         <!-- OWNER APPLICATIONS TAB -->
         <section id="tab-applications" class="tab-content space-y-6 hidden">
-          <!-- CREATE APPLICATION BUILDER (OWNER ONLY) -->
+          <!-- RECRUITMENT DESIGNER (OWNER ONLY) -->
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
             <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <div>
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-file-circle-plus text-pink-400"></i>
-                  <span>Application Form Creator</span>
+                  <i class="fa-solid fa-file-circle-plus text-indigo-400/80"></i>
+                  <span>Recruitment Designer</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Design custom recruitment forms for staff or player applications</p>
+                <p class="text-xs text-slate-400 mt-0.5">Build forms for new staff or player roles.</p>
               </div>
-              <span class="sidebar-badge text-pink-400 border-pink-500/30 bg-pink-500/10">OWNER CONTROL</span>
+              <span class="sidebar-badge">ADMIN ONLY</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div class="space-y-1">
                 <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Application Title *</label>
-                <input type="text" id="appBuilderTitle" placeholder="e.g. Junior Moderator Application 2026" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-pink-500 font-semibold" />
+                <input type="text" id="appBuilderTitle" placeholder="e.g. Junior Moderator Application 2026" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold" />
               </div>
 
               <div class="space-y-1">
-                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Form Description / Guidelines</label>
-                <input type="text" id="appBuilderDesc" placeholder="e.g. Please fill out all questions honestly. Minimum account age: 30 days." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-pink-500" />
+                <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Form Guidelines</label>
+                <input type="text" id="appBuilderDesc" placeholder="e.g. Please fill out all questions honestly. Minimum account age: 30 days." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
               </div>
             </div>
 
             <!-- DYNAMIC QUESTIONS BUILDER -->
             <div class="space-y-3 pt-2">
-              <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
+              <div class="border-b border-slate-800/60 pb-2">
                 <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                  <i class="fa-solid fa-list-check text-pink-400"></i> Form Questions
+                  <i class="fa-solid fa-list-check text-indigo-400/80"></i> Form Questions
                 </span>
-                <button onclick="addQuestionToBuilder()" class="px-2.5 py-1 bg-pink-500/10 hover:bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
-                  <i class="fa-solid fa-plus text-xs"></i> Add Question
-                </button>
               </div>
 
               <div id="appBuilderQuestionsList" class="space-y-2">
                 <!-- Question items injected here -->
               </div>
+
+              <button onclick="addQuestionToBuilder()" class="w-full py-2 bg-[#0b0f17] hover:bg-slate-800/60 text-slate-300 border border-dashed border-slate-700/80 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus text-xs text-indigo-400"></i> Add Question
+              </button>
             </div>
 
             <div class="pt-3 border-t border-slate-800/60 flex justify-end">
-              <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-pink-600/20">
-                <i class="fa-solid fa-paper-plane"></i> Publish Application Form
+              <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/15">
+                <i class="fa-solid fa-paper-plane text-xs"></i> Publish Application Form
               </button>
             </div>
           </div>
 
-          <!-- ACTIVE APPLICATIONS TEMPLATES -->
+          <!-- SECTION DIVIDER -->
+          <div class="border-t border-slate-800/40 my-2"></div>
+
+          <!-- FORM ARCHIVE -->
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
             <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-clipboard-list text-purple-400"></i>
-                <span>Active & Past Application Forms</span>
+                <i class="fa-solid fa-clipboard-list text-purple-400/80"></i>
+                <span>Form Archive</span>
               </h2>
               <button onclick="fetchApplications()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2">
                 <i class="fa-solid fa-rotate text-xs"></i> Refresh
@@ -840,14 +844,14 @@
             </div>
           </div>
 
-          <!-- SUBMISSIONS REVIEW PANEL -->
+          <!-- REVIEW CENTER -->
           <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
             <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
               <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-user-check text-emerald-400"></i>
-                <span>Submitted Candidate Applications</span>
+                <i class="fa-solid fa-user-check text-emerald-400/80"></i>
+                <span>Review Center</span>
               </h2>
-              <span id="submissionCountBadge" class="sidebar-badge text-emerald-400 border-emerald-500/30 bg-emerald-500/10">0 SUBMISSIONS</span>
+              <span id="submissionCountBadge" class="sidebar-badge">0 SUBMISSIONS</span>
             </div>
 
             <div id="submissionsListContainer" class="space-y-3">
@@ -1186,18 +1190,21 @@
     function renderQuestionBuilder() {
       const container = document.getElementById('appBuilderQuestionsList');
       if (!builderQuestions.length) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono">No questions added yet. Click "Add Question" above.</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono">No questions added yet. Click "+ Add Question" below.</div>`;
         return;
       }
 
       container.innerHTML = builderQuestions.map((q, idx) => `
         <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between gap-3 text-xs">
-          <span class="font-mono text-pink-400 font-bold w-6">#${idx + 1}</span>
-          <input type="text" value="${q.label.replace(/"/g, '&quot;')}" onchange="updateQuestionLabel(${q.id}, this.value)" placeholder="Enter question prompt..." class="flex-1 px-3 py-1.5 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-pink-500" />
-          <select onchange="updateQuestionType(${q.id}, this.value)" class="px-2.5 py-1.5 bg-[#121722] card-border rounded text-slate-300 focus:outline-none">
-            <option value="short" ${q.type === 'short' ? 'selected' : ''}>Short Text</option>
-            <option value="paragraph" ${q.type === 'paragraph' ? 'selected' : ''}>Paragraph</option>
-          </select>
+          <span class="font-mono text-indigo-400 font-bold w-6">#${idx + 1}</span>
+          <input type="text" value="${q.label.replace(/"/g, '&quot;')}" onchange="updateQuestionLabel(${q.id}, this.value)" placeholder="Enter question prompt..." class="flex-1 px-3 py-1.5 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500" />
+          <div class="relative flex items-center">
+            <i class="fa-solid ${q.type === 'paragraph' ? 'fa-align-left' : 'fa-font'} absolute left-2.5 text-slate-500 text-[10px] pointer-events-none"></i>
+            <select onchange="updateQuestionType(${q.id}, this.value)" class="pl-7 pr-2.5 py-1.5 bg-[#121722] card-border rounded text-slate-300 focus:outline-none cursor-pointer">
+              <option value="short" ${q.type === 'short' ? 'selected' : ''}>Short Text</option>
+              <option value="paragraph" ${q.type === 'paragraph' ? 'selected' : ''}>Paragraph</option>
+            </select>
+          </div>
           <button onclick="removeQuestionFromBuilder(${q.id})" class="p-1.5 text-slate-500 hover:text-red-400 transition-colors" title="Delete Question">
             <i class="fa-solid fa-trash-can text-xs"></i>
           </button>
@@ -1273,7 +1280,12 @@
     function renderApplicationsList(apps) {
       const container = document.getElementById('applicationsListContainer');
       if (!apps.length) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No application templates created yet. Use the builder above to publish one.</div>`;
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-500 text-xs space-y-2">
+            <i class="fa-solid fa-folder-open text-2xl text-slate-600 block mb-1"></i>
+            <div class="font-semibold text-slate-400">No application templates created yet.</div>
+            <div class="text-[11px] text-slate-500 font-mono">Use the Recruitment Designer above to build and publish a new form.</div>
+          </div>`;
         return;
       }
 
@@ -1282,7 +1294,7 @@
           <div class="space-y-1">
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold text-slate-100">${app.title}</span>
-              <span class="sidebar-badge ${app.active ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-red-400 border-red-500/30 bg-red-500/10'}">${app.active ? 'OPEN' : 'CLOSED'}</span>
+              <span class="sidebar-badge">${app.active ? 'OPEN' : 'CLOSED'}</span>
               <span class="font-mono text-[10px] text-slate-500">${app.id}</span>
             </div>
             <div class="text-[11px] text-slate-400">${app.description || 'No description provided.'}</div>
@@ -1306,7 +1318,12 @@
       document.getElementById('submissionCountBadge').innerText = `${subs.length} SUBMISSIONS`;
 
       if (!subs.length) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No candidate submissions recorded.</div>`;
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-500 text-xs space-y-2">
+            <i class="fa-solid fa-file-circle-check text-2xl text-slate-600 block mb-1"></i>
+            <div class="font-semibold text-slate-400">No applicant submissions recorded yet.</div>
+            <div class="text-[11px] text-slate-500 font-mono">Once players fill out a published form, candidate data will appear here for review.</div>
+          </div>`;
         return;
       }
 
@@ -1317,7 +1334,7 @@
               <div class="text-xs font-bold text-slate-100">${s.appTitle || 'Application Form'} <span class="text-[10px] font-mono text-slate-500">(${s.id})</span></div>
               <div class="text-[11px] text-slate-400">Applicant: <strong class="text-blue-400">${s.applicantUsername}</strong> • Submitted: ${new Date(s.submittedAt).toLocaleString()}</div>
             </div>
-            <span class="sidebar-badge ${s.status === 'ACCEPTED' ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : s.status === 'DENIED' ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-amber-400 border-amber-500/30 bg-amber-500/10'}">${s.status}</span>
+            <span class="sidebar-badge">${s.status}</span>
           </div>
 
           <div class="space-y-2 text-xs bg-[#121722] p-3 rounded-lg card-border font-mono">
