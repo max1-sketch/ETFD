@@ -11,10 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS & FontAwesome CDN -->
-  <script src="https://cdn.tailwindcss.com"><W/script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
+  <!-- Pre-render Head Check for Zero-Flicker Gate State -->
   <script>
     if (sessionStorage.getItem('gate_verified') === 'true') {
       document.documentElement.classList.add('gate-verified');
@@ -52,6 +53,21 @@
       color: var(--text-main);
       min-height: 100vh;
       overflow-x: hidden;
+    }
+
+    /* Force Dark Theme for Browser Autofill Text Inputs */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    textarea:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px #0b0f17 inset !important;
+      -webkit-text-fill-color: #f8fafc !important;
+      transition: background-color 5000s ease-in-out 0s;
+      caret-color: #f8fafc;
     }
 
     .card-border {
@@ -259,7 +275,7 @@
           </div>
 
           <div id="standaloneQuestionsList" class="space-y-4 pt-1">
-            <!-- Dynamic Form Questions Rendered Here with Character Counters -->
+            <!-- Dynamic Form Questions Rendered Here -->
           </div>
 
           <!-- OPTIONAL PROOF / PORTFOLIO ATTACHMENT -->
