@@ -54,6 +54,7 @@ if (mongoose) {
     id: { type: String, required: true, unique: true },
     title: String,
     description: String,
+    guidelines: String,
     questions: Array,
     settings: Object,
     active: { type: Boolean, default: true },
@@ -65,17 +66,18 @@ if (mongoose) {
     appId: String,
     appTitle: String,
     applicantUsername: String,
+    robloxUserId: Number,
+    accountAgeDays: Number,
     discordTag: String,
     deviceSignature: String,
+    proofUrl: String,
     answers: Object,
     notes: Array,
     blacklisted: { type: Boolean, default: false },
     submittedAt: { type: Date, default: Date.now },
     status: { type: String, default: 'PENDING' },
     reviewedBy: String,
-    reviewedAt: Date,
-    ndaSigned: Boolean,
-    onboardingCompletedAt: Date
+    reviewedAt: Date
   });
 
   const BannedUserSchema = new mongoose.Schema({
@@ -108,71 +110,27 @@ if (mongoose) {
   SecurityGateModel = mongoose.models.SecurityGate || mongoose.model('SecurityGate', SecurityGateSchema);
 }
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || ''
-  },
-  tls: { rejectUnauthorized: false }
-});
-
-async function sendInviteEmail(toEmail, username, password, role) {
-  if (!toEmail) return { success: false, reason: 'No email address provided' };
-
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn(`\n⚠️ [EMAIL SIMULATION] Missing SMTP_USER or SMTP_PASS in .env!`);
-    return { success: false, reason: 'SMTP credentials missing in .env file.' };
-  }
-
-  try {
-    await transporter.sendMail({
-      from: `"Escape Tsunami Console" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: '🔑 Escape Tsunami Moderation Panel Invitation',
-      html: `
-        <div style="font-family: Arial, sans-serif; background-color: #0f1117; color: #e5e7eb; padding: 25px; border-radius: 8px;">
-          <h2 style="color: #3b82f6; margin-top: 0;">Escape Tsunami Moderation Access</h2>
-          <p>You have been invited to join the Escape Tsunami staff panel as an <strong>${role.toUpperCase()}</strong>.</p>
-          <div style="background-color: #171923; padding: 15px; border-radius: 6px; border: 1px solid #2d3748; margin: 15px 0;">
-            <p style="margin: 5px 0;"><strong>Username:</strong> <code style="color:#60a5fa;">${username}</code></p>
-            <p style="margin: 5px 0;"><strong>Password:</strong> <code style="color:#60a5fa;">${password}</code></p>
-            <p style="margin: 5px 0;"><strong>Role Level:</strong> ${role.toUpperCase()}</p>
-          </div>
-        </div>
-      `
-    });
-    return { success: true };
-  } catch (err) {
-    return { success: false, reason: err.message };
-  }
-}
-
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1502472347729526854/z5SR-vhO2U_3w_DsE0IaqM6XH9zKWQan7GScvv7aI8tZm89HcUuBSJPAVfMGqwQYoTMx';
+const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
 const BANS_FILE = path.join(__dirname, 'banned_users.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
-const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
 const SECURITY_FILE = path.join(__dirname, 'security_gate.json');
 
-let bannedUsersMap = new Map();
-let usersMap = new Map();
 let applicationsMap = new Map();
 let applicationSubmissions = [];
-let liveInGamePlayers = new Map();
-let liveChatMessages = [];
-let actionLogs = [];
-let lastActionTimestamp = 0;
-
+let bannedUsersMap = new Map();
+let usersMap = new Map();
 let blockedSignatures = new Set();
 let securityLogs = [];
+let actionLogs = [];
+let liveInGamePlayers = new Map();
+let liveChatMessages = [];
+let lastActionTimestamp = 0;
 
 let systemNotice = {
-  active: false,
-  message: "System Maintenance scheduled tonight at 10:00 PM EST.",
+  active: true,
+  message: "Maintenance scheduled tonight at 10:00 PM EST.",
   alertLevel: "warning",
-  icon: "triangle-exclamation",
+  icon: "bullhorn",
   author: "Owner"
 };
 
@@ -192,7 +150,7 @@ function saveSecurityGateToFile() {
   try {
     const data = {
       blockedSignatures: Array.from(blockedSignatures),
-      securityLogs: securityLogs
+      securityLogs
     };
     fs.writeFileSync(SECURITY_FILE, JSON.stringify(data, null, 2));
   } catch (err) {
@@ -208,53 +166,29 @@ function saveBansToFile() {
   }
 }
 
-function saveUsersToFile() {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
-  } catch (err) {
-    console.error('Error saving users.json:', err.message);
-  }
-}
-
-if (fs.existsSync(BANS_FILE)) {
-  try {
-    const rawData = fs.readFileSync(BANS_FILE, 'utf8');
-    JSON.parse(rawData).forEach(user => {
-      const cleanId = Number(user.userId);
-      if (!isNaN(cleanId)) bannedUsersMap.set(cleanId, { ...user, userId: cleanId });
-    });
-  } catch (err) { console.error('Error loading banned_users.json:', err.message); }
-}
-
-if (fs.existsSync(USERS_FILE)) {
-  try {
-    const rawUsers = fs.readFileSync(USERS_FILE, 'utf8');
-    JSON.parse(rawUsers).forEach(u => {
-      if (u.username) usersMap.set(u.username.toLowerCase(), u);
-    });
-  } catch (err) { console.error('Error loading users.json:', err.message); }
-}
-
 if (fs.existsSync(APPLICATIONS_FILE)) {
   try {
     const rawApps = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
     const parsed = JSON.parse(rawApps);
     if (parsed.apps) parsed.apps.forEach(a => applicationsMap.set(a.id, a));
     if (parsed.submissions) applicationSubmissions = parsed.submissions;
-  } catch (err) { console.error('Error loading applications.json:', err.message); }
+  } catch (err) { console.error('Error reading applications.json:', err.message); }
+}
+
+if (fs.existsSync(BANS_FILE)) {
+  try {
+    const rawBans = fs.readFileSync(BANS_FILE, 'utf8');
+    JSON.parse(rawBans).forEach(b => bannedUsersMap.set(Number(b.userId), b));
+  } catch (err) { console.error('Error reading banned_users.json:', err.message); }
 }
 
 if (fs.existsSync(SECURITY_FILE)) {
   try {
     const rawSec = fs.readFileSync(SECURITY_FILE, 'utf8');
     const parsedSec = JSON.parse(rawSec);
-    if (Array.isArray(parsedSec.blockedSignatures)) {
-      blockedSignatures = new Set(parsedSec.blockedSignatures);
-    }
-    if (Array.isArray(parsedSec.securityLogs)) {
-      securityLogs = parsedSec.securityLogs;
-    }
-  } catch (err) { console.error('Error loading security_gate.json:', err.message); }
+    if (Array.isArray(parsedSec.blockedSignatures)) blockedSignatures = new Set(parsedSec.blockedSignatures);
+    if (Array.isArray(parsedSec.securityLogs)) securityLogs = parsedSec.securityLogs;
+  } catch (err) { console.error('Error reading security_gate.json:', err.message); }
 }
 
 if (mongoose && process.env.MONGODB_URI) {
@@ -262,15 +196,6 @@ if (mongoose && process.env.MONGODB_URI) {
     .then(async () => {
       console.log('🍃 Connected to MongoDB Atlas Cloud Database!');
       isMongoConnected = true;
-
-      actionLogs.unshift({
-        id: Date.now(),
-        action: 'DB_CONNECT',
-        userId: 0,
-        admin: 'SYSTEM',
-        reason: '🍃 Connected to MongoDB Atlas Cloud Database cleanly!',
-        timestamp: new Date()
-      });
 
       try {
         const dbApps = await ApplicationModel.find({});
@@ -290,86 +215,20 @@ if (mongoose && process.env.MONGODB_URI) {
           dbBans.forEach(b => bannedUsersMap.set(Number(b.userId), b.toObject()));
         }
 
-        const dbUsers = await UserModel.find({});
-        if (dbUsers.length > 0) {
-          dbUsers.forEach(u => usersMap.set(u.username.toLowerCase(), u.toObject()));
-        }
-
         const dbSec = await SecurityGateModel.findOne({ configId: 'default' });
         if (dbSec) {
           if (Array.isArray(dbSec.blockedSignatures)) blockedSignatures = new Set(dbSec.blockedSignatures);
           if (Array.isArray(dbSec.securityLogs)) securityLogs = dbSec.securityLogs;
         }
 
-        console.log(`✅ Loaded ${dbApps.length} Apps & ${dbSubs.length} Submissions from MongoDB Atlas cloud database.`);
+        console.log(`✅ Loaded ${applicationsMap.size} Apps & ${applicationSubmissions.length} Submissions from MongoDB Atlas.`);
       } catch (err) {
-        console.error('⚠️ Error loading MongoDB data on startup:', err.message);
+        console.error('Error hydrating data from MongoDB Atlas:', err.message);
       }
     })
     .catch(err => {
       console.error('❌ MongoDB Atlas Connection Failed:', err.message);
-      actionLogs.unshift({
-        id: Date.now(),
-        action: 'DB_ERROR',
-        userId: 0,
-        admin: 'SYSTEM',
-        reason: `❌ MongoDB Connection Failed: ${err.message}`,
-        timestamp: new Date()
-      });
     });
-} else {
-  console.log('ℹ️ MONGODB_URI not set or mongoose package missing. Operating on local JSON persistence.');
-}
-
-function checkToxicity(msg) {
-  if (!msg) return { isBad: false };
-  const lower = msg.toLowerCase();
-  const badWords = ['nigger', 'faggot', 'retard', 'kys'];
-  for (const word of badWords) {
-    if (lower.includes(word)) {
-      return { isBad: true, category: `Inappropriate Content (${word})` };
-    }
-  }
-  return { isBad: false };
-}
-
-async function sendModActionToRoblox(userId, action, reason, toolName = null, durationSeconds = 0, durationText = '', admin = 'Owner') {
-  const caseId = `#CASE-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
-  if (process.env.ROBLOX_API_KEY && process.env.UNIVERSE_ID) {
-    try {
-      await axios.post(
-        `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/ModChannel`,
-        { message: JSON.stringify({ userId, action, reason, toolName, durationSeconds, durationText, admin, caseId }) },
-        { headers: { 'x-api-key': process.env.ROBLOX_API_KEY, 'Content-Type': 'application/json' }, timeout: 5000 }
-      );
-    } catch (err) {
-      console.warn(`[Roblox Open Cloud Warning]: ${err.message}`);
-    }
-  }
-  return { success: true, caseId };
-}
-
-async function deleteRobloxDataStoreEntry(userId) {
-  return true;
-}
-
-async function sendDiscordLog(action, userId, reason, toolName, durationText, admin) {
-  if (!DISCORD_WEBHOOK_URL) return;
-  try {
-    await axios.post(DISCORD_WEBHOOK_URL, {
-      embeds: [{
-        title: `🚨 Moderation Action: ${action}`,
-        color: action === 'BAN' ? 15158332 : action === 'WARN' ? 16753920 : 3066993,
-        fields: [
-          { name: 'Target UserID', value: String(userId), inline: true },
-          { name: 'Moderator', value: admin, inline: true },
-          { name: 'Reason', value: reason || 'No reason provided', inline: false }
-        ],
-        timestamp: new Date().toISOString()
-      }]
-    }, { timeout: 4000 });
-  } catch (err) {}
 }
 
 app.post('/auth/login', (req, res) => {
@@ -485,16 +344,6 @@ app.post('/api/gate/block', requireAuth, requireOwner, async (req, res) => {
   res.json({ success: true, message: `Device signature ${cleanSig} ${action === 'unblock' ? 'unblocked' : 'restricted'}.` });
 });
 
-app.get('/api/system/db-status', requireAuth, (req, res) => {
-  res.json({
-    isMongoConnected,
-    hasMongoUri: Boolean(process.env.MONGODB_URI),
-    hasMongoosePackage: Boolean(mongoose),
-    appsCount: applicationsMap.size,
-    submissionsCount: applicationSubmissions.length
-  });
-});
-
 app.get('/api/applications', requireAuth, (req, res) => {
   res.json({
     success: true,
@@ -504,15 +353,16 @@ app.get('/api/applications', requireAuth, (req, res) => {
 });
 
 app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
-  const { title, description, questions, settings } = req.body;
+  const { title, description, guidelines, questions, settings } = req.body;
   if (!title) return res.status(400).json({ success: false, error: 'Application title is required.' });
 
   const appObj = {
     id: 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
     title: title.trim(),
     description: description ? description.trim() : '',
+    guidelines: guidelines ? guidelines.trim() : '',
     questions: Array.isArray(questions) ? questions : [],
-    settings: settings || { limitOneResponse: true, acceptingResponses: true },
+    settings: settings || { limitOneResponse: true, acceptingResponses: true, minAge: 30 },
     active: true,
     createdAt: new Date()
   };
@@ -526,7 +376,7 @@ app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
     } catch (err) { console.error('MongoDB Application Create Error:', err.message); }
   }
 
-  res.json({ success: true, message: 'Application form created cleanly!', application: appObj });
+  res.json({ success: true, message: 'Application form published cleanly!', application: appObj });
 });
 
 app.post('/api/applications/:id/toggle', requireAuth, requireOwner, async (req, res) => {
@@ -557,6 +407,7 @@ app.get('/api/public/applications/:id', async (req, res) => {
       id: appItem.id,
       title: appItem.title,
       description: appItem.description,
+      guidelines: appItem.guidelines,
       questions: appItem.questions,
       settings: appItem.settings,
       active: appItem.active
@@ -615,13 +466,13 @@ app.get('/api/public/applications/:id/roster', async (req, res) => {
       applicantUsername: s.applicantUsername,
       submittedAt: s.submittedAt,
       status: s.status,
-      reviewedBy: s.reviewedBy
+      reviewedBy: s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Pending'
     }))
   });
 });
 
 app.post('/api/applications/submit', async (req, res) => {
-  const { appId, applicantUsername, discordTag, answers, deviceSignature } = req.body;
+  const { appId, applicantUsername, discordTag, answers, deviceSignature, proofUrl } = req.body;
   const appItem = applicationsMap.get(appId);
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
   if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
@@ -633,7 +484,6 @@ app.post('/api/applications/submit', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Roblox Username is required.' });
   }
 
-  // Mandatory Roblox API Verification
   let robloxAccountData = null;
   try {
     const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
@@ -642,7 +492,7 @@ app.post('/api/applications/submit', async (req, res) => {
     }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
 
     if (!userRes.data?.data?.[0]) {
-      return res.status(400).json({ success: false, error: `Invalid Roblox account "${cleanUser}". Please enter your exact, real Roblox username!` });
+      return res.status(400).json({ success: false, error: `Invalid Roblox account "${cleanUser}". Please enter your exact Roblox username!` });
     }
 
     const robloxUser = userRes.data.data[0];
@@ -707,6 +557,7 @@ app.post('/api/applications/submit', async (req, res) => {
     accountAgeDays: robloxAccountData ? robloxAccountData.accountAgeDays : null,
     discordTag: discordTag ? discordTag.trim() : 'Not provided',
     deviceSignature: cleanSignature,
+    proofUrl: proofUrl ? proofUrl.trim() : '',
     answers: answers || {},
     notes: [],
     blacklisted: false,
@@ -724,172 +575,6 @@ app.post('/api/applications/submit', async (req, res) => {
   saveApplicationsToFile();
 
   res.json({ success: true, message: 'Application submitted successfully!', submissionId: submission.id });
-});
-
-// Public Roblox Username Live Validation Endpoint
-app.get('/api/public/validate-roblox/:username', async (req, res) => {
-  const username = req.params.username ? req.params.username.trim() : '';
-  if (!username) return res.status(400).json({ valid: false, error: 'Username required' });
-
-  try {
-    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
-      usernames: [username],
-      excludeBannedUsers: false
-    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
-
-    if (userRes.data?.data?.[0]) {
-      const robloxUser = userRes.data.data[0];
-      const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${robloxUser.id}`, { timeout: 5000 });
-      const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
-      const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
-
-      return res.json({
-        valid: true,
-        userId: robloxUser.id,
-        exactName: robloxUser.name,
-        displayName: robloxUser.displayName || robloxUser.name,
-        accountAgeDays,
-        avatarUrl: `/api/avatar/${robloxUser.id}`
-      });
-    }
-    return res.json({ valid: false, error: 'Roblox account does not exist.' });
-  } catch (e) {
-    return res.json({ valid: false, error: 'Unable to connect to Roblox API.' });
-  }
-});
-
-app.post('/api/ai/generate', requireAuth, async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required.' });
-
-  try {
-    const isAiCheck = prompt.toLowerCase().includes('chatgpt') || prompt.toLowerCase().includes('analyze this staff application');
-    if (isAiCheck) {
-      const lower = prompt.toLowerCase();
-      const suspiciousTerms = ['furthermore', 'moreover', 'delve', 'testament', 'beacon', 'indispensable', 'meticulous', 'spearhead', 'foster'];
-      let matchCount = 0;
-      suspiciousTerms.forEach(term => { if (lower.includes(term)) matchCount++; });
-
-      if (matchCount >= 2) {
-        return res.json({
-          text: `HIGH CONFIDENCE AI GENERATED CONTENT DETECTED.\n• Detected typical synthetic phrasing & vocabulary (${matchCount} markers found).\n• Re-evaluate answer originality or request live interview.`
-        });
-      } else {
-        return res.json({
-          text: `CLEAN / HUMAN WRITTEN CONTENT.\n• Natural phrasing pattern detected.\n• Meets authentic response criteria.`
-        });
-      }
-    } else {
-      const cleaned = prompt.replace(/^Refine this note into a concise single-line moderation reason:\s*"/i, '').replace(/"$/, '');
-      const refined = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-      return res.json({ text: `Official Notice: ${refined} [Upholding Community Safety]` });
-    }
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'AI processing service error.' });
-  }
-});
-
-app.post('/api/roblox/chat', async (req, res) => {
-  const secret = req.headers['x-server-secret'];
-  if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
-    return res.status(403).json({ error: 'Unauthorized secret' });
-  }
-
-  const { userId, username, msg, ageDays, time } = req.body;
-
-  if (username && msg && username !== "SYSTEM_TEST") {
-    const chatEntry = {
-      id: Date.now() + Math.floor(Math.random() * 1000),
-      time: time || new Date().toLocaleTimeString('en-US', { hour12: false }),
-      userId: String(userId),
-      username,
-      msg,
-      ageDays: Number(ageDays) || 0,
-      redacted: false
-    };
-
-    liveChatMessages.unshift(chatEntry);
-    if (liveChatMessages.length > 200) liveChatMessages.pop();
-
-    io.emit('newChatMessage', chatEntry);
-
-    const tox = checkToxicity(msg);
-    if (tox.isBad) {
-      await sendModActionToRoblox(userId, "WARN", `Automated Flag: ${tox.category}`, null, 0, '', 'AI Auto-Mod');
-    }
-  }
-
-  res.json({ success: true, status: 'Received' });
-});
-
-app.get(['/api/chat', '/api/chat/logs'], requireAuth, (req, res) => {
-  res.json({ messages: liveChatMessages });
-});
-
-app.post('/api/roblox/players', (req, res) => {
-  const secret = req.headers['x-server-secret'];
-  if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
-    return res.status(403).end();
-  }
-  const { players } = req.body;
-  liveInGamePlayers.clear();
-  if (Array.isArray(players)) {
-    players.forEach(p => liveInGamePlayers.set(Number(p.userId), p));
-  }
-  io.emit('playersUpdate', Array.from(liveInGamePlayers.values()));
-  res.json({ success: true });
-});
-
-app.get('/api/live-players', requireAuth, (req, res) => {
-  res.json({ players: Array.from(liveInGamePlayers.values()) });
-});
-
-app.get('/api/logs', requireAuth, (req, res) => {
-  res.json({ logs: actionLogs });
-});
-
-app.delete('/api/logs', requireAuth, (req, res) => {
-  actionLogs = [];
-  res.json({ success: true });
-});
-
-app.get('/api/banned', requireAuth, (req, res) => {
-  res.json({ bannedUsers: Array.from(bannedUsersMap.values()) });
-});
-
-app.post('/api/unban-all', requireAuth, async (req, res) => {
-  try {
-    for (const userId of bannedUsersMap.keys()) {
-      await deleteRobloxDataStoreEntry(userId);
-    }
-    bannedUsersMap.clear();
-    saveBansToFile();
-
-    if (isMongoConnected) {
-      try {
-        await BannedUserModel.deleteMany({});
-      } catch (err) {
-        console.error('MongoDB Unban All Error:', err.message);
-      }
-    }
-
-    await sendModActionToRoblox(0, 'UNBAN_ALL', 'Global administrative unban reset');
-
-    const adminName = req.session.adminName || 'roblox';
-    actionLogs.unshift({
-      id: Date.now(),
-      action: 'UNBAN_ALL',
-      userId: 0,
-      admin: adminName,
-      reason: 'Force unbanned all users across system & database',
-      timestamp: new Date()
-    });
-    sendDiscordLog('UNBAN_ALL', 'ALL USERS', 'Global administrative unban reset', null, null, adminName);
-
-    res.json({ success: true, message: 'All active global bans forcefully wiped!' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
 });
 
 app.post('/api/applications/submissions/:id/status', requireAuth, async (req, res) => {
@@ -941,7 +626,6 @@ app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, a
   sub.reviewedBy = req.session.adminName || 'roblox';
   sub.reviewedAt = new Date();
 
-  // Add candidate's device signature to Security Center restrictions
   const sigToBlock = sub.deviceSignature || 'SIG-UNTRACKED';
   if (sigToBlock && sigToBlock !== 'SIG-UNTRACKED') {
     blockedSignatures.add(sigToBlock);
@@ -982,7 +666,7 @@ app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, a
     action: 'REJECT_BLOCK_DEVICE',
     userId: sub.robloxUserId || 0,
     admin: adminName,
-    reason: `Rejected application for ${sub.applicantUsername} and blocked device signature (${sigToBlock}) in Security Center.`,
+    reason: `Rejected application for ${sub.applicantUsername} and blocked device signature (${sigToBlock}).`,
     timestamp: new Date()
   });
 
@@ -990,6 +674,127 @@ app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, a
     success: true,
     message: `Candidate ${sub.applicantUsername} rejected! Signature (${sigToBlock}) added to Security Center restrictions.`
   });
+});
+
+app.post('/api/public/applications/submissions/:id/withdraw', async (req, res) => {
+  const { id } = req.params;
+  const { applicantUsername } = req.body;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+    } catch (e) {}
+  }
+
+  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
+
+  if (applicantUsername && sub.applicantUsername.toLowerCase() !== applicantUsername.trim().toLowerCase()) {
+    return res.status(403).json({ success: false, error: 'Username mismatch. Cannot withdraw submission.' });
+  }
+
+  sub.status = 'WITHDRAWN';
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: 'WITHDRAWN' });
+    } catch (e) {}
+  }
+
+  res.json({ success: true, message: 'Application withdrawn successfully.' });
+});
+
+app.get('/api/public/validate-roblox/:username', async (req, res) => {
+  const username = req.params.username ? req.params.username.trim() : '';
+  if (!username) return res.status(400).json({ valid: false, error: 'Username required.' });
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [username],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (userRes.data?.data?.[0]) {
+      const rbxUser = userRes.data.data[0];
+      const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxUser.id}`, { timeout: 5000 });
+      const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+      const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      return res.json({
+        valid: true,
+        userId: rbxUser.id,
+        exactName: rbxUser.name,
+        displayName: rbxUser.displayName || rbxUser.name,
+        accountAgeDays,
+        avatarUrl: `/api/avatar/${rbxUser.id}`
+      });
+    } else {
+      return res.json({ valid: false, error: 'Roblox user not found.' });
+    }
+  } catch (err) {
+    res.json({ valid: false, error: 'Roblox API request failed.' });
+  }
+});
+
+app.get('/api/avatar-by-username/:username', async (req, res) => {
+  const username = req.params.username ? req.params.username.trim() : '';
+  if (!username) return res.redirect('/api/avatar/1');
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [username],
+      excludeBannedUsers: false
+    }, { timeout: 4000 });
+
+    if (userRes.data?.data?.[0]?.id) {
+      const rbxId = userRes.data.data[0].id;
+      return res.redirect(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${rbxId}&size=150x150&format=Png&isCircular=false`);
+    }
+  } catch (e) {}
+
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase())}`);
+});
+
+app.get('/api/avatar/:userId', (req, res) => {
+  const { userId } = req.params;
+  res.redirect(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+});
+
+app.get('/api/lookup/:query', requireAuth, async (req, res) => {
+  const query = req.params.query.trim();
+  let rbxId = Number(query);
+
+  try {
+    if (isNaN(rbxId)) {
+      const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+        usernames: [query],
+        excludeBannedUsers: false
+      }, { timeout: 5000 });
+
+      if (userRes.data?.data?.[0]) {
+        rbxId = userRes.data.data[0].id;
+      } else {
+        return res.status(404).json({ success: false, error: `Roblox user "${query}" not found.` });
+      }
+    }
+
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxId}`, { timeout: 5000 });
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    res.json({
+      success: true,
+      userId: detailsRes.data.id,
+      username: detailsRes.data.name,
+      displayName: detailsRes.data.displayName || detailsRes.data.name,
+      description: detailsRes.data.description || 'No user bio provided.',
+      accountAgeDays,
+      avatarUrl: `/api/avatar/${detailsRes.data.id}`
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Roblox API lookup failed.' });
+  }
 });
 
 app.post('/api/action', requireAuth, async (req, res) => {
@@ -1011,24 +816,101 @@ app.post('/api/action', requireAuth, async (req, res) => {
 
   lastActionTimestamp = now;
   const adminName = req.session.adminName || 'roblox';
-
-  const modResult = await sendModActionToRoblox(numUserId, action, reason ? reason.trim() : 'No reason provided.', toolName, durationSeconds, durationText, adminName);
-  const caseId = modResult.caseId || `#WARN-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+  const caseId = `#CASE-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
   if (action === 'BAN') {
     bannedUsersMap.set(numUserId, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() });
     saveBansToFile();
+    if (isMongoConnected) {
+      try {
+        await BannedUserModel.findOneAndUpdate({ userId: numUserId }, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() }, { upsert: true });
+      } catch (e) {}
+    }
   } else if (action === 'UNBAN') {
     bannedUsersMap.delete(numUserId);
     saveBansToFile();
-    await deleteRobloxDataStoreEntry(numUserId);
+    if (isMongoConnected) {
+      try {
+        await BannedUserModel.deleteOne({ userId: numUserId });
+      } catch (e) {}
+    }
   }
 
   const logEntry = { id: Date.now(), caseId, action, userId: numUserId, reason: reason ? reason.trim() : 'No reason provided.', admin: adminName, toolName, timestamp: new Date() };
   actionLogs.unshift(logEntry);
-  sendDiscordLog(action, numUserId, `${reason.trim()} (Case: ${caseId})`, toolName, durationText, adminName);
 
   res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
+});
+
+app.post('/api/unban-all', requireAuth, requireOwner, async (req, res) => {
+  bannedUsersMap.clear();
+  saveBansToFile();
+
+  if (isMongoConnected) {
+    try {
+      await BannedUserModel.deleteMany({});
+    } catch (e) {}
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'UNBAN_ALL',
+    userId: 0,
+    admin: adminName,
+    reason: 'Force Unbanned all registered global player restrictions.',
+    timestamp: new Date()
+  });
+
+  res.json({ success: true, message: 'All player bans have been wiped cleanly!' });
+});
+
+app.post('/api/ai/generate', requireAuth, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required.' });
+
+  try {
+    const isAiCheck = prompt.toLowerCase().includes('chatgpt') || prompt.toLowerCase().includes('analyze this staff application');
+    if (isAiCheck) {
+      const lower = prompt.toLowerCase();
+      const suspiciousTerms = ['furthermore', 'moreover', 'delve', 'testament', 'beacon', 'indispensable', 'meticulous', 'spearhead', 'foster'];
+      let matchCount = 0;
+      suspiciousTerms.forEach(term => { if (lower.includes(term)) matchCount++; });
+
+      if (matchCount >= 2) {
+        return res.json({
+          text: `HIGH CONFIDENCE AI GENERATED CONTENT DETECTED.\n• Detected typical synthetic phrasing & vocabulary (${matchCount} markers found).\n• Re-evaluate answer originality or request live interview.`
+        });
+      } else {
+        return res.json({
+          text: `CLEAN / HUMAN WRITTEN CONTENT.\n• Natural phrasing pattern detected.\n• Meets authentic response criteria.`
+        });
+      }
+    } else {
+      const cleaned = prompt.replace(/^Refine this note into a concise single-line moderation reason:\s*"/i, '').replace(/"$/, '');
+      const refined = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      return res.json({ text: `Official Notice: ${refined} [Upholding Community Safety]` });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'AI processing service error.' });
+  }
+});
+
+app.get('/api/system/notice', (req, res) => {
+  res.json({ success: true, notice: systemNotice });
+});
+
+app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
+  const { message, alertLevel, icon, active, author } = req.body;
+  systemNotice = {
+    active: Boolean(active),
+    message: message || "System Maintenance scheduled.",
+    alertLevel: alertLevel || "warning",
+    icon: icon || "bullhorn",
+    author: author || req.session.adminName || "Owner"
+  };
+  io.emit('systemNoticeUpdate', systemNotice);
+  res.json({ success: true, message: 'Notice banner updated cleanly!', notice: systemNotice });
 });
 
 app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
@@ -1039,15 +921,9 @@ app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
-const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://etfd.onrender.com';
-setInterval(async () => {
-  try {
-    await axios.get(`${RENDER_URL}/api/chat`);
-  } catch (err) {}
-}, 4 * 60 * 1000);
-
 io.on('connection', (socket) => {
   socket.emit('initialChatLogs', liveChatMessages);
+  socket.emit('systemNoticeUpdate', systemNotice);
 });
 
-server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Control Center Online on Port 3000!'));
+server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Command Center Online on Port 3000!'));
