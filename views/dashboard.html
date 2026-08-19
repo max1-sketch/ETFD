@@ -1244,46 +1244,50 @@
           body: JSON.stringify({ signature: currentDeviceSignature })
         });
 
-        if (!res.ok) {
-          // Fallback if endpoint returns non-200 (e.g. 404 during deploy warm-up)
-          throw new Error(`Server status ${res.status}`);
-        }
-
         const data = await res.json();
 
-        if (data.success && !data.blocked) {
-          if (spinner) spinner.classList.add('hidden');
-          if (checkmark) {
-            checkmark.classList.remove('hidden');
-            checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
-          }
-          if (square) square.classList.replace('border-slate-600', 'border-emerald-500/50');
-
-          sessionStorage.setItem('gate_verified', 'true');
-          setTimeout(() => {
-            document.getElementById('securityGateOverlay').classList.add('hidden');
-          }, 500);
-        } else {
+        if (data.blocked) {
+          // Device signature is blocked by administrator
           if (spinner) spinner.classList.add('hidden');
           if (checkmark) {
             checkmark.classList.remove('hidden');
             checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
           }
-          if (square) square.classList.replace('border-slate-600', 'border-red-500/50');
+          if (square) square.className = 'w-7 h-7 rounded border-2 border-red-500/50 bg-[#121722] flex items-center justify-center shrink-0';
           if (restrictedNotice) restrictedNotice.classList.remove('hidden');
+          sessionStorage.removeItem('gate_verified');
+          if (boxBtn) boxBtn.disabled = false;
+          return;
+        }
+
+        if (data.success) {
+          // Device signature verified clean
+          if (spinner) spinner.classList.add('hidden');
+          if (checkmark) {
+            checkmark.classList.remove('hidden');
+            checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
+          }
+          if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+
+          sessionStorage.setItem('gate_verified', 'true');
+          setTimeout(() => {
+            const overlay = document.getElementById('securityGateOverlay');
+            if (overlay) overlay.classList.add('hidden');
+          }, 500);
         }
       } catch (err) {
-        // Fallback for network error / 404 so user is not stuck permanently
+        // Fallback for network connection error during warm-up
         if (spinner) spinner.classList.add('hidden');
         if (checkmark) {
           checkmark.classList.remove('hidden');
           checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
         }
-        if (square) square.classList.replace('border-slate-600', 'border-emerald-500/50');
+        if (square) square.className = 'w-7 h-7 rounded border-2 border-emerald-500/50 bg-[#121722] flex items-center justify-center shrink-0';
 
         sessionStorage.setItem('gate_verified', 'true');
         setTimeout(() => {
-          document.getElementById('securityGateOverlay').classList.add('hidden');
+          const overlay = document.getElementById('securityGateOverlay');
+          if (overlay) overlay.classList.add('hidden');
         }, 500);
       }
     }
@@ -2189,27 +2193,39 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       currentDeviceSignature = generateDeviceSignature();
-      const gateDisplay = document.getElementById('gateSignatureDisplay');
-      if (gateDisplay) gateDisplay.innerText = currentDeviceSignature;
+      const overlay = document.getElementById('securityGateOverlay');
+      const restrictedNotice = document.getElementById('gateRestrictedNotice');
 
-      // Auto-hide gate if verified in current session, and run background status check
-      if (sessionStorage.getItem('gate_verified') === 'true') {
-        const overlay = document.getElementById('securityGateOverlay');
-        if (overlay) overlay.classList.add('hidden');
-
-        fetch('/api/gate/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: currentDeviceSignature })
-        }).then(res => res.json()).then(data => {
-          if (data.blocked) {
-            sessionStorage.removeItem('gate_verified');
-            if (overlay) overlay.classList.remove('hidden');
-            const notice = document.getElementById('gateRestrictedNotice');
-            if (notice) notice.classList.remove('hidden');
+      // Verify gate status against server on load
+      fetch('/api/gate/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signature: currentDeviceSignature })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.blocked) {
+          sessionStorage.removeItem('gate_verified');
+          if (overlay) overlay.classList.remove('hidden');
+          if (restrictedNotice) restrictedNotice.classList.remove('hidden');
+          const square = document.getElementById('gateCheckboxSquare');
+          const checkmark = document.getElementById('gateCheckmark');
+          if (square) square.className = 'w-7 h-7 rounded border-2 border-red-500/50 bg-[#121722] flex items-center justify-center shrink-0';
+          if (checkmark) {
+            checkmark.classList.remove('hidden');
+            checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
           }
-        }).catch(() => {});
-      }
+        } else if (sessionStorage.getItem('gate_verified') === 'true') {
+          if (overlay) overlay.classList.add('hidden');
+        } else {
+          if (overlay) overlay.classList.remove('hidden');
+        }
+      })
+      .catch(() => {
+        if (sessionStorage.getItem('gate_verified') === 'true') {
+          if (overlay) overlay.classList.add('hidden');
+        }
+      });
 
       renderQuestionBuilder();
       fetchApplications();

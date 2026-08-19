@@ -302,7 +302,7 @@ app.post('/api/gate/verify', (req, res) => {
   saveSecurityGateToFile();
 
   if (isBlocked) {
-    return res.status(403).json({
+    return res.json({
       success: false,
       blocked: true,
       signature,
