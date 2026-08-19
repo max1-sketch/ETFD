@@ -763,7 +763,7 @@
               </div>
 
               <div class="flex gap-2">
-                <input type="text" id="manualDeviceSigInput" placeholder="Enter Device Signature (e.g. SIG-88X2-999)..." class="flex-1 px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" />
+                <input type="text" id="manualDeviceSigInput" placeholder="Enter Device Signature (e.g. SIG-3F8B2)..." class="flex-1 px-3 py-2.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" />
                 <button onclick="blockManualDeviceSignature('block')" class="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2">
                   <i class="fa-solid fa-ban text-xs"></i> Block Device
                 </button>
@@ -1205,6 +1205,9 @@
     let currentDeviceSignature = '';
 
     function generateDeviceSignature() {
+      let storedSig = localStorage.getItem('device_signature');
+      if (storedSig) return storedSig;
+
       const userAgent = navigator.userAgent || 'UA-UNKNOWN';
       const screenRes = `${window.screen.width}x${window.screen.height}`;
       const lang = navigator.language || 'en';
@@ -1216,7 +1219,9 @@
         hash = (hash << 5) - hash + char;
         hash |= 0;
       }
-      return 'SIG-' + Math.abs(hash).toString(16).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+      storedSig = 'SIG-' + Math.abs(hash).toString(16).toUpperCase();
+      localStorage.setItem('device_signature', storedSig);
+      return storedSig;
     }
 
     async function executeSecurityGateCheck() {
@@ -2186,6 +2191,25 @@
       currentDeviceSignature = generateDeviceSignature();
       const gateDisplay = document.getElementById('gateSignatureDisplay');
       if (gateDisplay) gateDisplay.innerText = currentDeviceSignature;
+
+      // Auto-hide gate if verified in current session, and run background status check
+      if (sessionStorage.getItem('gate_verified') === 'true') {
+        const overlay = document.getElementById('securityGateOverlay');
+        if (overlay) overlay.classList.add('hidden');
+
+        fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: currentDeviceSignature })
+        }).then(res => res.json()).then(data => {
+          if (data.blocked) {
+            sessionStorage.removeItem('gate_verified');
+            if (overlay) overlay.classList.remove('hidden');
+            const notice = document.getElementById('gateRestrictedNotice');
+            if (notice) notice.classList.remove('hidden');
+          }
+        }).catch(() => {});
+      }
 
       renderQuestionBuilder();
       fetchApplications();
