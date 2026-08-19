@@ -865,16 +865,131 @@ app.post('/api/unban-all', requireAuth, async (req, res) => {
     bannedUsersMap.clear();
     saveBansToFile();
 
+    if (isMongoConnected) {
+      try {
+        await BannedUserModel.deleteMany({});
+      } catch (err) {
+        console.error('MongoDB Unban All Error:', err.message);
+      }
+    }
+
     await sendModActionToRoblox(0, 'UNBAN_ALL', 'Global administrative unban reset');
 
     const adminName = req.session.adminName || 'roblox';
-    actionLogs.unshift({ id: Date.now(), action: 'UNBAN_ALL', userId: 0, admin: adminName, reason: 'Force unbanned all users', timestamp: new Date() });
+    actionLogs.unshift({
+      id: Date.now(),
+      action: 'UNBAN_ALL',
+      userId: 0,
+      admin: adminName,
+      reason: 'Force unbanned all users across system & database',
+      timestamp: new Date()
+    });
     sendDiscordLog('UNBAN_ALL', 'ALL USERS', 'Global administrative unban reset', null, null, adminName);
 
-    res.json({ success: true, message: 'All users unbanned!' });
+    res.json({ success: true, message: 'All active global bans forcefully wiped!' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+app.post('/api/applications/submissions/:id/status', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+    } catch (e) {}
+  }
+
+  if (!sub) {
+    return res.status(404).json({ success: false, error: 'Submission not found.' });
+  }
+
+  sub.status = status || 'PENDING';
+  sub.reviewedBy = req.session.adminName || 'roblox';
+  sub.reviewedAt = new Date();
+
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: sub.status, reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
+    } catch (err) {}
+  }
+
+  res.json({ success: true, message: `Submission status updated to ${status}` });
+});
+
+app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+    } catch (e) {}
+  }
+
+  if (!sub) {
+    return res.status(404).json({ success: false, error: 'Submission not found.' });
+  }
+
+  sub.status = 'DENIED';
+  sub.blacklisted = true;
+  sub.reviewedBy = req.session.adminName || 'roblox';
+  sub.reviewedAt = new Date();
+
+  // Add candidate's device signature to Security Center restrictions
+  const sigToBlock = sub.deviceSignature || 'SIG-UNTRACKED';
+  if (sigToBlock && sigToBlock !== 'SIG-UNTRACKED') {
+    blockedSignatures.add(sigToBlock);
+
+    securityLogs.unshift({
+      timestamp: new Date(),
+      signature: sigToBlock,
+      ip: 'App Gate Block',
+      status: 'Blocked',
+      note: `Rejected & Device Blocked (${sub.applicantUsername})`
+    });
+    if (securityLogs.length > 100) securityLogs.pop();
+
+    saveSecurityGateToFile();
+
+    if (isMongoConnected) {
+      try {
+        await SecurityGateModel.findOneAndUpdate(
+          { configId: 'default' },
+          { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+          { upsert: true }
+        );
+      } catch (err) {}
+    }
+  }
+
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: 'DENIED', blacklisted: true, reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
+    } catch (err) {}
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'REJECT_BLOCK_DEVICE',
+    userId: sub.robloxUserId || 0,
+    admin: adminName,
+    reason: `Rejected application for ${sub.applicantUsername} and blocked device signature (${sigToBlock}) in Security Center.`,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Candidate ${sub.applicantUsername} rejected! Signature (${sigToBlock}) added to Security Center restrictions.`
+  });
 });
 
 app.post('/api/action', requireAuth, async (req, res) => {

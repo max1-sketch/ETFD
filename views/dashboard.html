@@ -1087,186 +1087,8 @@
                   <div id="appBuilderQuestionsList" class="space-y-2.5"></div>
 
                   <div class="pt-1 flex justify-center">
-                    <button onclick="addQuestionToBuilder()" class="px-4 py-1.5 bg-[#0b0f17] hover:bg-slate-800/80 text-slate-300 border border-dashed border-slate-700/80 text-xs font-medium rounded-lg transition-colors inline-flex items-center gap-1.5">
-                      <i class="fa-solid fa-plus text-xs text-indigo-400"></i> Add Question
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div id="designerSectionSettings" class="space-y-4 hidden text-xs">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3">
-                    <div class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 flex items-center justify-between">
-                      <span>Response Limits & Access</span>
-                      <i class="fa-solid fa-sliders text-indigo-400"></i>
-                    </div>
-
-                    <label class="flex items-center justify-between p-2.5 bg-[#121722] card-border rounded-lg cursor-pointer">
-                      <div>
-                        <div class="font-semibold text-slate-200">Limit to 1 response</div>
-                        <div class="text-[10px] text-slate-400">Applicants can only submit this form once</div>
-                      </div>
-                      <input type="checkbox" id="settingLimitOne" checked class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0" />
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 bg-[#121722] card-border rounded-lg cursor-pointer">
-                      <div>
-                        <div class="font-semibold text-slate-200">Accepting Responses</div>
-                        <div class="text-[10px] text-slate-400">Allow candidates to open and fill this form</div>
-                      </div>
-                      <input type="checkbox" id="settingAccepting" checked class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0" />
-                    </label>
-
-                    <label class="flex items-center justify-between p-2.5 bg-[#121722] card-border rounded-lg cursor-pointer">
-                      <div>
-                        <div class="font-semibold text-slate-200">Enable Public Status Roster</div>
-                        <div class="text-[10px] text-slate-400">Generates public status page (/apply/:id/roster) for applicants</div>
-                      </div>
-                      <input type="checkbox" id="settingEnablePublicRoster" checked class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0" />
-                    </label>
-                  </div>
-
-                  <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3">
-                    <div class="font-bold text-slate-200 border-b border-slate-800/60 pb-2 flex items-center justify-between">
-                      <span>Candidate Requirements</span>
-                      <i class="fa-solid fa-user-shield text-indigo-400"></i>
-                    </div>
-
-                    <label class="flex items-center justify-between p-2.5 bg-[#121722] card-border rounded-lg cursor-pointer">
-                      <div>
-                        <div class="font-semibold text-slate-200">Require Discord Tag</div>
-                        <div class="text-[10px] text-slate-400">Collect candidate Discord handle (Username#0000)</div>
-                      </div>
-                      <input type="checkbox" id="settingCollectDiscord" checked class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0" />
-                    </label>
-
-                    <div class="p-2.5 bg-[#121722] card-border rounded-lg space-y-1">
-                      <label class="font-semibold text-slate-200 block">Minimum Account Age (Days)</label>
-                      <input type="number" id="settingMinAge" value="30" class="w-full px-3 py-1.5 bg-[#0b0f17] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="pt-3 border-t border-slate-800/60 flex justify-end">
-                <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 border-t border-indigo-400/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:translate-y-0.5">
-                  <i class="fa-solid fa-paper-plane text-xs"></i> Publish Application Form
-                </button>
-              </div>
-            </div>
-
-            <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-              <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-clipboard-list text-purple-400"></i>
-                  <span>Form Archive</span>
-                </h2>
-                <button onclick="fetchApplications()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2">
-                  <i class="fa-solid fa-rotate text-xs"></i> Refresh
-                </button>
-              </div>
-
-              <div id="applicationsListContainer" class="space-y-3">
-                <div class="p-6 text-center text-slate-500 text-xs font-mono">Loading application forms...</div>
-              </div>
-            </div>
-
-            <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-              <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-user-check text-emerald-400"></i>
-                  <span>Review Center</span>
-                </h2>
-                <span id="submissionCountBadge" class="sidebar-badge">0 SUBMISSIONS</span>
-              </div>
-
-              <div id="submissionsListContainer" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                <div class="p-6 text-center text-slate-500 text-xs font-mono">No submissions recorded yet.</div>
-              </div>
-            </div>
-          </section>
-
-          <section id="tab-system" class="tab-content space-y-4 hidden">
-            <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
-              <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-                <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-terminal text-emerald-400"></i>
-                  <span>Open Cloud Terminal & Server Logs</span>
-                </h2>
-                <span class="text-[10px] font-mono text-emerald-400">CONNECTED: PORT 3000</span>
-              </div>
-
-              <div id="terminalOutput" class="bg-[#070a0f] card-border rounded-lg p-4 h-80 overflow-y-auto font-mono text-xs text-slate-300 space-y-1">
-                <div>[SYSTEM]: Open Cloud WebSocket established cleanly.</div>
-              </div>
-
-              <div class="flex gap-2 font-mono">
-                <span class="px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-blue-400 font-bold select-none">&gt;_</span>
-                <input type="text" id="terminalCommandInput" placeholder="Type command..." class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') executeTerminalCommand();" />
-              </div>
-            </div>
-          </section>
-
-        </div>
-      </main>
-    </div>
-  </div>
-
-  <div id="customConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] border border-slate-700/80 rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative overflow-hidden">
-      <div id="confirmModalAccentBar" class="absolute top-0 left-0 right-0 h-1 bg-red-500"></div>
-
-      <div class="flex items-start gap-3 pt-1">
-        <div id="confirmModalIconBg" class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-          <i id="confirmModalIcon" class="fa-solid fa-triangle-exclamation text-base"></i>
-        </div>
-        <div>
-          <h3 id="confirmModalTitle" class="text-sm font-bold text-slate-100">Confirm Action</h3>
-          <p id="confirmModalDesc" class="text-xs text-slate-400 mt-1 leading-relaxed">Are you sure you want to execute this command?</p>
-        </div>
-      </div>
-
-      <div id="confirmModalDetails" class="hidden p-3 bg-[#0b0f17] border border-slate-800 rounded-lg text-xs font-mono text-slate-300 space-y-1"></div>
-
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
-        <button id="confirmModalCancelBtn" onclick="closeCustomConfirmModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
-          Cancel
-        </button>
-        <button id="confirmModalSubmitBtn" onclick="executePendingConfirmAction()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-red-600/20">
-          Confirm
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="shareLinkModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] card-border rounded-xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative">
-      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-link text-indigo-400"></i>
-          <span>Share Candidate Application Links</span>
-        </h3>
-        <button onclick="closeShareLinkModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Direct Application Link</label>
-          <div class="flex items-center gap-2">
-            <input type="text" id="shareLinkInput" readonly class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 font-mono text-xs select-all focus:outline-none" />
-            <button onclick="copyShareableLink('shareLinkInput')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5">
-              <i class="fa-solid fa-copy text-xs"></i> Copy
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Public Roster / Status Link</label>
-          <div class="flex items-center gap-2">
-            <input type="text" id="shareRosterLinkInput" readonly class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 font-mono text-xs select-all focus:outline-none" />
-            <button onclick="copyShareableLink('shareRosterLinkInput')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg transition-colors flex items-center gap-1.5">
-              <i class="fa-solid fa-copy text-xs"></i> Copy
+            <button type="button" onclick="addQuestionToBuilder()" class="px-4 py-1.5 bg-[#0b0f17] hover:bg-slate-800/80 text-slate-300 border border-dashed border-slate-700/80 text-xs font-medium rounded-lg transition-colors inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-plus text-xs text-indigo-400"></i> Add Question
             </button>
           </div>
         </div>
@@ -2072,6 +1894,14 @@
     function addQuestionToBuilder() {
       appBuilderQuestions.push({ text: '', type: 'textarea', required: true, options: '' });
       renderAppBuilderQuestions();
+    }
+
+    function removeQuestionFromBuilder(idx) {
+      if (idx >= 0 && idx < appBuilderQuestions.length) {
+        appBuilderQuestions.splice(idx, 1);
+        renderAppBuilderQuestions();
+        showToast('Question deleted from builder.', 'info');
+      }
     }
 
     function insertPresetQuestion(type) {
