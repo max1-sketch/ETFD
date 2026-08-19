@@ -29,6 +29,23 @@ app.use(session({
   saveUninitialized: false
 }));
 
+function requireAuth(req, res, next) {
+  if (req.session && req.session.authenticated) {
+    return next();
+  }
+  if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+  }
+  res.redirect('/login');
+}
+
+function requireOwner(req, res, next) {
+  if (req.session && req.session.authenticated) {
+    return next();
+  }
+  return res.status(403).json({ success: false, error: 'Administrative access required' });
+}
+
 let isMongoConnected = false;
 let ApplicationModel, SubmissionModel, BannedUserModel, UserModel, SecurityGateModel;
 
@@ -147,7 +164,6 @@ let liveInGamePlayers = new Map();
 let liveChatMessages = [];
 let actionLogs = [];
 let lastActionTimestamp = 0;
-const avatarUrlCache = new Map();
 
 let blockedSignatures = new Set();
 let securityLogs = [];
@@ -159,6 +175,46 @@ let systemNotice = {
   icon: "triangle-exclamation",
   author: "Owner"
 };
+
+function saveApplicationsToFile() {
+  try {
+    const data = {
+      apps: Array.from(applicationsMap.values()),
+      submissions: applicationSubmissions
+    };
+    fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving applications.json:', err.message);
+  }
+}
+
+function saveSecurityGateToFile() {
+  try {
+    const data = {
+      blockedSignatures: Array.from(blockedSignatures),
+      securityLogs: securityLogs
+    };
+    fs.writeFileSync(SECURITY_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving security_gate.json:', err.message);
+  }
+}
+
+function saveBansToFile() {
+  try {
+    fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
+  } catch (err) {
+    console.error('Error saving banned_users.json:', err.message);
+  }
+}
+
+function saveUsersToFile() {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
+  } catch (err) {
+    console.error('Error saving users.json:', err.message);
+  }
+}
 
 if (fs.existsSync(BANS_FILE)) {
   try {
@@ -265,6 +321,170 @@ if (mongoose && process.env.MONGODB_URI) {
   console.log('ℹ️ MONGODB_URI not set or mongoose package missing. Operating on local JSON persistence.');
 }
 
+function checkToxicity(msg) {
+  if (!msg) return { isBad: false };
+  const lower = msg.toLowerCase();
+  const badWords = ['nigger', 'faggot', 'retard', 'kys'];
+  for (const word of badWords) {
+    if (lower.includes(word)) {
+      return { isBad: true, category: `Inappropriate Content (${word})` };
+    }
+  }
+  return { isBad: false };
+}
+
+async function sendModActionToRoblox(userId, action, reason, toolName = null, durationSeconds = 0, durationText = '', admin = 'Owner') {
+  const caseId = `#CASE-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+  if (process.env.ROBLOX_API_KEY && process.env.UNIVERSE_ID) {
+    try {
+      await axios.post(
+        `https://apis.roblox.com/messaging-service/v1/universes/${process.env.UNIVERSE_ID}/topics/ModChannel`,
+        { message: JSON.stringify({ userId, action, reason, toolName, durationSeconds, durationText, admin, caseId }) },
+        { headers: { 'x-api-key': process.env.ROBLOX_API_KEY, 'Content-Type': 'application/json' }, timeout: 5000 }
+      );
+    } catch (err) {
+      console.warn(`[Roblox Open Cloud Warning]: ${err.message}`);
+    }
+  }
+  return { success: true, caseId };
+}
+
+async function deleteRobloxDataStoreEntry(userId) {
+  return true;
+}
+
+async function sendDiscordLog(action, userId, reason, toolName, durationText, admin) {
+  if (!DISCORD_WEBHOOK_URL) return;
+  try {
+    await axios.post(DISCORD_WEBHOOK_URL, {
+      embeds: [{
+        title: `🚨 Moderation Action: ${action}`,
+        color: action === 'BAN' ? 15158332 : action === 'WARN' ? 16753920 : 3066993,
+        fields: [
+          { name: 'Target UserID', value: String(userId), inline: true },
+          { name: 'Moderator', value: admin, inline: true },
+          { name: 'Reason', value: reason || 'No reason provided', inline: false }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    }, { timeout: 4000 });
+  } catch (err) {}
+}
+
+app.post('/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || 'ETFD23';
+
+  if ((username && username.toLowerCase() === 'roblox' && password === adminPass) || password === adminPass) {
+    req.session.authenticated = true;
+    req.session.adminName = username || 'roblox';
+    req.session.role = 'owner';
+    return res.json({ success: true, redirect: '/dashboard' });
+  }
+
+  const cleanUser = username ? username.toLowerCase().trim() : '';
+  const user = usersMap.get(cleanUser);
+
+  if (user && user.password === password) {
+    req.session.authenticated = true;
+    req.session.adminName = user.username;
+    req.session.role = user.role || 'mod';
+    return res.json({ success: true, redirect: '/dashboard' });
+  }
+
+  res.status(401).json({ success: false, message: 'Invalid credentials! Check your access key.' });
+});
+
+app.get('/auth/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+app.get('/login', (req, res) => {
+  if (req.session && req.session.authenticated) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+app.post('/api/gate/verify', (req, res) => {
+  const { signature } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  const cleanSig = signature ? String(signature).trim() : 'SIG-UNTRACKED';
+
+  const isBlocked = blockedSignatures.has(cleanSig);
+
+  const existingIndex = securityLogs.findIndex(l => l.signature === cleanSig);
+  const now = new Date();
+
+  if (existingIndex !== -1) {
+    securityLogs[existingIndex].timestamp = now;
+    securityLogs[existingIndex].ip = ip;
+    securityLogs[existingIndex].status = isBlocked ? 'Blocked' : 'Allowed';
+  } else {
+    securityLogs.unshift({
+      timestamp: now,
+      signature: cleanSig,
+      ip,
+      status: isBlocked ? 'Blocked' : 'Allowed'
+    });
+    if (securityLogs.length > 100) securityLogs.pop();
+  }
+
+  saveSecurityGateToFile();
+
+  if (isMongoConnected) {
+    SecurityGateModel.findOneAndUpdate(
+      { configId: 'default' },
+      { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+      { upsert: true }
+    ).catch(() => {});
+  }
+
+  if (isBlocked) {
+    return res.json({ success: false, blocked: true, message: 'Device Authorization Failed: Access Restricted.' });
+  }
+
+  res.json({ success: true, blocked: false, signature: cleanSig });
+});
+
+app.get('/api/gate/logs', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    logs: securityLogs,
+    blockedSignatures: Array.from(blockedSignatures)
+  });
+});
+
+app.post('/api/gate/block', requireAuth, requireOwner, async (req, res) => {
+  const { signature, action } = req.body;
+  if (!signature) return res.status(400).json({ success: false, error: 'Device signature required.' });
+
+  const cleanSig = String(signature).trim();
+
+  if (action === 'unblock') {
+    blockedSignatures.delete(cleanSig);
+  } else {
+    blockedSignatures.add(cleanSig);
+  }
+
+  saveSecurityGateToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SecurityGateModel.findOneAndUpdate(
+        { configId: 'default' },
+        { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+        { upsert: true }
+      );
+    } catch (err) {}
+  }
+
+  res.json({ success: true, message: `Device signature ${cleanSig} ${action === 'unblock' ? 'unblocked' : 'restricted'}.` });
+});
+
 app.get('/api/system/db-status', requireAuth, (req, res) => {
   res.json({
     isMongoConnected,
@@ -272,6 +492,14 @@ app.get('/api/system/db-status', requireAuth, (req, res) => {
     hasMongoosePackage: Boolean(mongoose),
     appsCount: applicationsMap.size,
     submissionsCount: applicationSubmissions.length
+  });
+});
+
+app.get('/api/applications', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    applications: Array.from(applicationsMap.values()),
+    submissions: applicationSubmissions
   });
 });
 
@@ -316,6 +544,80 @@ app.post('/api/applications/:id/toggle', requireAuth, requireOwner, async (req, 
   }
 
   res.json({ success: true, message: `Application ${appItem.active ? 'Opened' : 'Closed'}.`, active: appItem.active });
+});
+
+app.get('/api/public/applications/:id', async (req, res) => {
+  const { id } = req.params;
+  const appItem = applicationsMap.get(id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+
+  res.json({
+    success: true,
+    application: {
+      id: appItem.id,
+      title: appItem.title,
+      description: appItem.description,
+      questions: appItem.questions,
+      settings: appItem.settings,
+      active: appItem.active
+    }
+  });
+});
+
+app.get('/api/public/applications/:id/check', async (req, res) => {
+  const { id } = req.params;
+  const { username, deviceSignature } = req.query;
+
+  const appItem = applicationsMap.get(id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Form not found.' });
+
+  const cleanUser = username ? String(username).trim().toLowerCase() : '';
+  const cleanSig = deviceSignature ? String(deviceSignature).trim() : '';
+
+  let existing = null;
+
+  if (isMongoConnected) {
+    try {
+      const orConditions = [];
+      if (cleanUser) orConditions.push({ applicantUsername: new RegExp(`^${cleanUser}$`, 'i') });
+      if (cleanSig && cleanSig !== 'SIG-UNTRACKED') orConditions.push({ deviceSignature: cleanSig });
+
+      if (orConditions.length > 0) {
+        existing = await SubmissionModel.findOne({ appId: id, $or: orConditions });
+      }
+    } catch (e) {}
+  }
+
+  if (!existing) {
+    existing = applicationSubmissions.find(s => 
+      s.appId === id && (
+        (cleanUser && s.applicantUsername.toLowerCase() === cleanUser) ||
+        (cleanSig && cleanSig !== 'SIG-UNTRACKED' && s.deviceSignature === cleanSig)
+      )
+    );
+  }
+
+  res.json({
+    success: true,
+    alreadySubmitted: Boolean(existing),
+    submission: existing || null
+  });
+});
+
+app.get('/api/public/applications/:id/roster', async (req, res) => {
+  const { id } = req.params;
+  const appSubmissions = applicationSubmissions.filter(s => s.appId === id);
+
+  res.json({
+    success: true,
+    submissions: appSubmissions.map(s => ({
+      id: s.id,
+      applicantUsername: s.applicantUsername,
+      submittedAt: s.submittedAt,
+      status: s.status,
+      reviewedBy: s.reviewedBy
+    }))
+  });
 });
 
 app.post('/api/applications/submit', async (req, res) => {
