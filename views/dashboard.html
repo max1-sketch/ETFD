@@ -90,7 +90,6 @@
       border-radius: 4px;
     }
 
-    /* LOCKED INPUT & TOOLTIP STYLES */
     .locked-input {
       background-color: rgba(255, 255, 255, 0.04) !important;
       cursor: not-allowed !important;
@@ -412,6 +411,7 @@
         </header>
 
         <div class="p-4 sm:p-6 space-y-6 flex-1">
+          <!-- DASHBOARD TAB -->
           <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               
@@ -546,6 +546,7 @@
             </div>
           </section>
 
+          <!-- LIVE PLAYERS TAB -->
           <section id="tab-players" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -567,6 +568,7 @@
             </div>
           </section>
 
+          <!-- LIVE CHAT TAB -->
           <section id="tab-chat" class="tab-content space-y-4 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4 flex flex-col justify-between" id="chatFeedCard">
@@ -638,6 +640,7 @@
             </div>
           </section>
 
+          <!-- BANNED USERS TAB -->
           <section id="tab-banned" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -677,6 +680,7 @@
             </div>
           </section>
 
+          <!-- ACTION LOGS TAB -->
           <section id="tab-logs" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -705,6 +709,7 @@
             </div>
           </section>
 
+          <!-- ROBLOX LOOKUP TAB -->
           <section id="tab-lookup" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3">
@@ -726,6 +731,7 @@
             </div>
           </section>
 
+          <!-- STAFF CENTER TAB -->
           <section id="tab-management" class="tab-content space-y-6 hidden">
             <div id="noticeConfigCard" class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -813,6 +819,7 @@
             </div>
           </section>
 
+          <!-- APPLICATIONS TAB -->
           <section id="tab-applications" class="tab-content space-y-6 hidden">
             <!-- RECRUITMENT DESIGNER -->
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
@@ -825,7 +832,6 @@
                   <p class="text-xs text-slate-400 mt-0.5">Build forms for new staff or player roles with custom settings and links.</p>
                 </div>
 
-                <!-- TAB SWITCHER -->
                 <div class="flex items-center gap-1.5 bg-[#0b0f17] card-border p-1 rounded-lg text-xs font-semibold">
                   <button onclick="switchDesignerTab('questions')" id="designerTabQuestions" class="px-3 py-1 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5">
                     <i class="fa-solid fa-list-check text-xs"></i> Questions
@@ -836,7 +842,6 @@
                 </div>
               </div>
 
-              <!-- DESIGNER QUESTIONS SECTION -->
               <div id="designerSectionQuestions" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <div class="space-y-1">
@@ -850,7 +855,6 @@
                   </div>
                 </div>
 
-                <!-- PRESET QUESTIONS -->
                 <div class="p-3 bg-[#0b0f17] card-border rounded-lg space-y-2">
                   <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
@@ -872,7 +876,6 @@
                   </div>
                 </div>
 
-                <!-- DYNAMIC QUESTIONS BUILDER -->
                 <div class="space-y-3 pt-1">
                   <div class="border-b border-slate-800/60 pb-2 flex items-center justify-between">
                     <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
@@ -891,7 +894,6 @@
                 </div>
               </div>
 
-              <!-- FORM SETTINGS SECTION -->
               <div id="designerSectionSettings" class="space-y-4 hidden text-xs">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3">
@@ -987,6 +989,7 @@
             </div>
           </section>
 
+          <!-- CONSOLE TERMINAL TAB -->
           <section id="tab-system" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -1103,6 +1106,7 @@
     let currentUserRole = 'owner';
     let submissionAiScans = {};
     let currentStandaloneApp = null;
+    let builderQuestions = [];
 
     function notify(title, message, type = 'info') {
       const container = document.getElementById('toastContainer');
@@ -1162,6 +1166,112 @@
       if (targetNav) targetNav.classList.add('nav-active', 'text-slate-100');
 
       toggleMobileSidebar(false);
+    }
+
+    function validateNumericInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, '');
+    }
+
+    function debounceUserPreview() {
+      const userId = document.getElementById('userId').value.trim();
+      const preview = document.getElementById('userPreviewBadge');
+      if (!userId || isNaN(Number(userId))) {
+        preview.classList.add('hidden');
+        return;
+      }
+      preview.classList.remove('hidden');
+      preview.innerHTML = `
+        <div class="flex items-center gap-3">
+          <img src="/api/avatar/${userId}" class="w-8 h-8 rounded bg-slate-800 border border-slate-700 object-cover" />
+          <div>
+            <div class="text-xs font-bold text-slate-100 font-mono">Target UserID: ${userId}</div>
+            <div class="text-[10px] text-blue-400 font-semibold">Verified Target Format</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateBanBtnState() {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      const btn = document.getElementById('globalBanBtn');
+      const lockIcon = document.getElementById('globalBanLockIcon');
+
+      if (userId && !isNaN(Number(userId)) && reason.length >= 3) {
+        btn.disabled = false;
+        btn.classList.remove('cursor-not-allowed', 'opacity-60', 'bg-slate-800/80', 'text-slate-500');
+        btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+        if (lockIcon) lockIcon.className = 'fa-solid fa-lock-open text-[10px]';
+      } else {
+        btn.disabled = true;
+        btn.classList.add('cursor-not-allowed', 'opacity-60', 'bg-slate-800/80', 'text-slate-500');
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+        if (lockIcon) lockIcon.className = 'fa-solid fa-lock text-[10px]';
+      }
+    }
+
+    async function aiPolishReason() {
+      const input = document.getElementById('reason');
+      const currentReason = input.value.trim();
+      if (!currentReason) {
+        notify('AI Refinement', 'Please type a quick reason first.', 'warning');
+        return;
+      }
+
+      notify('AI Refining', 'Polishing moderation reason...', 'info');
+
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: `Refine this note into a concise single-line moderation reason: "${currentReason}"` })
+        });
+        const data = await res.json();
+        if (data.text) {
+          input.value = data.text.trim().replace(/^["']|["']$/g, '');
+          updateBanBtnState();
+          notify('Reason Refined', 'Moderation note updated.');
+        }
+      } catch (e) {
+        notify('Refine Error', 'Could not refine note.', 'error');
+      }
+    }
+
+    async function sendAction(action) {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+
+      if (!userId || isNaN(Number(userId))) {
+        notify('Validation Error', 'Enter a valid numeric UserID.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, userId, reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+          notify('Action Dispatched', `${action} command sent cleanly.`);
+          document.getElementById('userId').value = '';
+          document.getElementById('reason').value = '';
+          updateBanBtnState();
+        } else {
+          notify('Error', data.error || 'Action failed.', 'error');
+        }
+      } catch (e) {
+        notify('Error', 'Server connection error', 'error');
+      }
+    }
+
+    function triggerGlobalBanConfirmation() {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      if (confirm(`ARE YOU SURE you want to GLOBAL BAN UserID ${userId}?\nReason: ${reason}`)) {
+        sendAction('BAN');
+      }
     }
 
     function switchDesignerTab(tab) {
@@ -1609,7 +1719,6 @@
       } catch (err) { alert('Server connection error'); }
     }
 
-    // INITIALIZATION & ROUTE DISPATCH
     document.addEventListener('DOMContentLoaded', () => {
       renderQuestionBuilder();
       fetchApplications();
