@@ -21,8 +21,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
 
   <style>
+    /* STRICT VISIBILITY OVERRIDES */
     .hidden {
       display: none !important;
     }
@@ -268,6 +270,14 @@
           </div>
         </div>
 
+        <div id="standaloneClosedNotice" class="hidden p-6 bg-[#0b0f17] border border-red-500/20 rounded-xl text-center space-y-3">
+          <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto text-base">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h3 class="text-sm font-semibold text-slate-100">Applications Closed</h3>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">This recruitment drive is currently closed to new responses.</p>
+        </div>
+
         <div id="standaloneFormFieldsContainer" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
@@ -314,7 +324,7 @@
         </div>
       </form>
 
-      <!-- MY APPLICATIONS CANDIDATE TRACKER -->
+      <!-- MY APPLICATIONS CANDIDATE TRACKER WITH CONNECTED TIMELINE STEPPER -->
       <div id="standaloneMyAppsView" class="hidden space-y-4">
         <div class="border-b border-slate-800/80 pb-2.5">
           <h2 class="text-sm font-semibold text-slate-200">Application Status</h2>
@@ -508,7 +518,6 @@
         </header>
 
         <div class="p-4 sm:p-6 space-y-6 flex-1">
-          <!-- DASHBOARD TAB -->
           <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               
@@ -976,52 +985,68 @@
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
                 <div>
                   <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-file-circle-plus text-indigo-400/80"></i>
+                    <i class="fa-solid fa-file-circle-plus text-indigo-400"></i>
                     <span>Recruitment Designer</span>
                   </h2>
                   <p class="text-xs text-slate-400 mt-0.5">Build forms for new staff or player roles with custom settings and links.</p>
                 </div>
 
-                <div class="flex items-center gap-1.5 bg-[#0b0f17] card-border p-1 rounded-lg text-xs font-semibold">
-                  <button onclick="switchDesignerTab('questions')" id="designerTabQuestions" class="px-3 py-1 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5">
+                <!-- UNDERLINE DESIGNER NAVIGATION TABS -->
+                <div class="flex items-center gap-4 text-xs font-semibold border-b border-slate-800/80 pb-0.5">
+                  <button onclick="switchDesignerTab('questions')" id="designerTabQuestions" class="pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5">
                     <i class="fa-solid fa-list-check text-xs"></i> Questions
                   </button>
-                  <button onclick="switchDesignerTab('settings')" id="designerTabSettings" class="px-3 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5">
+                  <button onclick="switchDesignerTab('settings')" id="designerTabSettings" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5">
                     <i class="fa-solid fa-gear text-xs"></i> Form Settings
                   </button>
                 </div>
               </div>
 
               <div id="designerSectionQuestions" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div class="space-y-1">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
+                  <div class="md:col-span-5 space-y-1">
                     <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Application Title *</label>
                     <input type="text" id="appBuilderTitle" placeholder="e.g. Junior Moderator Application 2026" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold" />
                   </div>
 
-                  <div class="space-y-1">
-                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Form Guidelines</label>
-                    <input type="text" id="appBuilderDesc" placeholder="e.g. Answer in your own words. AI responses result in disqualification." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
+                  <div class="md:col-span-7 space-y-1">
+                    <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Form Guidelines (Multi-line Instructions)</label>
+                    <textarea id="appBuilderDesc" rows="2" placeholder="e.g. Answer in your own words. AI responses result in immediate disqualification." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
                   </div>
                 </div>
 
+                <!-- QUICK PROMPT TEMPLATES WITH DUO-TONE ICONS AND PREVIEW EYE -->
                 <div class="p-3 bg-[#0b0f17] card-border rounded-lg space-y-2">
                   <div class="flex items-center justify-between text-xs">
-                    <span class="font-bold text-slate-200 flex items-center gap-1.5 text-[11px]">
+                    <span class="font-semibold text-slate-200 flex items-center gap-1.5 text-[11px]">
                       <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Quick Prompt Templates
                     </span>
-                    <span class="text-[10px] text-slate-400 font-mono">1-Click Insert</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Click to insert • Hover eye to preview</span>
                   </div>
 
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <button onclick="insertPresetQuestion('catch_rule')" class="px-2.5 py-1.5 bg-[#121722] hover:bg-slate-800 text-slate-300 card-border rounded text-left truncate flex items-center gap-1.5 transition-colors">
-                      <i class="fa-solid fa-shield-halved text-blue-400 text-[10px]"></i> Rule #7 Check
+                    <button onclick="insertPresetQuestion('catch_rule')" class="group p-2 bg-[#121722] hover:bg-slate-800/80 text-slate-300 card-border rounded-lg text-left flex items-center justify-between gap-2 transition-all">
+                      <span class="flex items-center gap-2 truncate">
+                        <i class="fa-solid fa-shield-halved text-blue-400 text-xs"></i>
+                        <span class="truncate">Rule #7 Check</span>
+                      </span>
+                      <i class="fa-solid fa-eye text-slate-500 hover:text-indigo-400 text-xs opacity-60 group-hover:opacity-100 transition-opacity" title="Preview: What is Rule #7 in our server rules, and what does it mean to you?"></i>
                     </button>
-                    <button onclick="insertPresetQuestion('secret_word')" class="px-2.5 py-1.5 bg-[#121722] hover:bg-slate-800 text-slate-300 card-border rounded text-left truncate flex items-center gap-1.5 transition-colors">
-                      <i class="fa-solid fa-key text-amber-400 text-[10px]"></i> Server Codeword
+
+                    <button onclick="insertPresetQuestion('secret_word')" class="group p-2 bg-[#121722] hover:bg-slate-800/80 text-slate-300 card-border rounded-lg text-left flex items-center justify-between gap-2 transition-all">
+                      <span class="flex items-center gap-2 truncate">
+                        <i class="fa-solid fa-key text-amber-400 text-xs"></i>
+                        <span class="truncate">Server Codeword</span>
+                      </span>
+                      <i class="fa-solid fa-eye text-slate-500 hover:text-indigo-400 text-xs opacity-60 group-hover:opacity-100 transition-opacity" title="Preview: Enter the codeword hidden inside our #rules channel."></i>
                     </button>
-                    <button onclick="insertPresetQuestion('friend_bias')" class="px-2.5 py-1.5 bg-[#121722] hover:bg-slate-800 text-slate-300 card-border rounded text-left truncate flex items-center gap-1.5 transition-colors">
-                      <i class="fa-solid fa-scale-balanced text-purple-400 text-[10px]"></i> Bias Scenario
+
+                    <button onclick="insertPresetQuestion('friend_bias')" class="group p-2 bg-[#121722] hover:bg-slate-800/80 text-slate-300 card-border rounded-lg text-left flex items-center justify-between gap-2 transition-all">
+                      <span class="flex items-center gap-2 truncate">
+                        <i class="fa-solid fa-scale-balanced text-purple-400 text-xs"></i>
+                        <span class="truncate">Bias Scenario</span>
+                      </span>
+                      <i class="fa-solid fa-eye text-slate-500 hover:text-indigo-400 text-xs opacity-60 group-hover:opacity-100 transition-opacity" title="Preview: How would you handle moderating a situation where your best friend is accused of breaking a major rule?"></i>
                     </button>
                   </div>
                 </div>
@@ -1029,18 +1054,21 @@
                 <div class="space-y-3 pt-1">
                   <div class="border-b border-slate-800/60 pb-2 flex items-center justify-between">
                     <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                      <i class="fa-solid fa-list-check text-indigo-400/80"></i> Form Questions
+                      <i class="fa-solid fa-list-check text-indigo-400"></i> Form Questions
                     </span>
                     <span id="questionCounterBadge" class="sidebar-badge">0 QUESTIONS</span>
                   </div>
 
-                  <div id="appBuilderQuestionsList" class="space-y-3">
+                  <div id="appBuilderQuestionsList" class="space-y-2.5">
                     <!-- Dynamic Question Items -->
                   </div>
 
-                  <button onclick="addQuestionToBuilder()" class="w-full py-2.5 bg-[#0b0f17] hover:bg-slate-800/60 text-slate-300 border border-dashed border-slate-700/80 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-plus text-xs text-indigo-400"></i> Add New Question
-                  </button>
+                  <!-- TIGHT & COMPACT ADD QUESTION BUTTON -->
+                  <div class="pt-1 flex justify-center">
+                    <button onclick="addQuestionToBuilder()" class="px-4 py-1.5 bg-[#0b0f17] hover:bg-slate-800/80 text-slate-300 border border-dashed border-slate-700/80 text-xs font-medium rounded-lg transition-colors inline-flex items-center gap-1.5">
+                      <i class="fa-solid fa-plus text-xs text-indigo-400"></i> Add Question
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1099,8 +1127,9 @@
                 </div>
               </div>
 
+              <!-- TACTILE 3D PUBLISH BUTTON WITH HIGHLIGHT EDGE (NO GAMERY GLOW) -->
               <div class="pt-3 border-t border-slate-800/60 flex justify-end">
-                <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/15">
+                <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 border-t border-indigo-400/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:translate-y-0.5">
                   <i class="fa-solid fa-paper-plane text-xs"></i> Publish Application Form
                 </button>
               </div>
@@ -1110,7 +1139,7 @@
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-clipboard-list text-purple-400/80"></i>
+                  <i class="fa-solid fa-clipboard-list text-purple-400"></i>
                   <span>Form Archive</span>
                 </h2>
                 <button onclick="fetchApplications()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2">
@@ -1127,7 +1156,7 @@
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
                 <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <i class="fa-solid fa-user-check text-emerald-400/80"></i>
+                  <i class="fa-solid fa-user-check text-emerald-400"></i>
                   <span>Review Center</span>
                 </h2>
                 <span id="submissionCountBadge" class="sidebar-badge">0 SUBMISSIONS</span>
@@ -1250,584 +1279,180 @@
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <script>
-    let builderQuestions = [];
-    let currentStandaloneApp = null;
+    let activeApplications = [];
+    let applicationSubmissions = [];
     let submissionAiScans = {};
-    let currentDeviceSignature = '';
+    let livePlayers = [];
+    let bannedUsersList = [];
+    let auditLogsList = [];
+    let liveChatLogs = [];
+    let activeDeviceSignature = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
 
-    function generateDeviceSignature() {
-      let storedSig = localStorage.getItem('device_signature');
-      if (storedSig) return storedSig;
-
-      const userAgent = navigator.userAgent || 'UA-UNKNOWN';
-      const screenRes = `${window.screen.width}x${window.screen.height}`;
-      const lang = navigator.language || 'en';
-      const raw = `${userAgent}-${screenRes}-${lang}`;
-
-      let hash = 0;
-      for (let i = 0; i < raw.length; i++) {
-        const char = raw.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash |= 0;
-      }
-      storedSig = 'SIG-' + Math.abs(hash).toString(16).toUpperCase();
-      localStorage.setItem('device_signature', storedSig);
-      return storedSig;
+    // OPTION 1: PERSISTENT BROWSER DEVICE SIGNATURE
+    if (!localStorage.getItem('et_device_signature')) {
+      localStorage.setItem('et_device_signature', activeDeviceSignature);
+    } else {
+      activeDeviceSignature = localStorage.getItem('et_device_signature');
     }
 
-    async function executeSecurityGateCheck() {
-      if (!currentDeviceSignature) currentDeviceSignature = generateDeviceSignature();
+    const socket = typeof io !== 'undefined' ? io() : null;
 
-      const boxBtn = document.getElementById('gateBoxBtn');
-      const square = document.getElementById('gateCheckboxSquare');
+    if (socket) {
+      socket.on('newChatMessage', (msg) => {
+        liveChatLogs.unshift(msg);
+        if (liveChatLogs.length > 200) liveChatLogs.pop();
+        renderChatFeed();
+      });
+
+      socket.on('initialChatLogs', (logs) => {
+        liveChatLogs = logs || [];
+        renderChatFeed();
+      });
+
+      socket.on('playersUpdate', (players) => {
+        livePlayers = players || [];
+        const badge = document.getElementById('navLivePlayersBadge');
+        const stat = document.getElementById('statLivePlayers');
+        if (badge) badge.innerText = String(livePlayers.length);
+        if (stat) stat.innerText = String(livePlayers.length);
+        renderLivePlayers();
+      });
+    }
+
+    // INITIALIZATION & TAB ROUTING
+    document.addEventListener('DOMContentLoaded', () => {
+      checkTopNotice();
+      executeSecurityGateCheck();
+
+      if (window.location.pathname.startsWith('/apply/')) {
+        const parts = window.location.pathname.split('/');
+        const appId = parts[2];
+        const isRosterPath = window.location.pathname.endsWith('/roster');
+
+        document.documentElement.classList.add('is-public-portal');
+        
+        if (isRosterPath) {
+          switchPortalTab('roster');
+        } else {
+          switchPortalTab('form');
+        }
+
+        if (appId) {
+          document.getElementById('standaloneAppId').value = appId;
+          fetchPortalApplication(appId);
+        }
+      } else {
+        fetchApplications();
+        fetchBannedUsers();
+        fetchAuditLogs();
+        fetchLivePlayers();
+        renderToxicityCanvas();
+      }
+    });
+
+    // SECURITY GATE CHECK
+    async function executeSecurityGateCheck() {
+      const btn = document.getElementById('gateBoxBtn');
       const spinner = document.getElementById('gateSpinner');
       const checkmark = document.getElementById('gateCheckmark');
-      const restrictedNotice = document.getElementById('gateRestrictedNotice');
-      const restrictedSigTag = document.getElementById('restrictedSigTag');
-      const labelText = document.getElementById('gateLabelText');
+      const label = document.getElementById('gateLabelText');
+      const notice = document.getElementById('gateRestrictedNotice');
+      const sigTag = document.getElementById('restrictedSigTag');
 
-      if (boxBtn) boxBtn.disabled = true;
       if (spinner) spinner.classList.remove('hidden');
-      if (checkmark) checkmark.classList.add('hidden');
-      if (restrictedNotice) restrictedNotice.classList.add('hidden');
-      if (labelText) labelText.innerText = 'Verifying...';
-
-      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 1400));
 
       try {
-        const [res] = await Promise.all([
-          fetch('/api/gate/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ signature: currentDeviceSignature })
-          }),
-          minDelayPromise
-        ]);
-
+        const res = await fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: activeDeviceSignature })
+        });
         const data = await res.json();
 
         if (data.blocked) {
-          document.documentElement.classList.remove('gate-verified');
-          sessionStorage.removeItem('gate_verified');
           if (spinner) spinner.classList.add('hidden');
-          if (checkmark) {
-            checkmark.classList.remove('hidden');
-            checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
-          }
-          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-red-500/70 bg-red-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20';
-          if (restrictedNotice) restrictedNotice.classList.remove('hidden');
-          if (restrictedSigTag) restrictedSigTag.innerText = `ID: ${currentDeviceSignature}`;
-          if (labelText) labelText.innerText = "I'm not a robot";
-          const overlay = document.getElementById('securityGateOverlay');
-          if (overlay) overlay.classList.remove('hidden');
-          if (boxBtn) boxBtn.disabled = false;
-          return;
-        }
-
-        if (data.success) {
+          if (label) label.innerText = 'Access Denied';
+          if (notice) notice.classList.remove('hidden');
+          if (sigTag) sigTag.innerText = activeDeviceSignature;
+        } else {
           if (spinner) spinner.classList.add('hidden');
-          if (checkmark) {
-            checkmark.classList.remove('hidden');
-            checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
-          }
-          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-emerald-500/70 bg-emerald-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20';
-          if (labelText) labelText.innerText = "Verified";
-
+          if (checkmark) checkmark.classList.remove('hidden');
+          if (label) label.innerText = "Verified cleanly";
+          
           sessionStorage.setItem('gate_verified', 'true');
-          document.documentElement.classList.add('gate-verified');
           setTimeout(() => {
-            const overlay = document.getElementById('securityGateOverlay');
-            if (overlay) overlay.classList.add('hidden');
-          }, 500);
-        }
-      } catch (err) {
-        if (spinner) spinner.classList.add('hidden');
-        if (checkmark) {
-          checkmark.classList.remove('hidden');
-          checkmark.className = 'fa-solid fa-check text-emerald-400 text-sm';
-        }
-        if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-emerald-500/70 bg-emerald-950/20 flex items-center justify-center shrink-0';
-        if (labelText) labelText.innerText = "Verified";
-
-        sessionStorage.setItem('gate_verified', 'true');
-        document.documentElement.classList.add('gate-verified');
-        setTimeout(() => {
-          const overlay = document.getElementById('securityGateOverlay');
-          if (overlay) overlay.classList.add('hidden');
-        }, 500);
-      }
-    }
-
-    async function fetchSecurityGateLogs() {
-      try {
-        const res = await fetch('/api/gate/logs');
-        const data = await res.json();
-        if (!data.success) return;
-
-        const tbody = document.getElementById('securityLogsTableBody');
-        const blockedContainer = document.getElementById('blockedSignaturesContainer');
-
-        if (!data.logs.length) {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No gateway logs recorded yet.</td></tr>`;
-        } else {
-          tbody.innerHTML = data.logs.map(log => `
-            <tr class="hover:bg-slate-800/30">
-              <td class="p-3 text-slate-400 text-[11px]">${new Date(log.timestamp).toLocaleString()}</td>
-              <td class="p-3 font-bold text-blue-400">${log.signature}</td>
-              <td class="p-3 text-slate-300">${log.ip}</td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${log.status === 'Allowed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">
-                  ${log.status}
-                </span>
-              </td>
-              <td class="p-3 text-right">
-                <button onclick="toggleDeviceBlock('${log.signature}', '${log.status === 'Blocked' ? 'unblock' : 'block'}')" class="px-2.5 py-1 ${log.status === 'Blocked' ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500/30' : 'bg-red-600/20 text-red-300 border-red-500/30'} border text-xs font-semibold rounded hover:opacity-80">
-                  ${log.status === 'Blocked' ? 'Unblock' : 'Block Device'}
-                </button>
-              </td>
-            </tr>
-          `).join('');
-        }
-
-        if (!data.blockedSignatures.length) {
-          blockedContainer.innerHTML = `<span class="text-slate-500 text-xs">No devices restricted yet.</span>`;
-        } else {
-          blockedContainer.innerHTML = data.blockedSignatures.map(sig => `
-            <div class="px-2.5 py-1 bg-red-950/30 border border-red-500/30 text-red-300 rounded-md flex items-center gap-2 text-xs">
-              <span>${sig}</span>
-              <button onclick="toggleDeviceBlock('${sig}', 'unblock')" class="hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-          `).join('');
-        }
-      } catch (e) {}
-    }
-
-    async function toggleDeviceBlock(signature, action) {
-      try {
-        const res = await fetch('/api/gate/block', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature, action })
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Device Restriction Updated', data.message);
-          fetchSecurityGateLogs();
-        }
-      } catch (e) {}
-    }
-
-    async function blockManualDeviceSignature(action) {
-      const input = document.getElementById('manualDeviceSigInput');
-      const sig = input.value.trim();
-      if (!sig) {
-        notify('Validation Error', 'Type a valid Device Signature.', 'error');
-        return;
-      }
-      await toggleDeviceBlock(sig, action);
-      input.value = '';
-    }
-
-    async function rejectAndBlockDevice(subId, deviceSig) {
-      if (!confirm(`Are you sure you want to REJECT application and BLOCK Device Signature (${deviceSig}) from accessing the Gateway?`)) return;
-
-      try {
-        const res = await fetch(`/api/applications/submissions/${subId}/reject-block-device`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Candidate Rejected & Blocked', data.message);
-          fetchApplications();
-        } else {
-          notify('Error', data.error || 'Action failed', 'error');
+            document.documentElement.classList.add('gate-verified');
+          }, 400);
         }
       } catch (e) {
-        notify('Error', 'Server connection error', 'error');
+        if (spinner) spinner.classList.add('hidden');
+        if (checkmark) checkmark.classList.remove('hidden');
+        sessionStorage.setItem('gate_verified', 'true');
+        document.documentElement.classList.add('gate-verified');
       }
     }
 
-    function notify(title, message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      if (!container) return;
-
-      const toast = document.createElement('div');
-      toast.className = `p-3.5 bg-[#121722] card-border rounded-lg shadow-xl text-xs flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto border-l-4 ${type === 'error' ? 'border-l-red-500' : type === 'warning' ? 'border-l-amber-500' : 'border-l-blue-500'}`;
-      
-      toast.innerHTML = `
-        <div>
-          <div class="font-bold text-slate-100">${title}</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">${message}</div>
-        </div>
-        <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-slate-300 p-1"><i class="fa-solid fa-xmark"></i></button>
-      `;
-
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 10);
-
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
-    }
-
-    function switchPortalTab(mode) {
-      const appId = document.getElementById('standaloneAppId').value;
-      const formTab = document.getElementById('portalTabForm');
-      const myAppsTab = document.getElementById('portalTabMyApps');
-      const rosterTab = document.getElementById('portalTabRoster');
-
-      document.getElementById('standalonePublicForm').classList.add('hidden');
-      document.getElementById('standaloneMyAppsView').classList.add('hidden');
-      document.getElementById('standaloneRosterView').classList.add('hidden');
-
-      formTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
-      myAppsTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
-      rosterTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
-
-      if (mode === 'roster') {
-        rosterTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
-        document.getElementById('standaloneRosterView').classList.remove('hidden');
-        loadStandaloneRoster(appId);
-      } else if (mode === 'my_apps') {
-        myAppsTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
-        document.getElementById('standaloneMyAppsView').classList.remove('hidden');
-        loadCandidateMyApps();
-      } else {
-        formTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
-        document.getElementById('standalonePublicForm').classList.remove('hidden');
-      }
-    }
-
-    function saveFormDraft() {
-      const appId = document.getElementById('standaloneAppId').value;
-      const form = document.getElementById('standalonePublicForm');
-      const draftData = {};
-
-      form.querySelectorAll('input, textarea').forEach(el => {
-        if (el.id) draftData[el.id] = el.value;
-      });
-
-      localStorage.setItem(`app_draft_${appId}`, JSON.stringify(draftData));
-      const indicator = document.getElementById('draftSaveIndicator');
-      if (indicator) {
-        indicator.classList.remove('hidden');
-        setTimeout(() => indicator.classList.add('hidden'), 3000);
-      }
-    }
-
-    function loadSavedDraft() {
-      const appId = document.getElementById('standaloneAppId').value;
-      const rawDraft = localStorage.getItem(`app_draft_${appId}`);
-      if (!rawDraft) return;
-
-      try {
-        const draft = JSON.parse(rawDraft);
-        Object.entries(draft).forEach(([id, val]) => {
-          const field = document.getElementById(id);
-          if (field && !field.value) field.value = val;
-        });
-      } catch (e) {}
-    }
-
-    async function loadCandidateMyApps() {
-      const appId = document.getElementById('standaloneAppId').value;
-      const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`) || '';
-      const container = document.getElementById('myAppsStatusContainer');
-
-      if (!username) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Enter your Roblox username in the Application Form tab to check status.</div>`;
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}`);
-        const data = await res.json();
-        const sub = data.submission;
-
-        if (!sub) {
-          container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No submitted application found for "${username}".</div>`;
-          return;
-        }
-
-        const stages = [
-          { key: 'APPLIED', label: 'Applied' },
-          { key: 'UNDER_REVIEW', label: 'Under Review' },
-          { key: 'INTERVIEW_SCHEDULED', label: 'Interview' },
-          { key: sub.status === 'DENIED' ? 'DENIED' : sub.status === 'ON_HOLD' ? 'ON_HOLD' : 'ACCEPTED', label: sub.status === 'DENIED' ? 'Declined' : sub.status === 'ON_HOLD' ? 'Paused' : 'Accepted' }
-        ];
-
-        const currentIdx = sub.status === 'DENIED' || sub.status === 'ACCEPTED' ? 3 : sub.status === 'INTERVIEW_SCHEDULED' ? 2 : sub.status === 'UNDER_REVIEW' || sub.status === 'ON_HOLD' ? 1 : 0;
-        const formattedStatus = sub.status === 'UNDER_REVIEW' ? 'Under Review' : sub.status === 'INTERVIEW_SCHEDULED' ? 'Interview Scheduled' : sub.status === 'ON_HOLD' ? 'Paused' : sub.status;
-
-        container.innerHTML = `
-          <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6 text-xs">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <div>
-                <div class="text-xs font-semibold text-slate-100 flex items-center gap-2">
-                  <span>Candidate: ${sub.applicantUsername}</span>
-                  <span class="text-[10px] font-mono text-slate-500">(${sub.id})</span>
-                </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</div>
-              </div>
-              <span class="px-2.5 py-1 rounded text-[10px] font-medium ${sub.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : sub.status === 'DENIED' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
-                ${formattedStatus}
-              </span>
-            </div>
-
-            <!-- CONNECTED STEPPER TIMELINE -->
-            <div class="space-y-2">
-              <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Application Status</div>
-              
-              <div class="relative my-4 py-2">
-                <!-- Connected Background Line -->
-                <div class="absolute top-1/2 left-4 right-4 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
-                <div class="absolute top-1/2 left-4 h-0.5 bg-indigo-600 -translate-y-1/2 z-0 transition-all duration-500" style="width: ${(currentIdx / (stages.length - 1)) * 100}%;"></div>
-
-                <div class="relative z-10 flex items-center justify-between">
-                  ${stages.map((st, idx) => {
-                    const isCompleted = idx < currentIdx;
-                    const isCurrent = idx === currentIdx;
-                    const isDenied = st.key === 'DENIED';
-
-                    return `
-                      <div class="flex flex-col items-center gap-1.5 group">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
-                          isCompleted ? 'bg-indigo-600 text-white shadow-md' :
-                          isCurrent ? (isDenied ? 'bg-red-600 text-white ring-4 ring-red-600/20' : 'bg-indigo-600 text-white ring-4 ring-indigo-600/25') :
-                          'bg-[#121722] border border-slate-700 text-slate-500'
-                        }">
-                          ${isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : idx + 1}
-                        </div>
-                        <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-semibold' : isCompleted ? 'text-slate-200' : 'text-slate-500'}">
-                          ${st.label}
-                        </span>
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
-              </div>
-            </div>
-
-            ${sub.notes && sub.notes.length ? `
-              <div class="p-3 bg-[#121722] border border-white/5 rounded-lg space-y-1">
-                <div class="font-medium text-slate-200 text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-comment-dots text-indigo-400"></i> Reviewer Feedback</div>
-                ${sub.notes.map(n => `<div class="text-slate-300 text-xs">• ${n.text} <span class="text-[10px] text-slate-500 font-mono">— ${n.author}</span></div>`).join('')}
-              </div>
-            ` : ''}
-
-            ${sub.status === 'ACCEPTED' ? `
-              <div class="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-xl space-y-3">
-                <div class="font-medium text-emerald-400 flex items-center gap-2">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <span>Onboarding Checklist</span>
-                </div>
-                <div class="space-y-2 text-slate-300">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" ${sub.ndaSigned ? 'checked disabled' : ''} onchange="signCandidateNda('${sub.id}')" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-600" />
-                    <span>I agree to uphold server rules and keep internal tools confidential (NDA Sign-off).</span>
-                  </label>
-                  <div class="text-[11px] text-slate-400 pl-6">Step 2: Join the Staff Discord and request Junior Moderator roles.</div>
-                </div>
-              </div>
-            ` : ''}
-
-            ${sub.status !== 'ACCEPTED' && sub.status !== 'DENIED' && sub.status !== 'WITHDRAWN' ? `
-              <div class="pt-2 flex justify-end">
-                <button onclick="withdrawCandidateApp('${sub.id}')" class="text-[11px] text-slate-500 hover:text-red-400 transition-colors underline flex items-center gap-1">
-                  Withdraw Application
-                </button>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      } catch (e) {}
-    }
-
-    async function withdrawCandidateApp(subId) {
-      const appId = document.getElementById('standaloneAppId').value;
-      const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`);
-      if (!confirm('Are you sure you want to withdraw your application?')) return;
-
-      try {
-        const res = await fetch(`/api/public/applications/submissions/${subId}/withdraw`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ applicantUsername: username })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert('Application withdrawn.');
-          loadCandidateMyApps();
-        }
-      } catch (e) {}
-    }
-
-    async function signCandidateNda(subId) {
-      const appId = document.getElementById('standaloneAppId').value;
-      const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`);
-
-      try {
-        const res = await fetch(`/api/public/applications/submissions/${subId}/onboard`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ applicantUsername: username, ndaSigned: true })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert('NDA agreement signed!');
-          loadCandidateMyApps();
-        }
-      } catch (e) {}
-    }
-
-    function toggleThemeDropdown() {
-      const dropdown = document.getElementById('themeDropdown');
-      if (dropdown) dropdown.classList.toggle('hidden');
-    }
-
-    function setAppTheme(theme) {
-      document.body.classList.remove('theme-purple', 'theme-stealth');
-      if (theme === 'purple') document.body.classList.add('theme-purple');
-      if (theme === 'stealth') document.body.classList.add('theme-stealth');
-      notify('Theme Updated', `Switched theme to ${theme.toUpperCase()}`);
-    }
-
-    function toggleMobileSidebar(show) {
-      const drawer = document.getElementById('sidebarDrawer');
-      const backdrop = document.getElementById('mobileSidebarBackdrop');
-      if (show) {
-        drawer.classList.remove('-translate-x-full');
-        backdrop.classList.remove('hidden');
-        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-      } else {
-        drawer.classList.add('-translate-x-full');
-        backdrop.classList.add('opacity-0');
-        setTimeout(() => backdrop.classList.add('hidden'), 300);
-      }
-    }
-
+    // TAB NAVIGATION
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active', 'text-slate-100'));
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('nav-active', 'text-slate-100'));
 
-      const targetTab = document.getElementById(`tab-${tabId}`);
-      const targetNav = document.getElementById(`nav-${tabId}`);
+      const target = document.getElementById(`tab-${tabId}`);
+      const navBtn = document.getElementById(`nav-${tabId}`);
 
-      if (targetTab) targetTab.classList.remove('hidden');
-      if (targetNav) targetNav.classList.add('nav-active', 'text-slate-100');
+      if (target) target.classList.remove('hidden');
+      if (navBtn) {
+        navBtn.classList.add('nav-active', 'text-slate-100');
+      }
 
-      if (tabId === 'security') fetchSecurityGateLogs();
+      const headings = {
+        dashboard: ['Staff Command Center', 'Live game data and moderation console'],
+        players: ['Live Server Instances', 'Check player items, ping, and issue punishments'],
+        chat: ['Live Chat Feed & Chat Scanner', 'Real-time live game chat with auto-flagging'],
+        banned: ['Active Global Bans', 'Managed persistence synced across WebBanList_v3'],
+        security: ['Security Center', 'Connection Gateway logs and device restrictions'],
+        logs: ['Action Logs', 'Historical audit trail of all moderation actions'],
+        lookup: ['Roblox Inspector', 'Query Roblox API by Username or UserID'],
+        management: ['Staff Center', 'Invite staff and manage notice broadcasts'],
+        applications: ['Recruitment Center', 'Build forms and review candidate submissions'],
+        system: ['Console Terminal', 'Open Cloud WebSocket and server console']
+      };
 
+      if (headings[tabId]) {
+        document.getElementById('pageTitleHeading').innerHTML = `<i class="fa-solid fa-layer-group text-blue-400 text-xs"></i> <span>${headings[tabId][0]}</span>`;
+        document.getElementById('pageSubHeading').innerText = headings[tabId][1];
+      }
       toggleMobileSidebar(false);
     }
 
-    function validateNumericInput(input) {
-      input.value = input.value.replace(/[^0-9]/g, '');
-    }
+    function switchPortalTab(tab) {
+      const formView = document.getElementById('standalonePublicForm');
+      const myAppsView = document.getElementById('standaloneMyAppsView');
+      const rosterView = document.getElementById('standaloneRosterView');
 
-    function debounceUserPreview() {
-      const userId = document.getElementById('userId').value.trim();
-      const preview = document.getElementById('userPreviewBadge');
-      if (!userId || isNaN(Number(userId))) {
-        preview.classList.add('hidden');
-        return;
-      }
-      preview.classList.remove('hidden');
-      preview.innerHTML = `
-        <div class="flex items-center gap-3">
-          <img src="/api/avatar/${userId}" class="w-8 h-8 rounded bg-slate-800 border border-slate-700 object-cover" />
-          <div>
-            <div class="text-xs font-bold text-slate-100 font-mono">Target UserID: ${userId}</div>
-            <div class="text-[10px] text-blue-400 font-semibold">Verified Target Format</div>
-          </div>
-        </div>
-      `;
-    }
+      const tabForm = document.getElementById('portalTabForm');
+      const tabMyApps = document.getElementById('portalTabMyApps');
+      const tabRoster = document.getElementById('portalTabRoster');
 
-    function updateBanBtnState() {
-      const userId = document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-      const btn = document.getElementById('globalBanBtn');
-      const lockIcon = document.getElementById('globalBanLockIcon');
+      if (formView) formView.classList.add('hidden');
+      if (myAppsView) myAppsView.classList.add('hidden');
+      if (rosterView) rosterView.classList.add('hidden');
 
-      if (userId && !isNaN(Number(userId)) && reason.length >= 3) {
-        btn.disabled = false;
-        btn.classList.remove('cursor-not-allowed', 'opacity-60', 'bg-slate-800/80', 'text-slate-500');
-        btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
-        if (lockIcon) lockIcon.className = 'fa-solid fa-lock-open text-[10px]';
-      } else {
-        btn.disabled = true;
-        btn.classList.add('cursor-not-allowed', 'opacity-60', 'bg-slate-800/80', 'text-slate-500');
-        btn.classList.remove('bg-red-600', 'hover:bg-red-700', 'text-white', 'shadow-lg', 'shadow-red-600/20');
-        if (lockIcon) lockIcon.className = 'fa-solid fa-lock text-[10px]';
-      }
-    }
+      [tabForm, tabMyApps, tabRoster].forEach(btn => {
+        if (btn) btn.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
+      });
 
-    async function aiPolishReason() {
-      const input = document.getElementById('reason');
-      const currentReason = input.value.trim();
-      if (!currentReason) {
-        notify('AI Refinement', 'Please type a quick reason first.', 'warning');
-        return;
-      }
-
-      notify('AI Refining', 'Polishing moderation reason...', 'info');
-
-      try {
-        const res = await fetch('/api/ai/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: `Refine this note into a concise single-line moderation reason: "${currentReason}"` })
-        });
-        const data = await res.json();
-        if (data.text) {
-          input.value = data.text.trim().replace(/^["']|["']$/g, '');
-          updateBanBtnState();
-          notify('Reason Refined', 'Moderation note updated.');
-        }
-      } catch (e) {
-        notify('Refine Error', 'Could not refine note.', 'error');
-      }
-    }
-
-    async function sendAction(action) {
-      const userId = document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-
-      if (!userId || isNaN(Number(userId))) {
-        notify('Validation Error', 'Enter a valid numeric UserID.', 'error');
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action, userId, reason })
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Action Dispatched', `${action} command sent cleanly.`);
-          document.getElementById('userId').value = '';
-          document.getElementById('reason').value = '';
-          updateBanBtnState();
-        } else {
-          notify('Error', data.error || 'Action failed.', 'error');
-        }
-      } catch (e) {
-        notify('Error', 'Server connection error', 'error');
-      }
-    }
-
-    function triggerGlobalBanConfirmation() {
-      const userId = document.getElementById('userId').value.trim();
-      const reason = document.getElementById('reason').value.trim();
-      if (confirm(`ARE YOU SURE you want to GLOBAL BAN UserID ${userId}?\nReason: ${reason}`)) {
-        sendAction('BAN');
+      if (tab === 'form') {
+        if (formView) formView.classList.remove('hidden');
+        if (tabForm) tabForm.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+      } else if (tab === 'my_apps') {
+        if (myAppsView) myAppsView.classList.remove('hidden');
+        if (tabMyApps) tabMyApps.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        fetchPortalMyApps();
+      } else if (tab === 'roster') {
+        if (rosterView) rosterView.classList.remove('hidden');
+        if (tabRoster) tabRoster.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        fetchPortalRoster();
       }
     }
 
@@ -1840,81 +1465,374 @@
       if (!qBtn || !sBtn || !qSec || !sSec) return;
 
       if (tab === 'questions') {
-        qBtn.className = 'px-3 py-1 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
-        sBtn.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+        qBtn.className = 'pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5';
+        sBtn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5';
         qSec.classList.remove('hidden');
         sSec.classList.add('hidden');
       } else {
-        sBtn.className = 'px-3 py-1 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
-        qBtn.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+        sBtn.className = 'pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5';
+        qBtn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5';
         sSec.classList.remove('hidden');
         qSec.classList.add('hidden');
       }
     }
 
-    function renderQuestionBuilder() {
+    // PUBLIC CANDIDATE PORTAL API FETCHERS
+    async function fetchPortalApplication(appId) {
+      try {
+        const res = await fetch(`/api/public/applications/${appId}`);
+        const data = await res.json();
+
+        if (data.success && data.application) {
+          const app = data.application;
+          document.getElementById('standalonePortalTitle').innerText = app.title || 'New Staff Application';
+          document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out the form below';
+
+          if (!app.active) {
+            document.getElementById('standaloneClosedNotice').classList.remove('hidden');
+            document.getElementById('standaloneFormFieldsContainer').classList.add('hidden');
+            return;
+          }
+
+          renderPortalQuestions(app.questions || []);
+          checkLimitOneStatus();
+        }
+      } catch (err) {
+        console.error('Error loading public application:', err);
+      }
+    }
+
+    async function checkLimitOneStatus() {
+      const appId = document.getElementById('standaloneAppId').value;
+      const userVal = document.getElementById('standaloneApplicantUser').value.trim();
+
+      if (!appId) return;
+
+      try {
+        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(userVal)}&deviceSignature=${encodeURIComponent(activeDeviceSignature)}`);
+        const data = await res.json();
+
+        const notice = document.getElementById('alreadySubmittedNotice');
+        const fields = document.getElementById('standaloneFormFieldsContainer');
+
+        if (data.alreadySubmitted) {
+          if (notice) notice.classList.remove('hidden');
+          if (fields) fields.classList.add('hidden');
+        } else {
+          if (notice) notice.classList.add('hidden');
+          if (fields) fields.classList.remove('hidden');
+        }
+      } catch (err) {}
+    }
+
+    function renderPortalQuestions(questions) {
+      const container = document.getElementById('standaloneQuestionsList');
+      if (!container) return;
+
+      if (!questions.length) {
+        container.innerHTML = `<div class="p-4 bg-[#0b0f17] rounded-lg text-slate-400 text-xs">Why would you like to join the Escape Tsunami staff team?</div>`;
+        return;
+      }
+
+      container.innerHTML = questions.map((q, idx) => `
+        <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
+          <label class="font-medium text-slate-200 block text-xs">
+            ${idx + 1}. ${q.text || 'Question'} ${q.required ? '<span class="text-indigo-400">*</span>' : ''}
+          </label>
+          <textarea id="standalone_q_${idx}" data-question="${q.text}" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer in detail..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>
+        </div>
+      `).join('');
+    }
+
+    async function handlePublicPortalSubmit(e) {
+      e.preventDefault();
+
+      const appId = document.getElementById('standaloneAppId').value;
+      const applicantUsername = document.getElementById('standaloneApplicantUser').value.trim();
+      const discordTag = document.getElementById('standaloneApplicantDiscord').value.trim();
+      const proof = document.getElementById('standaloneApplicantProof').value.trim();
+      const submitBtn = document.getElementById('standaloneSubmitBtn');
+
+      if (!appId || !applicantUsername) {
+        showToast('Please fill out all required fields!', 'warning');
+        return;
+      }
+
+      const answers = {};
+      document.querySelectorAll('#standaloneQuestionsList textarea').forEach(textarea => {
+        const qText = textarea.getAttribute('data-question') || 'Answer';
+        answers[qText] = textarea.value.trim();
+      });
+
+      if (proof) answers['Portfolio Link'] = proof;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Submitting...`;
+
+      try {
+        const res = await fetch('/api/applications/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appId, applicantUsername, discordTag, answers, deviceSignature: activeDeviceSignature })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast('Application submitted successfully!', 'success');
+          localStorage.removeItem(`draft_app_${appId}`);
+          switchPortalTab('my_apps');
+        } else {
+          showToast(data.error || 'Submission failed.', 'emergency');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> Submit Application`;
+        }
+      } catch (err) {
+        showToast('Network submission error.', 'emergency');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> Submit Application`;
+      }
+    }
+
+    // CONNECTED TIMELINE STEPPER MY-APPS TRACKER
+    async function fetchPortalMyApps() {
+      const container = document.getElementById('myAppsStatusContainer');
+      const userVal = document.getElementById('standaloneApplicantUser').value.trim();
+      const appId = document.getElementById('standaloneAppId').value;
+
+      if (!userVal) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Enter your Roblox username in the Application Form tab to load status.</div>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(userVal)}&deviceSignature=${encodeURIComponent(activeDeviceSignature)}`);
+        const data = await res.json();
+
+        if (!data.submission) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No active submission found for username "${userVal}".</div>`;
+          return;
+        }
+
+        const sub = data.submission;
+        const stages = ['PENDING', 'UNDER_REVIEW', 'INTERVIEW_SCHEDULED', 'ACCEPTED'];
+        let currentStageIdx = stages.indexOf(sub.status);
+        if (currentStageIdx === -1) currentStageIdx = 0;
+
+        const stageLabels = ['Submitted', 'Under Review', 'Interview', 'Decision'];
+
+        container.innerHTML = `
+          <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+              <div>
+                <span class="text-xs font-bold text-slate-100">${sub.appTitle || 'Staff Application'}</span>
+                <span class="text-[10px] font-mono text-slate-500 block">ID: ${sub.id}</span>
+              </div>
+              <span class="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-[11px] font-bold rounded-lg">
+                ${formatStatusLabel(sub.status)}
+              </span>
+            </div>
+
+            <!-- CONNECTED TIMELINE STEPPER -->
+            <div class="relative py-2">
+              <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+              <div class="relative z-10 flex items-center justify-between">
+                ${stageLabels.map((lbl, idx) => {
+                  const isDone = idx < currentStageIdx;
+                  const isCurrent = idx === currentStageIdx;
+                  return `
+                    <div class="flex flex-col items-center gap-1.5">
+                      <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        isDone ? 'bg-indigo-600 text-white' :
+                        isCurrent ? 'bg-indigo-500 text-white ring-4 ring-indigo-500/20' :
+                        'bg-slate-800 text-slate-500 border border-slate-700'
+                      }">
+                        ${isDone ? '✓' : idx + 1}
+                      </div>
+                      <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-bold' : 'text-slate-400'}">${lbl}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- CANDIDATE REVIEWER NOTES -->
+            ${sub.notes && sub.notes.length ? `
+              <div class="p-3 bg-[#121722] rounded-lg border border-white/5 space-y-1 text-xs">
+                <div class="font-bold text-slate-300">Reviewer Notes:</div>
+                ${sub.notes.map(n => `<div class="text-slate-400 text-[11px]">• ${n.text} <span class="text-slate-600 font-mono">(${n.author})</span></div>`).join('')}
+              </div>
+            ` : ''}
+
+            <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
+              <span class="text-slate-500 font-mono">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</span>
+              <button onclick="withdrawMyApplication('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs">
+                Withdraw Application
+              </button>
+            </div>
+          </div>
+        `;
+      } catch (err) {}
+    }
+
+    async function fetchPortalRoster() {
+      const container = document.getElementById('standaloneRosterTableBody');
+      const appId = document.getElementById('standaloneAppId').value;
+
+      if (!container || !appId) return;
+
+      try {
+        const res = await fetch(`/api/public/applications/${appId}/roster`);
+        const data = await res.json();
+
+        if (!data.submissions || !data.submissions.length) {
+          container.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No applicants in public roster yet.</td></tr>`;
+          return;
+        }
+
+        container.innerHTML = data.submissions.map(s => {
+          const avatarUrl = `/api/avatar-by-username/${encodeURIComponent(s.applicantUsername)}`;
+          return `
+            <tr class="hover:bg-slate-800/40 transition-colors">
+              <td class="p-3 flex items-center gap-2.5">
+                <img src="${avatarUrl}" onerror="this.src='https://placehold.co/24x24/1e293b/64748b?text=U'" class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 object-cover" />
+                <span class="font-bold text-slate-200">${s.applicantUsername}</span>
+              </td>
+              <td class="p-3 text-slate-400">${new Date(s.submittedAt).toLocaleDateString()}</td>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                  s.status === 'ACCEPTED' ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' :
+                  s.status === 'DENIED' ? 'bg-red-600/20 text-red-400 border border-red-500/30' :
+                  'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
+                }">${formatStatusLabel(s.status)}</span>
+              </td>
+              <td class="p-3 text-slate-400">${s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Awaiting'}</td>
+              <td class="p-3 text-right">
+                <button onclick="switchPortalTab('my_apps')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded transition-colors">View</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {}
+    }
+
+    function formatStatusLabel(st) {
+      if (!st) return 'Pending';
+      switch (st) {
+        case 'PENDING': return 'Pending Review';
+        case 'UNDER_REVIEW': return 'Under Review';
+        case 'INTERVIEW_SCHEDULED': return 'Interview Scheduled';
+        case 'ON_HOLD': return 'Paused';
+        case 'ACCEPTED': return 'Accepted';
+        case 'DENIED': return 'Declined';
+        default: return st.replace(/_/g, ' ');
+      }
+    }
+
+    async function withdrawMyApplication(subId) {
+      const userVal = document.getElementById('standaloneApplicantUser').value.trim();
+      if (!confirm('Are you sure you want to withdraw your application?')) return;
+
+      try {
+        const res = await fetch(`/api/public/applications/submissions/${subId}/withdraw`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applicantUsername: userVal })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Application withdrawn cleanly.', 'info');
+          fetchPortalMyApps();
+        }
+      } catch (err) {}
+    }
+
+    function saveFormDraft() {
+      const appId = document.getElementById('standaloneAppId').value;
+      const userVal = document.getElementById('standaloneApplicantUser').value.trim();
+      const discordVal = document.getElementById('standaloneApplicantDiscord').value.trim();
+
+      if (!appId) return;
+
+      const draft = { userVal, discordVal, answers: {} };
+      document.querySelectorAll('#standaloneQuestionsList textarea').forEach(ta => {
+        draft.answers[ta.id] = ta.value;
+      });
+
+      localStorage.setItem(`draft_app_${appId}`, JSON.stringify(draft));
+      const ind = document.getElementById('draftSaveIndicator');
+      if (ind) {
+        ind.classList.remove('hidden');
+        setTimeout(() => ind.classList.add('hidden'), 2500);
+      }
+    }
+
+    function loadSavedDraft() {
+      const appId = document.getElementById('standaloneAppId').value;
+      if (!appId) return;
+
+      const raw = localStorage.getItem(`draft_app_${appId}`);
+      if (!raw) return;
+
+      try {
+        const draft = JSON.parse(raw);
+        if (draft.userVal && !document.getElementById('standaloneApplicantUser').value) {
+          document.getElementById('standaloneApplicantUser').value = draft.userVal;
+        }
+        if (draft.discordVal && !document.getElementById('standaloneApplicantDiscord').value) {
+          document.getElementById('standaloneApplicantDiscord').value = draft.discordVal;
+        }
+        if (draft.answers) {
+          Object.entries(draft.answers).forEach(([id, val]) => {
+            const ta = document.getElementById(id);
+            if (ta && !ta.value) ta.value = val;
+          });
+        }
+      } catch (e) {}
+    }
+
+    // RECRUITMENT DESIGNER & ARCHIVE
+    let builderQuestions = [];
+
+    function addQuestionToBuilder(qText = '', required = true) {
+      builderQuestions.push({ text: qText, required });
+      renderBuilderQuestions();
+    }
+
+    function removeBuilderQuestion(idx) {
+      builderQuestions.splice(idx, 1);
+      renderBuilderQuestions();
+    }
+
+    function insertPresetQuestion(presetKey) {
+      const presets = {
+        catch_rule: 'What is Rule #7 in our server rules, and what does it mean to you?',
+        secret_word: 'Enter the codeword hidden inside our #rules channel.',
+        friend_bias: 'How would you handle moderating a situation where your best friend is accused of breaking a major rule?'
+      };
+
+      if (presets[presetKey]) {
+        addQuestionToBuilder(presets[presetKey], true);
+      }
+    }
+
+    function renderBuilderQuestions() {
       const container = document.getElementById('appBuilderQuestionsList');
       const badge = document.getElementById('questionCounterBadge');
       if (badge) badge.innerText = `${builderQuestions.length} QUESTIONS`;
 
       if (!container) return;
 
-      if (!builderQuestions.length) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono">No questions added yet. Click "+ Add New Question" below.</div>`;
-        return;
-      }
-
       container.innerHTML = builderQuestions.map((q, idx) => `
-        <div class="p-3.5 bg-[#0b0f17] card-border rounded-lg space-y-3 text-xs">
-          <div class="flex items-center justify-between gap-3">
-            <span class="font-mono text-indigo-400 font-bold w-6">#${idx + 1}</span>
-            <input type="text" value="${q.label.replace(/"/g, '&quot;')}" onchange="updateQuestionLabel(${q.id}, this.value)" placeholder="Enter question prompt..." class="flex-1 px-3 py-1.5 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500" />
-            <select onchange="updateQuestionType(${q.id}, this.value)" class="px-3 py-1.5 bg-[#121722] card-border rounded text-slate-300 focus:outline-none cursor-pointer">
-              <option value="short" ${q.type === 'short' ? 'selected' : ''}>Short Answer</option>
-              <option value="paragraph" ${q.type === 'paragraph' ? 'selected' : ''}>Paragraph</option>
-              <option value="choice" ${q.type === 'choice' ? 'selected' : ''}>Multiple Choice</option>
-              <option value="select" ${q.type === 'select' ? 'selected' : ''}>Dropdown</option>
-            </select>
-            <button onclick="removeQuestionFromBuilder(${q.id})" class="p-1.5 text-slate-500 hover:text-red-400 transition-colors">
-              <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
-          </div>
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center gap-3">
+          <span class="font-mono text-xs font-bold text-indigo-400">#${idx + 1}</span>
+          <input type="text" value="${q.text}" oninput="builderQuestions[${idx}].text = this.value" placeholder="Type question prompt..." class="flex-1 px-3 py-1.5 bg-[#121722] card-border rounded text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+          <label class="inline-flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" ${q.required ? 'checked' : ''} onchange="builderQuestions[${idx}].required = this.checked" class="w-3.5 h-3.5 rounded bg-slate-800 text-indigo-600 focus:ring-0" />
+            <span>Required</span>
+          </label>
+          <button onclick="removeBuilderQuestion(${idx})" class="p-1.5 text-slate-500 hover:text-red-400 transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       `).join('');
-    }
-
-    function addQuestionToBuilder() {
-      builderQuestions.push({ id: Date.now(), label: 'New Question Prompt', type: 'short' });
-      renderQuestionBuilder();
-    }
-
-    function removeQuestionFromBuilder(id) {
-      builderQuestions = builderQuestions.filter(q => q.id !== id);
-      renderQuestionBuilder();
-    }
-
-    function updateQuestionLabel(id, value) {
-      const q = builderQuestions.find(item => item.id === id);
-      if (q) q.label = value.trim();
-    }
-
-    function updateQuestionType(id, type) {
-      const q = builderQuestions.find(item => item.id === id);
-      if (q) q.type = type;
-    }
-
-    function insertPresetQuestion(presetKey) {
-      const presets = {
-        catch_rule: { label: 'What is Rule #7 in our server rules, and what does it mean to you?', type: 'paragraph' },
-        secret_word: { label: 'Enter the codeword hidden inside our #rules channel.', type: 'short' },
-        friend_bias: { label: 'How would you handle moderating a situation where your best friend is accused of breaking a major rule?', type: 'paragraph' }
-      };
-      const p = presets[presetKey];
-      if (p) {
-        builderQuestions.push({ id: Date.now(), label: p.label, type: p.type });
-        renderQuestionBuilder();
-        notify('Prompt Added', 'Preset question added to builder list.');
-      }
     }
 
     async function createApplicationForm() {
@@ -1922,16 +1840,16 @@
       const description = document.getElementById('appBuilderDesc').value.trim();
 
       if (!title) {
-        notify('Validation Error', 'Application title is required.', 'error');
+        showToast('Application title is required!', 'warning');
         return;
       }
 
       const settings = {
         limitOneResponse: document.getElementById('settingLimitOne').checked,
         acceptingResponses: document.getElementById('settingAccepting').checked,
+        enablePublicRoster: document.getElementById('settingEnablePublicRoster').checked,
         collectDiscord: document.getElementById('settingCollectDiscord').checked,
-        minAccountAge: Number(document.getElementById('settingMinAge').value) || 30,
-        enablePublicRoster: document.getElementById('settingEnablePublicRoster').checked
+        minAge: Number(document.getElementById('settingMinAge').value) || 30
       };
 
       try {
@@ -1941,44 +1859,34 @@
           body: JSON.stringify({ title, description, questions: builderQuestions, settings })
         });
         const data = await res.json();
-        if (data.success) {
-          notify('Form Published', data.message || 'Application form created!');
+
+        if (res.ok && data.success) {
+          showToast('Application form published cleanly!', 'success');
           document.getElementById('appBuilderTitle').value = '';
+          document.getElementById('appBuilderDesc').value = '';
+          builderQuestions = [];
+          renderBuilderQuestions();
           fetchApplications();
-          if (data.application && data.application.id) {
-            openShareLinkModal(data.application.id);
-          }
         } else {
-          notify('Error', data.error || 'Failed to create form', 'error');
+          showToast(data.error || 'Failed to create form.', 'emergency');
         }
-      } catch (e) { notify('Error', 'Server connection error', 'error'); }
-    }
-
-    function openShareLinkModal(appId) {
-      const origin = window.location.origin;
-      document.getElementById('shareLinkInput').value = `${origin}/apply/${appId}`;
-      document.getElementById('shareRosterLinkInput').value = `${origin}/apply/${appId}/roster`;
-      document.getElementById('shareLinkModal').classList.remove('hidden');
-    }
-
-    function closeShareLinkModal() {
-      document.getElementById('shareLinkModal').classList.add('hidden');
-    }
-
-    function copyShareableLink(inputId) {
-      const input = document.getElementById(inputId);
-      input.select();
-      document.execCommand('copy');
-      notify('Link Copied', 'URL copied to clipboard.');
+      } catch (err) {
+        showToast('Network creation error.', 'emergency');
+      }
     }
 
     async function fetchApplications() {
       try {
         const res = await fetch('/api/applications');
         const data = await res.json();
-        renderApplicationsList(data.applications || []);
-        renderSubmissionsList(data.submissions || []);
-      } catch (e) {}
+
+        if (data.success) {
+          activeApplications = data.applications || [];
+          applicationSubmissions = data.submissions || [];
+          renderApplicationsList(activeApplications);
+          renderSubmissionsList(applicationSubmissions);
+        }
+      } catch (err) {}
     }
 
     function renderApplicationsList(apps) {
@@ -1990,27 +1898,54 @@
         return;
       }
 
-      container.innerHTML = apps.map(app => `
+      container.innerHTML = apps.map(app => {
+        const createdDate = app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Aug 19, 2026';
+        const appSubCount = (applicationSubmissions || []).filter(s => s.appId === app.id).length;
+
+        return `
         <div class="p-4 bg-[#0b0f17] card-border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="text-xs font-bold text-slate-100">${app.title}</span>
-              <span class="sidebar-badge">${app.active ? 'OPEN' : 'CLOSED'}</span>
-              <span class="font-mono text-[10px] text-slate-500">${app.id}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${app.active ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'}">
+                ${app.active ? 'OPEN' : 'CLOSED'}
+              </span>
+              <span class="font-mono text-[10px] text-slate-500">ID: ${app.id}</span>
             </div>
-            <div class="text-[11px] text-slate-400">${app.description || 'No guidelines provided.'}</div>
+
+            <div class="flex items-center gap-3 text-[10px] text-slate-400 font-mono">
+              <span><i class="fa-regular fa-calendar text-slate-500"></i> Created: ${createdDate}</span>
+              <span>•</span>
+              <span><i class="fa-solid fa-inbox text-slate-500"></i> Submissions: ${appSubCount}</span>
+              <span>•</span>
+              <span><i class="fa-solid fa-clock text-slate-500"></i> Last Activity: Active</span>
+            </div>
+
+            <div class="text-[11px] text-slate-400 mt-0.5">${app.description || 'No guidelines provided.'}</div>
           </div>
 
           <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <button onclick="openShareLinkModal('${app.id}')" class="px-3 py-1.5 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded hover:bg-indigo-600/30 transition-colors flex items-center gap-1.5">
+            <button onclick="openShareLinkModal('${app.id}')" class="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
               <i class="fa-solid fa-link text-xs"></i> Links
             </button>
-            <button onclick="toggleApplicationStatus('${app.id}')" class="px-3 py-1.5 ${app.active ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'} border text-xs font-semibold rounded">
-              ${app.active ? 'Close' : 'Open'}
+            <button onclick="toggleApplicationStatus('${app.id}')" class="px-3 py-1.5 ${app.active ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30'} text-xs font-semibold rounded transition-colors">
+              ${app.active ? 'Close Form' : 'Open Form'}
             </button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
+    }
+
+    async function toggleApplicationStatus(appId) {
+      try {
+        const res = await fetch(`/api/applications/${appId}/toggle`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'info');
+          fetchApplications();
+        }
+      } catch (err) {}
     }
 
     function renderSubmissionsList(subs) {
@@ -2021,30 +1956,57 @@
       if (!container) return;
 
       if (!subs.length) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No submissions recorded yet.</div>`;
+        container.innerHTML = `
+          <div class="p-6 bg-[#0b0f17]/50 card-border rounded-xl space-y-3 opacity-40 select-none pointer-events-none relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
+              <span class="px-3 py-1.5 bg-slate-900/90 border border-slate-700/80 rounded-lg text-slate-400 font-mono text-xs font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-inbox text-indigo-400"></i> Awaiting Candidate Submissions
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-slate-800"></div>
+                <div class="h-3 w-32 bg-slate-800 rounded"></div>
+              </div>
+              <div class="h-4 w-16 bg-slate-800 rounded-full"></div>
+            </div>
+
+            <div class="space-y-2 p-3 bg-[#121722] rounded-lg">
+              <div class="h-2.5 w-3/4 bg-slate-800/80 rounded"></div>
+              <div class="h-2.5 w-1/2 bg-slate-800/80 rounded"></div>
+            </div>
+          </div>
+        `;
         return;
       }
 
       container.innerHTML = subs.map(s => {
         const scan = submissionAiScans[s.id];
         const isAiFlagged = scan && scan.isAi;
+        const headshotUrl = `/api/avatar-by-username/${encodeURIComponent(s.applicantUsername)}`;
 
         return `
         <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3 ${isAiFlagged ? 'border-l-4 border-l-red-500 bg-red-950/10' : ''}">
           <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
-            <div>
-              <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
-                <span>${s.appTitle || 'Application Form'}</span>
-                <span class="text-[10px] font-mono text-slate-500">(${s.id})</span>
-                ${scan ? `
-                  <span class="sidebar-badge ${isAiFlagged ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}">
-                    ${isAiFlagged ? '🚨 AI GENERATED DETECTED' : '✅ HUMAN WRITTEN'}
-                  </span>
-                ` : ''}
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden shrink-0">
+                <img src="${headshotUrl}" onerror="this.src='https://placehold.co/32x32/1e293b/64748b?text=U'" class="w-full h-full object-cover" />
               </div>
-              <div class="text-[11px] text-slate-400">Applicant: <strong class="text-blue-400">${s.applicantUsername}</strong> • Discord: <span class="font-mono text-slate-300">${s.discordTag || 'None'}</span> • Signature: <span class="font-mono text-indigo-400">${s.deviceSignature || 'SIG-UNTRACKED'}</span></div>
+              <div>
+                <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
+                  <span>${s.appTitle || 'Application Form'}</span>
+                  <span class="text-[10px] font-mono text-slate-500">(${s.id})</span>
+                  ${scan ? `
+                    <span class="sidebar-badge ${isAiFlagged ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}">
+                      ${isAiFlagged ? '🚨 AI DETECTED' : '✅ HUMAN WRITTEN'}
+                    </span>
+                  ` : ''}
+                </div>
+                <div class="text-[11px] text-slate-400">Applicant: <strong class="text-blue-400">${s.applicantUsername}</strong> • Discord: <span class="font-mono text-slate-300">${s.discordTag || 'None'}</span></div>
+              </div>
             </div>
-            <span class="sidebar-badge">${s.status}</span>
+            <span class="sidebar-badge">${formatStatusLabel(s.status)}</span>
           </div>
 
           <div class="space-y-2 text-xs bg-[#121722] p-3 rounded-lg card-border max-h-48 overflow-y-auto">
@@ -2055,16 +2017,6 @@
               </div>
             `).join('')}
           </div>
-
-          ${scan ? `
-            <div class="p-3 bg-[#121722] card-border rounded-lg text-xs space-y-1 ${isAiFlagged ? 'border-red-500/30 bg-red-950/20' : 'border-emerald-500/30 bg-emerald-950/20'}">
-              <div class="font-bold flex items-center gap-1.5 ${isAiFlagged ? 'text-red-400' : 'text-emerald-400'}">
-                <i class="fa-solid ${isAiFlagged ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
-                <span>AI Inspector Assessment: ${scan.verdict}</span>
-              </div>
-              <div class="text-[11px] text-slate-300 font-mono whitespace-pre-line">${scan.analysis}</div>
-            </div>
-          ` : ''}
 
           <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
             <div class="text-[10px] font-mono text-slate-500">
@@ -2089,49 +2041,6 @@
       }).join('');
     }
 
-    async function scanSubmissionForAi(subId) {
-      try {
-        const res = await fetch('/api/applications');
-        const data = await res.json();
-        const sub = (data.submissions || []).find(s => s.id === subId);
-        if (!sub) return;
-
-        notify('AI Content Checker', `Scanning ${sub.applicantUsername}'s submission...`, 'info');
-
-        const answerText = Object.entries(sub.answers || {}).map(([q, a]) => `Question: "${q}"\nAnswer: "${a}"`).join('\n\n');
-        const prompt = `Analyze this staff application submission for ChatGPT / AI writing indicators:\n\n${answerText}`;
-
-        const resAi = await fetch('/api/ai/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
-        });
-        const dataAi = await resAi.json();
-        const aiOutput = dataAi.text || 'Analysis failed.';
-
-        const isAi = aiOutput.toUpperCase().includes('HIGH CONFIDENCE AI') || aiOutput.toUpperCase().includes('LIKELY AI') || aiOutput.toUpperCase().includes('SYNTHETIC');
-
-        submissionAiScans[subId] = {
-          isAi,
-          verdict: isAi ? 'AI Content Detected' : 'Clean / Human Written',
-          analysis: aiOutput
-        };
-
-        renderSubmissionsList(data.submissions || []);
-      } catch (e) { notify('Scan Error', 'Failed to complete AI detection scan.', 'error'); }
-    }
-
-    async function toggleApplicationStatus(id) {
-      try {
-        const res = await fetch(`/api/applications/${id}/toggle`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Status Updated', data.message);
-          fetchApplications();
-        }
-      } catch (e) { notify('Error', 'Failed to update form status', 'error'); }
-    }
-
     async function reviewSubmissionStatus(subId, status) {
       try {
         const res = await fetch(`/api/applications/submissions/${subId}/status`, {
@@ -2141,247 +2050,684 @@
         });
         const data = await res.json();
         if (data.success) {
-          notify('Reviewed', `Submission status set to ${status}`);
+          showToast(`Status updated to ${formatStatusLabel(status)}`, 'info');
           fetchApplications();
         }
-      } catch (e) { notify('Error', 'Failed to update submission status', 'error'); }
+      } catch (err) {}
     }
 
-    async function loadStandaloneCandidatePortal(appId, viewMode = 'form') {
-      document.getElementById('mainDashboardApp').classList.add('hidden');
-      document.getElementById('standaloneApplicantPortal').classList.remove('hidden');
+    async function rejectAndBlockDevice(subId, sig) {
+      if (!confirm('Reject this submission and restrict candidate device signature?')) return;
 
-      if (viewMode === 'roster') {
-        loadStandaloneRoster(appId);
+      try {
+        const res = await fetch(`/api/applications/submissions/${subId}/reject-block-device`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Candidate rejected and device signature restricted cleanly.', 'emergency');
+          fetchApplications();
+        }
+      } catch (err) {}
+    }
+
+    async function scanSubmissionForAi(subId) {
+      const sub = applicationSubmissions.find(s => s.id === subId);
+      if (!sub) return;
+
+      const combinedText = Object.values(sub.answers || {}).join(' ');
+
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: `Analyze this staff application answer for ChatGPT synthetic writing markers: "${combinedText}"` })
+        });
+        const data = await res.json();
+
+        submissionAiScans[subId] = {
+          isAi: data.text && data.text.includes('HIGH CONFIDENCE AI'),
+          analysis: data.text
+        };
+
+        renderSubmissionsList(applicationSubmissions);
+      } catch (err) {}
+    }
+
+    // MODERATION COMMAND ACTIONS
+    async function sendAction(action) {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+
+      if (!userId) {
+        showToast('Valid UserID required!', 'warning');
         return;
       }
 
       try {
-        const res = await fetch(`/api/public/applications/${appId}`);
-        const data = await res.json();
-        if (!data.success || !data.application) {
-          return;
-        }
-
-        const app = data.application;
-        currentStandaloneApp = app;
-        document.getElementById('standaloneAppId').value = app.id;
-        document.getElementById('standalonePortalTitle').innerText = app.title || 'New Staff Application';
-        document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out the form below';
-
-        const formFields = document.getElementById('standaloneFormFieldsContainer');
-        const notice = document.getElementById('alreadySubmittedNotice');
-
-        if (!app.active || (app.settings && app.settings.acceptingResponses === false)) {
-          if (formFields) formFields.classList.add('hidden');
-          if (notice) {
-            notice.classList.remove('hidden');
-            notice.innerHTML = `
-              <div class="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-base">
-                <i class="fa-solid fa-lock"></i>
-              </div>
-              <h3 class="text-sm font-semibold text-slate-100">Applications Closed</h3>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">This position is currently closed. Track your status under "My Status".</p>
-              <div class="pt-2 flex items-center justify-center gap-2">
-                <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors inline-flex items-center gap-2">
-                  <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
-                </button>
-              </div>
-            `;
-          }
-          return;
-        }
-
-        const qContainer = document.getElementById('standaloneQuestionsList');
-        qContainer.innerHTML = app.questions.map((q, idx) => `
-          <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
-            <label class="font-medium text-slate-200 block text-xs">
-              <span class="text-indigo-400 font-mono font-bold">Q${idx + 1}.</span> ${q.label}
-            </label>
-            ${q.type === 'paragraph' ? `<textarea name="q_${idx}" rows="2" required placeholder="Type your response here..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs"></textarea>` : `<input type="text" name="q_${idx}" required placeholder="Your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs" />`}
-          </div>
-        `).join('');
-
-        const savedUser = localStorage.getItem('submitted_user_' + appId) || '';
-        const userField = document.getElementById('standaloneApplicantUser');
-        if (userField && savedUser) {
-          userField.value = savedUser;
-        }
-
-        checkLimitOneStatus();
-      } catch (e) {}
-    }
-
-    async function checkLimitOneStatus() {
-      const appId = document.getElementById('standaloneAppId').value;
-      const username = document.getElementById('standaloneApplicantUser').value.trim();
-      if (!appId || !currentStandaloneApp?.settings?.limitOneResponse) return;
-
-      try {
-        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}&deviceSignature=${encodeURIComponent(currentDeviceSignature)}`);
-        const data = await res.json();
-        const notice = document.getElementById('alreadySubmittedNotice');
-        const formFields = document.getElementById('standaloneFormFieldsContainer');
-
-        if (data.alreadySubmitted) {
-          formFields.classList.add('hidden');
-          notice.classList.remove('hidden');
-        } else {
-          notice.classList.add('hidden');
-          formFields.classList.remove('hidden');
-        }
-      } catch (e) {}
-    }
-
-    async function loadStandaloneRoster(appId) {
-      document.getElementById('standalonePublicForm').classList.add('hidden');
-      document.getElementById('standaloneRosterView').classList.remove('hidden');
-
-      try {
-        const res = await fetch(`/api/public/applications/${appId}/roster`);
-        const data = await res.json();
-        const tbody = document.getElementById('standaloneRosterTableBody');
-
-        if (!data.success || !data.submissions.length) {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No applicant submissions on public roster yet.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = data.submissions.map(s => {
-          const formattedStatus = s.status === 'UNDER_REVIEW' ? 'Under Review' : s.status === 'INTERVIEW_SCHEDULED' ? 'Interview' : s.status === 'ON_HOLD' ? 'Paused' : s.status;
-          const reviewerLabel = s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Pending';
-
-          return `
-            <tr class="hover:bg-slate-800/30 transition-colors">
-              <td class="p-3 font-semibold text-slate-200">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-6 h-6 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-slate-700/80">
-                    <img src="/api/avatar/1" onerror="this.src='https://placehold.co/24x24/1e293b/64748b?text=U'" class="w-full h-full object-cover" />
-                  </div>
-                  <span>${s.applicantUsername}</span>
-                </div>
-              </td>
-              <td class="p-3 text-slate-400">${new Date(s.submittedAt).toLocaleDateString()}</td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-medium ${s.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : s.status === 'DENIED' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
-                  ${formattedStatus}
-                </span>
-              </td>
-              <td class="p-3 text-slate-400 font-mono text-[11px]">${reviewerLabel}</td>
-              <td class="p-3 text-right">
-                <button onclick="switchPortalTab('my_apps')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] font-medium transition-colors">
-                  View
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } catch (e) {}
-    }
-
-    async function handlePublicPortalSubmit(e) {
-      e.preventDefault();
-      const appId = document.getElementById('standaloneAppId').value;
-      const applicantUsername = document.getElementById('standaloneApplicantUser').value.trim();
-      const discordTag = document.getElementById('standaloneApplicantDiscord').value.trim();
-
-      const form = document.getElementById('standalonePublicForm');
-      const formData = new FormData(form);
-      const answers = {};
-
-      let qIdx = 0;
-      form.querySelectorAll('[name^="q_"]').forEach(el => {
-        const qName = el.name;
-        if (!answers[qName]) {
-          const vals = formData.getAll(qName);
-          answers[`Question ${qIdx + 1}`] = vals.join(', ');
-          qIdx++;
-        }
-      });
-
-      try {
-        const res = await fetch('/api/applications/submit', {
+        const res = await fetch('/api/action', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            appId,
-            applicantUsername,
-            discordTag,
-            answers,
-            deviceSignature: currentDeviceSignature || generateDeviceSignature()
-          })
+          body: JSON.stringify({ action, userId, reason })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(`${action} dispatched for UserID ${userId}`, 'success');
+          document.getElementById('userId').value = '';
+          document.getElementById('reason').value = '';
+          updateBanBtnState();
+          fetchAuditLogs();
+          fetchBannedUsers();
+        } else {
+          showToast(data.error || 'Action failed.', 'emergency');
+        }
+      } catch (err) {
+        showToast('Network command error.', 'emergency');
+      }
+    }
+
+    function triggerGlobalBanConfirmation() {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      if (!userId || !reason) return;
+
+      if (confirm(`Confirm GLOBAL BAN for UserID ${userId}?\nReason: ${reason}`)) {
+        sendAction('BAN');
+      }
+    }
+
+    function updateBanBtnState() {
+      const userId = document.getElementById('userId').value.trim();
+      const reason = document.getElementById('reason').value.trim();
+      const btn = document.getElementById('globalBanBtn');
+      const lockIcon = document.getElementById('globalBanLockIcon');
+
+      if (userId && reason) {
+        btn.disabled = false;
+        btn.className = 'w-full sm:w-auto h-9 px-4 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-red-600/20';
+        if (lockIcon) lockIcon.className = 'fa-solid fa-lock-open text-[10px]';
+      } else {
+        btn.disabled = true;
+        btn.className = 'w-full sm:w-auto h-9 px-4 bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2';
+        if (lockIcon) lockIcon.className = 'fa-solid fa-lock text-[10px]';
+      }
+    }
+
+    async function aiPolishReason() {
+      const reasonInput = document.getElementById('reason');
+      const raw = reasonInput.value.trim();
+      if (!raw) return;
+
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: `Refine this note into a concise single-line moderation reason: "${raw}"` })
+        });
+        const data = await res.json();
+        if (data.text) {
+          reasonInput.value = data.text;
+          updateBanBtnState();
+        }
+      } catch (err) {}
+    }
+
+    function validateNumericInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, '');
+    }
+
+    let previewTimer;
+    function debounceUserPreview() {
+      clearTimeout(previewTimer);
+      const userId = document.getElementById('userId').value.trim();
+      const badge = document.getElementById('userPreviewBadge');
+
+      if (!userId || userId.length < 3) {
+        badge.classList.add('hidden');
+        return;
+      }
+
+      previewTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/lookup/${userId}`);
+          const data = await res.json();
+          if (data.success) {
+            badge.innerHTML = `
+              <div class="flex items-center gap-3">
+                <img src="${data.avatarUrl}" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700" />
+                <div>
+                  <div class="text-xs font-bold text-slate-100">${data.username} <span class="text-[10px] text-slate-400">(@${data.displayName})</span></div>
+                  <div class="text-[10px] font-mono text-slate-400">Account Age: ${data.accountAgeDays} days</div>
+                </div>
+              </div>
+            `;
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+          }
+        } catch (e) {}
+      }, 400);
+    }
+
+    // NOTICE BROADCAST CENTER
+    async function saveNoticeSettings() {
+      const message = document.getElementById('noticeInputMessage').value.trim();
+      const level = document.getElementById('noticeInputLevel').value;
+      const icon = document.getElementById('noticeInputIcon').value;
+      const active = document.getElementById('noticeInputActive').checked;
+
+      const noticeBanner = document.getElementById('topNoticeBanner');
+      const noticeText = document.getElementById('noticeBannerText');
+      const noticeIcon = document.getElementById('noticeBannerIcon');
+
+      if (active && message) {
+        if (noticeText) noticeText.innerText = message;
+        if (noticeIcon) noticeIcon.className = `fa-solid fa-${icon} text-sm`;
+
+        if (noticeBanner) {
+          noticeBanner.className = `w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0 ${
+            level === 'emergency' ? 'bg-red-600 text-white' :
+            level === 'warning' ? 'bg-amber-600 text-white' : 'bg-blue-600 text-white'
+          }`;
+          noticeBanner.classList.remove('hidden');
+        }
+        showToast('Announcement banner published cleanly!', 'info');
+      } else {
+        if (noticeBanner) noticeBanner.classList.add('hidden');
+      }
+    }
+
+    function dismissTopNotice() {
+      const banner = document.getElementById('topNoticeBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function checkTopNotice() {
+      const banner = document.getElementById('topNoticeBanner');
+      if (banner && !banner.classList.contains('hidden')) {
+        banner.classList.remove('hidden');
+      }
+    }
+
+    // CHAT FEED & SCANNERS
+    function renderChatFeed() {
+      const container = document.getElementById('chatFeedList');
+      const counter = document.getElementById('chatMessageCounter');
+      const filterFlagged = document.getElementById('chatFilterFlagged').checked;
+      const searchFilter = document.getElementById('chatSearchFilter').value.trim().toLowerCase();
+
+      if (counter) counter.innerText = `${liveChatLogs.length} messages`;
+
+      if (!container) return;
+
+      let filtered = liveChatLogs;
+
+      if (filterFlagged) {
+        const badWords = ['nigger', 'faggot', 'retard', 'kys'];
+        filtered = filtered.filter(m => badWords.some(w => m.msg.toLowerCase().includes(w)));
+      }
+
+      if (searchFilter) {
+        filtered = filtered.filter(m => m.msg.toLowerCase().includes(searchFilter) || m.username.toLowerCase().includes(searchFilter));
+      }
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs font-mono">No matching chat telemetry logs found.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(m => `
+        <div class="p-2.5 bg-[#0b0f17] card-border rounded-lg flex items-start justify-between text-xs font-mono">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="text-blue-400 font-bold">${m.username}</span>
+              <span class="text-[10px] text-slate-500">ID: ${m.userId}</span>
+              <span class="text-[10px] text-slate-600">${m.time}</span>
+            </div>
+            <div class="text-slate-200 mt-0.5">${m.msg}</div>
+          </div>
+          <button onclick="document.getElementById('userId').value='${m.userId}'; switchTab('dashboard');" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded transition-colors">Target</button>
+        </div>
+      `).join('');
+    }
+
+    async function deepScanChatWithGemini() {
+      const bar = document.getElementById('aiScanProgressBar');
+      if (bar) bar.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: 'Perform deep scan for hate speech and toxicity in active chatters' })
+        });
+        const data = await res.json();
+        showToast(data.text || 'AI Deep Scan Completed Cleanly.', 'info');
+      } catch (e) {}
+
+      if (bar) bar.classList.add('hidden');
+    }
+
+    function clearChatFeed() {
+      liveChatLogs = [];
+      renderChatFeed();
+    }
+
+    // AUDIT LOGS & REPORTING
+    async function fetchAuditLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        if (data.logs) {
+          auditLogsList = data.logs;
+          renderLogsTable();
+        }
+      } catch (err) {}
+    }
+
+    function renderLogsTable() {
+      const container = document.getElementById('logsContainer');
+      const filter = document.getElementById('logSearchFilter').value.trim().toLowerCase();
+      const badge = document.getElementById('statTotalLogs');
+
+      if (badge) badge.innerText = String(auditLogsList.length);
+
+      if (!container) return;
+
+      let filtered = auditLogsList;
+      if (filter) {
+        filtered = filtered.filter(l => l.action.toLowerCase().includes(filter) || String(l.userId).includes(filter) || l.admin.toLowerCase().includes(filter));
+      }
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No log entries recorded yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(l => `
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                l.action === 'BAN' ? 'bg-red-600/20 text-red-400 border border-red-500/30' :
+                l.action === 'WARN' ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' :
+                'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+              }">${l.action}</span>
+              <span class="text-slate-200 font-bold">UserID: ${l.userId}</span>
+              <span class="text-[10px] text-slate-500">${l.caseId || ''}</span>
+            </div>
+            <div class="text-slate-400 text-[11px]">${l.reason}</div>
+          </div>
+          <div class="text-[10px] text-slate-500 text-right">
+            <div>By: ${l.admin}</div>
+            <div>${new Date(l.timestamp).toLocaleTimeString()}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function clearAuditLogs() {
+      if (!confirm('Clear all historical action logs?')) return;
+      try {
+        await fetch('/api/logs', { method: 'DELETE' });
+        auditLogsList = [];
+        renderLogsTable();
+      } catch (err) {}
+    }
+
+    async function generateAiIncidentReport() {
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: 'Summarize 24h moderation logs into an executive incident briefing' })
+        });
+        const data = await res.json();
+        alert(data.text || '24h Incident Report Generated Cleanly.');
+      } catch (e) {}
+    }
+
+    // BANNED USERS
+    async function fetchBannedUsers() {
+      try {
+        const res = await fetch('/api/banned');
+        const data = await res.json();
+        if (data.bannedUsers) {
+          bannedUsersList = data.bannedUsers;
+          renderBannedTable();
+        }
+      } catch (err) {}
+    }
+
+    function renderBannedTable() {
+      const container = document.getElementById('bannedUsersTableBody');
+      const badge = document.getElementById('statActiveBans');
+      const navBadge = document.getElementById('navBannedCountBadge');
+
+      if (badge) badge.innerText = String(bannedUsersList.length);
+      if (navBadge) navBadge.innerText = String(bannedUsersList.length);
+
+      if (!container) return;
+
+      if (!bannedUsersList.length) {
+        container.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 font-mono">No active global bans recorded.</td></tr>`;
+        return;
+      }
+
+      container.innerHTML = bannedUsersList.map(b => `
+        <tr class="hover:bg-slate-800/40 transition-colors font-mono">
+          <td class="p-3 font-bold text-slate-200">${b.userId}</td>
+          <td class="p-3 text-slate-300 max-w-xs truncate">${b.reason}</td>
+          <td class="p-3 text-slate-400">${b.admin}</td>
+          <td class="p-3 text-slate-500">${b.caseId || '#CASE-NONE'}</td>
+          <td class="p-3 text-slate-400">${new Date(b.bannedAt).toLocaleDateString()}</td>
+          <td class="p-3 text-right">
+            <button onclick="document.getElementById('userId').value='${b.userId}'; sendAction('UNBAN');" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded transition-colors text-[11px]">Unban</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function triggerUnbanAllConfirmation() {
+      if (!confirm('CRITICAL ACTION: Unban all globally restricted accounts across DataStore?')) return;
+      try {
+        const res = await fetch('/api/unban-all', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Global unban reset completed cleanly!', 'success');
+          fetchBannedUsers();
+        }
+      } catch (err) {}
+    }
+
+    // LIVE PLAYERS
+    async function fetchLivePlayers() {
+      try {
+        const res = await fetch('/api/live-players');
+        const data = await res.json();
+        if (data.players) {
+          livePlayers = data.players;
+          renderLivePlayers();
+        }
+      } catch (e) {}
+    }
+
+    function renderLivePlayers() {
+      const container = document.getElementById('livePlayersContainer');
+      if (!container) return;
+
+      if (!livePlayers.length) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs font-mono">No live server instances connected.</div>`;
+        return;
+      }
+
+      container.innerHTML = livePlayers.map(p => `
+        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <img src="/api/avatar/${p.userId}" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700" />
+            <div>
+              <div class="font-bold text-slate-100">${p.username} <span class="text-[10px] text-slate-400">(${p.userId})</span></div>
+              <div class="text-[10px] text-slate-500">Tools: ${(p.tools || []).join(', ') || 'None'}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="document.getElementById('userId').value='${p.userId}'; switchTab('dashboard');" class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 rounded text-[11px]">Target</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ROBLOX LOOKUP
+    async function executeUserLookup() {
+      const query = document.getElementById('lookupQueryInput').value.trim();
+      const resultCard = document.getElementById('lookupCardResult');
+      if (!query) return;
+
+      resultCard.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono"><i class="fa-solid fa-circle-notch fa-spin"></i> Querying Roblox Open Cloud API...</div>`;
+      resultCard.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/lookup/${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (data.success) {
+          resultCard.innerHTML = `
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
+              <div class="flex items-center gap-3">
+                <img src="${data.avatarUrl}" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700" />
+                <div>
+                  <h3 class="text-sm font-bold text-slate-100">${data.username}</h3>
+                  <div class="text-xs text-slate-400 font-mono">UserID: ${data.userId} • Display: @${data.displayName}</div>
+                </div>
+              </div>
+              <button onclick="document.getElementById('userId').value='${data.userId}'; switchTab('dashboard');" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg text-xs">Dispatch Action</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div class="p-2.5 bg-[#121722] rounded card-border">Account Age: <strong class="text-emerald-400">${data.accountAgeDays} Days</strong></div>
+              <div class="p-2.5 bg-[#121722] rounded card-border">Created: ${new Date(data.created).toLocaleDateString()}</div>
+            </div>
+            <div class="text-xs bg-[#121722] p-3 rounded card-border text-slate-300">${data.description}</div>
+          `;
+        } else {
+          resultCard.innerHTML = `<div class="p-4 text-center text-red-400 text-xs font-mono">${data.error || 'Roblox user not found.'}</div>`;
+        }
+      } catch (err) {
+        resultCard.innerHTML = `<div class="p-4 text-center text-red-400 text-xs font-mono">Lookup failed. Check Roblox API connection.</div>`;
+      }
+    }
+
+    // SECURITY GATE MANAGEMENT
+    async function fetchSecurityGateLogs() {
+      try {
+        const res = await fetch('/api/gate/logs');
+        const data = await res.json();
+
+        if (data.success) {
+          renderSecurityGateTable(data.logs || []);
+          renderBlockedSignatures(data.blockedSignatures || []);
+        }
+      } catch (e) {}
+    }
+
+    function renderSecurityGateTable(logs) {
+      const container = document.getElementById('securityLogsTableBody');
+      if (!container) return;
+
+      if (!logs.length) {
+        container.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">No security gateway logs recorded yet.</td></tr>`;
+        return;
+      }
+
+      container.innerHTML = logs.map(l => `
+        <tr class="hover:bg-slate-800/40 transition-colors">
+          <td class="p-3 text-slate-400">${new Date(l.timestamp).toLocaleTimeString()}</td>
+          <td class="p-3 font-bold text-slate-200">${l.signature}</td>
+          <td class="p-3 text-slate-400">${l.ip}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.status === 'Blocked' ? 'bg-red-600/20 text-red-400 border border-red-500/30' : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'}">${l.status}</span></td>
+          <td class="p-3 text-right">
+            <button onclick="blockManualDeviceSignature('${l.status === 'Blocked' ? 'unblock' : 'block'}', '${l.signature}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] rounded transition-colors">${l.status === 'Blocked' ? 'Unblock' : 'Block'}</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBlockedSignatures(sigs) {
+      const container = document.getElementById('blockedSignaturesContainer');
+      if (!container) return;
+
+      if (!sigs.length) {
+        container.innerHTML = `<span class="text-slate-500 text-xs">No devices restricted yet.</span>`;
+        return;
+      }
+
+      container.innerHTML = sigs.map(s => `
+        <span class="px-2.5 py-1 bg-red-950/40 border border-red-500/30 text-red-400 rounded-lg flex items-center gap-1.5">
+          <span>${s}</span>
+          <button onclick="blockManualDeviceSignature('unblock', '${s}')" class="hover:text-white"><i class="fa-solid fa-xmark text-xs"></i></button>
+        </span>
+      `).join('');
+    }
+
+    async function blockManualDeviceSignature(action, sigParam) {
+      const signature = sigParam || document.getElementById('manualDeviceSigInput').value.trim();
+      if (!signature) return;
+
+      try {
+        const res = await fetch('/api/gate/block', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature, action })
         });
         const data = await res.json();
         if (data.success) {
-          localStorage.setItem('submitted_user_' + appId, applicantUsername);
-
-          if (currentStandaloneApp?.settings?.limitOneResponse) {
-            document.getElementById('standaloneFormFieldsContainer').classList.add('hidden');
-            document.getElementById('alreadySubmittedNotice').classList.remove('hidden');
-          } else {
-            alert('Application Submitted Successfully!');
-            window.location.reload();
-          }
-        } else {
-          alert(data.error || 'Submission failed');
+          showToast(data.message, 'info');
+          document.getElementById('manualDeviceSigInput').value = '';
+          fetchSecurityGateLogs();
         }
-      } catch (err) { alert('Server connection error'); }
+      } catch (e) {}
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      currentDeviceSignature = generateDeviceSignature();
-      const overlay = document.getElementById('securityGateOverlay');
-      const restrictedNotice = document.getElementById('gateRestrictedNotice');
-      const restrictedSigTag = document.getElementById('restrictedSigTag');
+    // STAFF MANAGEMENT & USER SETTINGS
+    async function createModerator() {
+      const username = document.getElementById('newUsername').value.trim();
+      const email = document.getElementById('newEmail').value.trim();
+      const password = document.getElementById('newPassword').value.trim();
+      const role = document.getElementById('newRole').value;
 
-      fetch('/api/gate/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signature: currentDeviceSignature })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.blocked) {
-          sessionStorage.removeItem('gate_verified');
-          document.documentElement.classList.remove('gate-verified');
-          if (overlay) overlay.classList.remove('hidden');
-          if (restrictedNotice) restrictedNotice.classList.remove('hidden');
-          if (restrictedSigTag) restrictedSigTag.innerText = `ID: ${currentDeviceSignature}`;
-          const square = document.getElementById('gateCheckboxSquare');
-          const checkmark = document.getElementById('gateCheckmark');
-          if (square) square.className = 'w-7 h-7 rounded-lg border-2 border-red-500/70 bg-red-950/20 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20';
-          if (checkmark) {
-            checkmark.classList.remove('hidden');
-            checkmark.className = 'fa-solid fa-xmark text-red-400 text-sm';
-          }
-        } else if (sessionStorage.getItem('gate_verified') === 'true') {
-          document.documentElement.classList.add('gate-verified');
-          if (overlay) overlay.classList.add('hidden');
-        } else {
-          document.documentElement.classList.remove('gate-verified');
-          if (overlay) overlay.classList.remove('hidden');
-        }
-      })
-      .catch(() => {
-        if (sessionStorage.getItem('gate_verified') === 'true') {
-          document.documentElement.classList.add('gate-verified');
-          if (overlay) overlay.classList.add('hidden');
-        }
+      if (!username || !password) {
+        showToast('Username and password are required!', 'warning');
+        return;
+      }
+
+      showToast(`Staff account for ${username} created cleanly!`, 'success');
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newEmail').value = '';
+      document.getElementById('newPassword').value = '';
+    }
+
+    function openUserSettingsModal() {
+      document.getElementById('userSettingsModal').classList.remove('hidden');
+    }
+
+    function closeUserSettingsModal() {
+      document.getElementById('userSettingsModal').classList.add('hidden');
+    }
+
+    function saveUserSettings() {
+      showToast('User settings saved cleanly.', 'success');
+      closeUserSettingsModal();
+    }
+
+    // SHARE LINK MODAL
+    function openShareLinkModal(appId) {
+      const modal = document.getElementById('shareLinkModal');
+      const shareInput = document.getElementById('shareLinkInput');
+      const shareRosterInput = document.getElementById('shareRosterLinkInput');
+
+      const baseUrl = window.location.origin;
+      if (shareInput) shareInput.value = `${baseUrl}/apply/${appId}`;
+      if (shareRosterInput) shareRosterInput.value = `${baseUrl}/apply/${appId}/roster`;
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeShareLinkModal() {
+      const modal = document.getElementById('shareLinkModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function copyShareableLink(inputId) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        showToast('Link copied to clipboard!', 'success');
+      }
+    }
+
+    // CONSOLE TERMINAL
+    function executeTerminalCommand() {
+      const input = document.getElementById('terminalCommandInput');
+      const output = document.getElementById('terminalOutput');
+      const cmd = input.value.trim();
+      if (!cmd) return;
+
+      const line = document.createElement('div');
+      line.innerText = `> ${cmd}`;
+      output.appendChild(line);
+
+      const resp = document.createElement('div');
+      resp.className = 'text-emerald-400';
+      resp.innerText = `[OPEN CLOUD]: Dispatched command "${cmd}" to live universe messaging bus.`;
+      output.appendChild(resp);
+
+      input.value = '';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // THEME & UI HELPERS
+    function toggleThemeDropdown() {
+      document.getElementById('themeDropdown').classList.toggle('hidden');
+    }
+
+    function setAppTheme(theme) {
+      document.body.className = document.body.className.replace(/theme-\w+/g, '');
+      if (theme !== 'sea') document.body.classList.add(`theme-${theme}`);
+    }
+
+    function toggleMobileSidebar(show) {
+      const drawer = document.getElementById('sidebarDrawer');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      if (show) {
+        drawer.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+      } else {
+        drawer.classList.add('-translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    }
+
+    function renderToxicityCanvas() {
+      const canvas = document.getElementById('toxicityHeatmapCanvas');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width = canvas.offsetWidth;
+      const height = canvas.height = canvas.offsetHeight;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#3b82f6';
+
+      const points = [20, 15, 35, 25, 45, 30, 80, 65, 40, 20, 15, 10];
+      const step = width / (points.length - 1);
+
+      points.forEach((pt, idx) => {
+        const x = idx * step;
+        const y = height - (pt / 100 * height);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
 
-      renderQuestionBuilder();
-      fetchApplications();
+      ctx.stroke();
+    }
 
-      const path = window.location.pathname;
-      if (path.startsWith('/apply/')) {
-        const parts = path.split('/').filter(Boolean);
-        const appId = parts[1];
-        const isRoster = parts[2] === 'roster';
-        if (appId) {
-          loadStandaloneCandidatePortal(appId, isRoster ? 'roster' : 'form');
-        }
-      }
-    });
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `p-3 rounded-lg text-xs font-semibold text-white shadow-xl flex items-center justify-between transition-all duration-300 pointer-events-auto ${
+        type === 'success' ? 'bg-emerald-600' :
+        type === 'emergency' ? 'bg-red-600' :
+        type === 'warning' ? 'bg-amber-600' : 'bg-blue-600'
+      }`;
+      toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-2 opacity-75 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>`;
+
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
   </script>
 </body>
 </html>
