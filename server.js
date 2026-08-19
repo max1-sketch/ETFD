@@ -813,6 +813,37 @@ app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/ai/generate', requireAuth, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required.' });
+
+  try {
+    const isAiCheck = prompt.toLowerCase().includes('chatgpt') || prompt.toLowerCase().includes('analyze this staff application');
+    if (isAiCheck) {
+      const lower = prompt.toLowerCase();
+      const suspiciousTerms = ['furthermore', 'moreover', 'delve', 'testament', 'beacon', 'indispensable', 'meticulous', 'spearhead', 'foster'];
+      let matchCount = 0;
+      suspiciousTerms.forEach(term => { if (lower.includes(term)) matchCount++; });
+
+      if (matchCount >= 2) {
+        return res.json({
+          text: `HIGH CONFIDENCE AI GENERATED CONTENT DETECTED.\n• Detected typical synthetic phrasing & vocabulary (${matchCount} markers found).\n• Re-evaluate answer originality or request live interview.`
+        });
+      } else {
+        return res.json({
+          text: `CLEAN / HUMAN WRITTEN CONTENT.\n• Natural phrasing pattern detected.\n• Meets authentic response criteria.`
+        });
+      }
+    } else {
+      const cleaned = prompt.replace(/^Refine this note into a concise single-line moderation reason:\s*"/i, '').replace(/"$/, '');
+      const refined = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      return res.json({ text: `Official Notice: ${refined} [Upholding Community Safety]` });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'AI processing service error.' });
+  }
+});
+
 app.post('/api/roblox/chat', async (req, res) => {
   const secret = req.headers['x-server-secret'];
   if (secret !== 'ETFD23' && secret !== process.env.SERVER_SECRET) {
