@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Escape Tsunami - Command Center & Public Portal</title>
   
-  <!-- Pre-render Head Check for Zero-Flicker Gate State & Public Portal Isolation -->
   <script>
     if (sessionStorage.getItem('gate_verified') === 'true') {
       document.documentElement.classList.add('gate-verified');
@@ -104,6 +103,35 @@
       background: rgba(59, 130, 246, 0.12) !important;
       color: #ffffff !important;
       border-left: 3px solid var(--accent-blue);
+    }
+
+    /* Floating Glass Pill Banner Variants */
+    .banner-glass-info {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(147, 197, 253, 0.25);
+      border-top: 1px solid rgba(147, 197, 253, 0.4);
+      color: #dbeafe;
+    }
+
+    .banner-glass-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(253, 230, 138, 0.25);
+      border-top: 1px solid rgba(253, 230, 138, 0.4);
+      color: #fef3c7;
+    }
+
+    .banner-glass-emergency {
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(254, 202, 202, 0.25);
+      border-top: 1px solid rgba(254, 202, 202, 0.4);
+      color: #fee2e2;
+    }
+
+    .banner-glass-success {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(167, 243, 208, 0.25);
+      border-top: 1px solid rgba(167, 243, 208, 0.4);
+      color: #d1fae5;
     }
 
     /* Theme Variations */
@@ -223,7 +251,7 @@
           <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-0.5">Fill out the form below</p>
         </div>
 
-        <!-- PORTAL TAB NAVIGATION (FLAT / ENTERPRISE STYLING) -->
+        <!-- PORTAL TAB NAVIGATION -->
         <div class="flex items-center gap-1 bg-[#0b0f17] border border-white/5 p-1 rounded-lg text-xs">
           <button onclick="switchPortalTab('form')" id="portalTabForm" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-file-pen text-xs"></i> Application Form
@@ -372,14 +400,20 @@
   </div>
 
   <div id="mainDashboardApp" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-    <!-- TOP NOTICE BANNER -->
-    <div id="topNoticeBanner" class="hidden w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0">
-      <div class="flex items-center gap-2 max-w-4xl mx-auto text-center truncate">
-        <i id="noticeBannerIcon" class="fa-solid fa-triangle-exclamation text-sm"></i>
-        <span id="noticeBannerText" class="truncate">Maintenance scheduled tonight at 10:00 PM EST.</span>
-        <span class="text-[10px] opacity-75 font-mono hidden sm:inline" id="noticeBannerAuthor">— Issued by Owner</span>
+    
+    <!-- FLOATING GLASS PILL NOTICE BANNER -->
+    <div id="topNoticeBanner" class="hidden max-w-3xl w-[92%] mx-auto mt-3 px-4 py-2.5 rounded-full backdrop-blur-xl shadow-2xl flex items-center justify-between transition-all duration-300 z-50 shrink-0 banner-glass-warning">
+      <div class="flex items-center gap-3 truncate">
+        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+          <i id="noticeBannerIcon" class="fa-solid fa-bullhorn text-xs animate-pulse"></i>
+        </div>
+        <div class="truncate text-xs tracking-wide">
+          <span id="noticeBannerTag" class="font-bold tracking-widest uppercase font-mono mr-1.5 text-[11px]">[NOTICE]</span>
+          <span id="noticeBannerText" class="font-medium">Maintenance scheduled tonight at 10:00 PM EST.</span>
+          <span class="text-[10px] opacity-70 font-mono ml-2 hidden sm:inline" id="noticeBannerAuthor">— Issued by Owner</span>
+        </div>
       </div>
-      <button onclick="dismissTopNotice()" class="text-slate-300 hover:text-white p-1" title="Dismiss Notice">
+      <button onclick="dismissTopNotice()" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors ml-2" title="Dismiss Notice">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
     </div>
@@ -859,7 +893,7 @@
                     <i class="fa-solid fa-brain text-purple-400 text-xs"></i> AI Briefing
                   </button>
                   <input type="text" id="logSearchFilter" placeholder="Filter log entries..." class="px-3 py-1.5 bg-[#0b0f17] card-border rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono" oninput="renderLogsTable()" />
-                  <button onclick="clearAuditLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors card-border flex items-center gap-2">
+                  <button onclick="triggerClearLogsConfirmation()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors card-border flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Clear Logs
                   </button>
                 </div>
@@ -900,7 +934,7 @@
                     <i class="fa-solid fa-bullhorn text-amber-400"></i>
                     <span>Notice Center</span>
                   </h2>
-                  <p class="text-xs text-slate-400 mt-0.5">Broadcast alert banner to all active staff consoles</p>
+                  <p class="text-xs text-slate-400 mt-0.5">Publish floating alert banners with logic-based urgency levels</p>
                 </div>
                 <span class="sidebar-badge text-amber-400 border-amber-500/30 bg-amber-500/10">ADMIN ONLY</span>
               </div>
@@ -908,24 +942,26 @@
               <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
                 <div class="md:col-span-6 space-y-1">
                   <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Announcement Message *</label>
-                  <input type="text" id="noticeInputMessage" placeholder="e.g. Maintenance scheduled tonight at 10:00 PM EST." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <input type="text" id="noticeInputMessage" placeholder="e.g. Server maintenance scheduled tonight at 10:00 PM EST." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-blue-500" />
                 </div>
 
                 <div class="md:col-span-3 space-y-1">
-                  <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Alert Level *</label>
+                  <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Urgency Level *</label>
                   <select id="noticeInputLevel" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none">
                     <option value="info">Info (Blue)</option>
                     <option value="warning" selected>Warning (Amber)</option>
                     <option value="emergency">Emergency (Red)</option>
+                    <option value="success">Success (Emerald)</option>
                   </select>
                 </div>
 
                 <div class="md:col-span-3 space-y-1">
                   <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Banner Icon</label>
                   <select id="noticeInputIcon" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none">
-                    <option value="bell">🔔 Bell Icon</option>
-                    <option value="triangle-exclamation" selected>⚠️ Warning Icon</option>
+                    <option value="bullhorn" selected>📢 Megaphone Icon</option>
+                    <option value="circle-exclamation">⚠️ Alert Circle</option>
                     <option value="shield">🛡️ Shield Icon</option>
+                    <option value="circle-check">✅ Check Icon</option>
                   </select>
                 </div>
               </div>
@@ -933,11 +969,11 @@
               <div class="flex items-center justify-between pt-2">
                 <label class="inline-flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" id="noticeInputActive" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" />
-                  <span class="text-xs font-semibold text-slate-200">Enable Top Banner Broadcast</span>
+                  <span class="text-xs font-semibold text-slate-200">Enable Floating Banner Broadcast</span>
                 </label>
 
                 <button onclick="saveNoticeSettings()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-2">
-                  <i class="fa-solid fa-paper-plane"></i> Publish Banner
+                  <i class="fa-solid fa-paper-plane"></i> Publish Notice
                 </button>
               </div>
             </div>
@@ -1127,7 +1163,7 @@
                 </div>
               </div>
 
-              <!-- TACTILE 3D PUBLISH BUTTON WITH HIGHLIGHT EDGE (NO GAMERY GLOW) -->
+              <!-- TACTILE 3D PUBLISH BUTTON WITH HIGHLIGHT EDGE -->
               <div class="pt-3 border-t border-slate-800/60 flex justify-end">
                 <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 border-t border-indigo-400/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:translate-y-0.5">
                   <i class="fa-solid fa-paper-plane text-xs"></i> Publish Application Form
@@ -1191,6 +1227,33 @@
 
         </div>
       </main>
+    </div>
+  </div>
+
+  <div id="customConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121722] border border-slate-700/80 rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative overflow-hidden">
+      <div id="confirmModalAccentBar" class="absolute top-0 left-0 right-0 h-1 bg-red-500"></div>
+
+      <div class="flex items-start gap-3 pt-1">
+        <div id="confirmModalIconBg" class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+          <i id="confirmModalIcon" class="fa-solid fa-triangle-exclamation text-base"></i>
+        </div>
+        <div>
+          <h3 id="confirmModalTitle" class="text-sm font-bold text-slate-100">Confirm Action</h3>
+          <p id="confirmModalDesc" class="text-xs text-slate-400 mt-1 leading-relaxed">Are you sure you want to execute this command?</p>
+        </div>
+      </div>
+
+      <div id="confirmModalDetails" class="hidden p-3 bg-[#0b0f17] border border-slate-800 rounded-lg text-xs font-mono text-slate-300 space-y-1"></div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+        <button id="confirmModalCancelBtn" onclick="closeCustomConfirmModal(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
+          Cancel
+        </button>
+        <button id="confirmModalSubmitBtn" onclick="executePendingConfirmAction()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-red-600/20">
+          Confirm
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1287,8 +1350,9 @@
     let auditLogsList = [];
     let liveChatLogs = [];
     let activeDeviceSignature = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+    let pendingConfirmCallback = null;
 
-    // OPTION 1: PERSISTENT BROWSER DEVICE SIGNATURE
+    // PERSISTENT BROWSER DEVICE SIGNATURE
     if (!localStorage.getItem('et_device_signature')) {
       localStorage.setItem('et_device_signature', activeDeviceSignature);
     } else {
@@ -1349,6 +1413,61 @@
         renderToxicityCanvas();
       }
     });
+
+    // CUSTOM MODAL CONFIRMATION DIALOG (NO BROWSER POPUPS)
+    function openCustomConfirmModal(options) {
+      const modal = document.getElementById('customConfirmModal');
+      const title = document.getElementById('confirmModalTitle');
+      const desc = document.getElementById('confirmModalDesc');
+      const details = document.getElementById('confirmModalDetails');
+      const submitBtn = document.getElementById('confirmModalSubmitBtn');
+      const accent = document.getElementById('confirmModalAccentBar');
+      const iconBg = document.getElementById('confirmModalIconBg');
+      const icon = document.getElementById('confirmModalIcon');
+
+      title.innerText = options.title || 'Confirm Action';
+      desc.innerText = options.message || 'Are you sure you want to execute this command?';
+      
+      if (options.details) {
+        details.innerHTML = options.details;
+        details.classList.remove('hidden');
+      } else {
+        details.classList.add('hidden');
+      }
+
+      submitBtn.innerText = options.confirmText || 'Confirm';
+
+      if (options.isDanger !== false) {
+        accent.className = 'absolute top-0 left-0 right-0 h-1 bg-red-500';
+        iconBg.className = 'w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0';
+        icon.className = 'fa-solid fa-triangle-exclamation text-base';
+        submitBtn.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-red-600/20';
+      } else {
+        accent.className = 'absolute top-0 left-0 right-0 h-1 bg-blue-500';
+        iconBg.className = 'w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0';
+        icon.className = 'fa-solid fa-circle-question text-base';
+        submitBtn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-blue-600/20';
+      }
+
+      pendingConfirmCallback = options.onConfirm || null;
+      modal.classList.remove('hidden');
+    }
+
+    function closeCustomConfirmModal() {
+      const modal = document.getElementById('customConfirmModal');
+      modal.classList.add('hidden');
+      pendingConfirmCallback = null;
+    }
+
+    function executePendingConfirmAction() {
+      if (pendingConfirmCallback) {
+        const cb = pendingConfirmCallback;
+        closeCustomConfirmModal();
+        cb();
+      } else {
+        closeCustomConfirmModal();
+      }
+    }
 
     // SECURITY GATE CHECK
     async function executeSecurityGateCheck() {
@@ -1497,9 +1616,7 @@
           renderPortalQuestions(app.questions || []);
           checkLimitOneStatus();
         }
-      } catch (err) {
-        console.error('Error loading public application:', err);
-      }
+      } catch (err) {}
     }
 
     async function checkLimitOneStatus() {
@@ -1665,7 +1782,7 @@
 
             <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
               <span class="text-slate-500 font-mono">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</span>
-              <button onclick="withdrawMyApplication('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs">
+              <button onclick="triggerWithdrawalConfirmation('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs">
                 Withdraw Application
               </button>
             </div>
@@ -1716,7 +1833,7 @@
     }
 
     function formatStatusLabel(st) {
-      if (!st) return 'Pending';
+      if (!st) return 'Pending Review';
       switch (st) {
         case 'PENDING': return 'Pending Review';
         case 'UNDER_REVIEW': return 'Under Review';
@@ -1728,9 +1845,18 @@
       }
     }
 
+    function triggerWithdrawalConfirmation(subId) {
+      openCustomConfirmModal({
+        title: 'Withdraw Application',
+        message: 'Are you sure you want to withdraw your candidate submission? This action cannot be undone.',
+        confirmText: 'Withdraw Submission',
+        isDanger: true,
+        onConfirm: () => withdrawMyApplication(subId)
+      });
+    }
+
     async function withdrawMyApplication(subId) {
       const userVal = document.getElementById('standaloneApplicantUser').value.trim();
-      if (!confirm('Are you sure you want to withdraw your application?')) return;
 
       try {
         const res = await fetch(`/api/public/applications/submissions/${subId}/withdraw`, {
@@ -2031,7 +2157,7 @@
               <button onclick="reviewSubmissionStatus('${s.id}', 'INTERVIEW_SCHEDULED')" class="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold rounded transition-colors">Interview</button>
               <button onclick="reviewSubmissionStatus('${s.id}', 'ON_HOLD')" class="px-2.5 py-1 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/30 text-[11px] font-semibold rounded transition-colors">On Hold</button>
               <button onclick="reviewSubmissionStatus('${s.id}', 'DENIED')" class="px-2.5 py-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 border border-red-500/30 text-[11px] font-semibold rounded transition-colors">Decline</button>
-              <button onclick="rejectAndBlockDevice('${s.id}', '${s.deviceSignature || 'SIG-UNTRACKED'}')" class="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded transition-colors flex items-center gap-1">
+              <button onclick="triggerRejectAndBlockDevice('${s.id}', '${s.deviceSignature || 'SIG-UNTRACKED'}')" class="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold rounded transition-colors flex items-center gap-1">
                 <i class="fa-solid fa-ban text-[10px]"></i> Reject & Block
               </button>
             </div>
@@ -2056,9 +2182,17 @@
       } catch (err) {}
     }
 
-    async function rejectAndBlockDevice(subId, sig) {
-      if (!confirm('Reject this submission and restrict candidate device signature?')) return;
+    function triggerRejectAndBlockDevice(subId, sig) {
+      openCustomConfirmModal({
+        title: 'Reject & Restrict Candidate Device',
+        message: `Are you sure you want to decline this application and restrict device signature (${sig}) from accessing the portal?`,
+        confirmText: 'Reject & Block',
+        isDanger: true,
+        onConfirm: () => rejectAndBlockDevice(subId)
+      });
+    }
 
+    async function rejectAndBlockDevice(subId) {
       try {
         const res = await fetch(`/api/applications/submissions/${subId}/reject-block-device`, { method: 'POST' });
         const data = await res.json();
@@ -2130,9 +2264,14 @@
       const reason = document.getElementById('reason').value.trim();
       if (!userId || !reason) return;
 
-      if (confirm(`Confirm GLOBAL BAN for UserID ${userId}?\nReason: ${reason}`)) {
-        sendAction('BAN');
-      }
+      openCustomConfirmModal({
+        title: 'Confirm Global Ban',
+        message: `Execute GLOBAL BAN for UserID ${userId}? This will restrict access across all live game instances and DataStores.`,
+        details: `Target UserID: ${userId}<br>Reason: ${reason}`,
+        confirmText: 'Global Ban User',
+        isDanger: true,
+        onConfirm: () => sendAction('BAN')
+      });
     }
 
     function updateBanBtnState() {
@@ -2207,7 +2346,7 @@
       }, 400);
     }
 
-    // NOTICE BROADCAST CENTER
+    // NOTICE BROADCAST CENTER & FLOATING BANNER
     async function saveNoticeSettings() {
       const message = document.getElementById('noticeInputMessage').value.trim();
       const level = document.getElementById('noticeInputLevel').value;
@@ -2217,19 +2356,20 @@
       const noticeBanner = document.getElementById('topNoticeBanner');
       const noticeText = document.getElementById('noticeBannerText');
       const noticeIcon = document.getElementById('noticeBannerIcon');
+      const noticeTag = document.getElementById('noticeBannerTag');
 
       if (active && message) {
         if (noticeText) noticeText.innerText = message;
-        if (noticeIcon) noticeIcon.className = `fa-solid fa-${icon} text-sm`;
+        if (noticeIcon) noticeIcon.className = `fa-solid fa-${icon} text-xs animate-pulse`;
+        
+        const tags = { info: '[UPDATE]', warning: '[NOTICE]', emergency: '[ALERT]', success: '[SUCCESS]' };
+        if (noticeTag) noticeTag.innerText = tags[level] || '[NOTICE]';
 
         if (noticeBanner) {
-          noticeBanner.className = `w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0 ${
-            level === 'emergency' ? 'bg-red-600 text-white' :
-            level === 'warning' ? 'bg-amber-600 text-white' : 'bg-blue-600 text-white'
-          }`;
+          noticeBanner.className = `max-w-3xl w-[92%] mx-auto mt-3 px-4 py-2.5 rounded-full backdrop-blur-xl shadow-2xl flex items-center justify-between transition-all duration-300 z-50 shrink-0 banner-glass-${level}`;
           noticeBanner.classList.remove('hidden');
         }
-        showToast('Announcement banner published cleanly!', 'info');
+        showToast('Floating notice banner published cleanly!', 'info');
       } else {
         if (noticeBanner) noticeBanner.classList.add('hidden');
       }
@@ -2364,12 +2504,22 @@
       `).join('');
     }
 
+    function triggerClearLogsConfirmation() {
+      openCustomConfirmModal({
+        title: 'Clear Action Logs',
+        message: 'Are you sure you want to wipe all historical action logs? This action cannot be reversed.',
+        confirmText: 'Clear Logs',
+        isDanger: true,
+        onConfirm: () => clearAuditLogs()
+      });
+    }
+
     async function clearAuditLogs() {
-      if (!confirm('Clear all historical action logs?')) return;
       try {
         await fetch('/api/logs', { method: 'DELETE' });
         auditLogsList = [];
         renderLogsTable();
+        showToast('Audit logs cleared cleanly.', 'info');
       } catch (err) {}
     }
 
@@ -2381,7 +2531,7 @@
           body: JSON.stringify({ prompt: 'Summarize 24h moderation logs into an executive incident briefing' })
         });
         const data = await res.json();
-        alert(data.text || '24h Incident Report Generated Cleanly.');
+        showToast(data.text || '24h Incident Report Generated Cleanly.', 'info');
       } catch (e) {}
     }
 
@@ -2426,8 +2576,17 @@
       `).join('');
     }
 
-    async function triggerUnbanAllConfirmation() {
-      if (!confirm('CRITICAL ACTION: Unban all globally restricted accounts across DataStore?')) return;
+    function triggerUnbanAllConfirmation() {
+      openCustomConfirmModal({
+        title: 'Confirm Unban All Users',
+        message: 'CRITICAL ACTION: Are you sure you want to unban all globally restricted accounts across WebBanList_v3 DataStore?',
+        confirmText: 'Unban All Accounts',
+        isDanger: true,
+        onConfirm: () => executeUnbanAll()
+      });
+    }
+
+    async function executeUnbanAll() {
       try {
         const res = await fetch('/api/unban-all', { method: 'POST' });
         const data = await res.json();
