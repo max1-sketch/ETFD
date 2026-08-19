@@ -38,153 +38,154 @@
     }
 
     body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
+<!-- PUBLIC APPLICATION PORTAL ISOLATED VIEW -->
+<div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-center justify-center">
+  <div class="max-w-3xl w-full bg-[#121722]/95 backdrop-blur-xl card-border rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
+    
+    <div class="border-b border-slate-800/80 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-bold uppercase tracking-wider mb-1">
+          <i class="fa-solid fa-users text-xs"></i>
+          <span>Join the Team — Escape Tsunami</span>
+        </div>
+        <h1 id="standalonePortalTitle" class="text-xl font-black text-slate-100">Staff & Moderator Application</h1>
+        <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-1">Submit your candidate details for staff review.</p>
+      </div>
 
-    /* THEME STYLES */
-    body.theme-purple {
-      --bg-main: #090614;
-      --bg-sidebar: #120d24;
-      --bg-card: #171030;
-      --bg-input: #0b0718;
-      --border-color: rgba(139, 92, 246, 0.15);
-      --accent-blue: #8b5cf6;
-      background-color: #090614 !important;
-    }
+      <!-- PORTAL TAB NAVIGATION -->
+      <div class="flex items-center gap-1.5 bg-[#0b0f17] card-border p-1 rounded-lg text-xs font-semibold">
+        <button onclick="switchPortalTab('form')" id="portalTabForm" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-file-pen text-xs"></i> Application Form
+        </button>
+        <button onclick="switchPortalTab('my_apps')" id="portalTabMyApps" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-line text-xs"></i> My Status
+        </button>
+        <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-table-list text-xs"></i> Public Roster
+        </button>
+      </div>
+    </div>
 
-    body.theme-stealth {
-      --bg-main: #050505;
-      --bg-sidebar: #0a0a0a;
-      --bg-card: #111111;
-      --bg-input: #000000;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --accent-blue: #64748b;
-      background-color: #050505 !important;
-    }
-
-    .card-border {
-      border: 1px solid var(--border-color);
-    }
-
-    .nav-active {
-      background-color: #1a2234;
-      color: #ffffff;
-      border-left: 3px solid var(--accent-blue);
-      box-shadow: -3px 0 12px rgba(59, 130, 246, 0.25);
-    }
-
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-main);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 4px;
-    }
-
-    .locked-input {
-      background-color: rgba(255, 255, 255, 0.04) !important;
-      cursor: not-allowed !important;
-      pointer-events: none !important;
-      opacity: 0.55 !important;
-      user-select: none !important;
-    }
-
-    .locked-container {
-      position: relative;
-    }
-    .locked-container:hover .locked-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    .locked-tooltip {
-      position: absolute;
-      top: -36px;
-      left: 12px;
-      background: var(--accent-red);
-      color: #ffffff;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(4px);
-      transition: all 0.2s ease-in-out;
-      z-index: 50;
-    }
-    .locked-tooltip::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 16px;
-      width: 8px;
-      height: 8px;
-      background: var(--accent-red);
-      transform: rotate(45deg);
-    }
-
-    .bento-card {
-      background: rgba(18, 23, 34, 0.75);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-    }
-
-    .toast-card {
-      animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    .sidebar-badge {
-      height: 20px;
-      padding: 0 8px;
-      font-size: 9px;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
-    }
-
-    .public-portal-isolated {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #080b11;
-      overflow-y: auto;
-    }
-  </style>
-</head>
-<body class="h-full flex flex-col overflow-hidden select-none">
-
-  <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-center justify-center">
-    <div class="max-w-3xl w-full bg-[#121722] card-border rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
-      <div class="border-b border-slate-800/80 pb-4 flex items-center justify-between">
+    <!-- ELIGIBILITY & STATS VERIFICATION BANNER -->
+    <div id="portalVerificationCard" class="p-3.5 bg-indigo-950/20 border border-indigo-500/25 rounded-xl flex items-center justify-between text-xs">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user-check text-sm"></i>
+        </div>
         <div>
-          <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-bold uppercase tracking-wider mb-1">
-            <i class="fa-solid fa-file-signature"></i>
-            <span>Escape Tsunami Recruitment</span>
+          <div class="font-bold text-slate-200 text-xs">Candidate Eligibility Requirements</div>
+          <div class="text-[11px] text-slate-400">Must have a Roblox account age of 30+ days and a clean moderation history.</div>
+        </div>
+      </div>
+      <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold rounded-md shrink-0 hidden sm:inline">
+        ✓ VERIFIED ELIGIBLE
+      </span>
+    </div>
+
+    <!-- PUBLIC APPLICATION FORM -->
+    <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
+      <input type="hidden" id="standaloneAppId" />
+
+      <div id="alreadySubmittedNotice" class="hidden p-6 bg-slate-900/90 border border-indigo-500/30 rounded-xl text-center space-y-3">
+        <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="text-sm font-bold text-slate-100">Application Recorded</h3>
+        <p class="text-xs text-slate-400 max-w-md mx-auto">This form is limited to 1 response per applicant. You can track your status in "My Status".</p>
+        <div class="pt-2 flex items-center justify-center gap-2">
+          <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
+          </button>
+        </div>
+      </div>
+
+      <div id="standaloneFormFieldsContainer" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
+            <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-semibold" onblur="checkLimitOneStatus()" oninput="checkLimitOneStatus(); loadSavedDraft();" />
           </div>
+
+          <div class="space-y-1.5" id="standaloneDiscordContainer">
+            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Discord Handle *</label>
+            <input type="text" id="standaloneApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock text-indigo-400"></i> Est. completion time: ~8 Mins</span>
+          <span id="draftSaveIndicator" class="text-emerald-400 hidden">✓ Draft Saved</span>
+        </div>
+
+        <div id="standaloneQuestionsList" class="space-y-4 pt-1">
+          <!-- Dynamic Form Questions Rendered Here with Character Counters -->
+        </div>
+
+        <!-- OPTIONAL PROOF / PORTFOLIO ATTACHMENT -->
+        <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-2">
+          <label class="font-semibold text-slate-200 block text-xs">
+            Upload Proof / Portfolio Link (Optional)
+          </label>
+          <input type="text" id="standaloneApplicantProof" placeholder="Link to Medal clips, portfolio document, or screenshot proof..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 text-xs" />
+        </div>
+
+        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <button type="button" onclick="saveFormDraft()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition-colors flex items-center gap-2 text-xs card-border">
+            <i class="fa-solid fa-floppy-disk text-xs"></i> Save Draft
+          </button>
+          
+          <button type="submit" id="standaloneSubmitBtn" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- MY APPLICATIONS CANDIDATE TRACKER -->
+    <div id="standaloneMyAppsView" class="hidden space-y-5">
+      <div class="border-b border-slate-800/80 pb-3">
+        <h2 class="text-sm font-bold text-slate-200">My Application Tracker</h2>
+        <p class="text-[11px] text-slate-400">Track your recruitment stage, reviewer comments, and onboarding checklist</p>
+      </div>
+
+      <div id="myAppsStatusContainer" class="space-y-4">
+        <div class="p-6 text-center text-slate-500 text-xs font-mono">
+          Enter your Roblox username in the Application Form tab to load your submission status.
+        </div>
+      </div>
+    </div>
+
+    <!-- PUBLIC ROSTER SPREADSHEET VIEW -->
+    <div id="standaloneRosterView" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-slate-200">Public Application Status Roster</h2>
+          <p class="text-[11px] text-slate-400">Live candidate status log for this recruitment drive</p>
+        </div>
+        <button onclick="switchPortalTab('form')" class="px-3 py-1.5 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded-lg hover:bg-indigo-600/30 transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square"></i> Back to Form
+        </button>
+      </div>
+
+      <div class="w-full overflow-x-auto bg-[#0b0f17] card-border rounded-lg">
+        <table class="w-full text-left text-xs min-w-[550px]">
+          <thead class="bg-[#121722] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
+            <tr>
+              <th class="p-3">Applicant</th>
+              <th class="p-3">Submitted</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 text-right">Reviewer</th>
+            </tr>
+          </thead>
+          <tbody id="standaloneRosterTableBody" class="divide-y divide-slate-800/60 font-mono">
+            <tr><td colspan="4" class="p-6 text-center text-slate-500">Loading live status roster...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
           <h1 id="standalonePortalTitle" class="text-xl font-black text-slate-100">Candidate Application</h1>
           <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-1">Submit your details below for review.</p>
         </div>
@@ -1101,33 +1102,192 @@
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <script>
-    const socket = typeof io !== 'undefined' ? io() : null;
-    let currentAdminName = 'roblox';
-    let currentUserRole = 'owner';
-    let submissionAiScans = {};
-    let currentStandaloneApp = null;
-    let builderQuestions = [];
+function switchPortalTab(mode) {
+  const appId = document.getElementById('standaloneAppId').value;
+  const formTab = document.getElementById('portalTabForm');
+  const myAppsTab = document.getElementById('portalTabMyApps');
+  const rosterTab = document.getElementById('portalTabRoster');
 
-    function notify(title, message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast-card p-3.5 bg-[#0e131f] card-border rounded-lg text-xs flex items-start gap-3 shadow-xl pointer-events-auto border-l-4 ${type === 'error' ? 'border-l-red-500' : type === 'warning' ? 'border-l-amber-500' : 'border-l-blue-500'}`;
-      toast.innerHTML = `
-        <div class="text-sm mt-0.5 ${type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-amber-400' : 'text-blue-400'}">
-          <i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i>
-        </div>
-        <div class="flex-1">
-          <div class="font-bold text-slate-100">${title}</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">${message}</div>
-        </div>
-      `;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
+  document.getElementById('standalonePublicForm').classList.add('hidden');
+  document.getElementById('standaloneMyAppsView').classList.add('hidden');
+  document.getElementById('standaloneRosterView').classList.add('hidden');
+
+  formTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+  myAppsTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+  rosterTab.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1.5';
+
+  if (mode === 'roster') {
+    rosterTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+    document.getElementById('standaloneRosterView').classList.remove('hidden');
+    loadStandaloneRoster(appId);
+  } else if (mode === 'my_apps') {
+    myAppsTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+    document.getElementById('standaloneMyAppsView').classList.remove('hidden');
+    loadCandidateMyApps();
+  } else {
+    formTab.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
+    document.getElementById('standalonePublicForm').classList.remove('hidden');
+  }
+}
+
+function updateCharCount(textarea, counterId) {
+  const el = document.getElementById(counterId);
+  if (el) el.innerText = textarea.value.length;
+}
+
+function saveFormDraft() {
+  const appId = document.getElementById('standaloneAppId').value;
+  const form = document.getElementById('standalonePublicForm');
+  const formData = new FormData(form);
+  const draftData = {};
+
+  form.querySelectorAll('input, textarea').forEach(el => {
+    if (el.id) draftData[el.id] = el.value;
+  });
+
+  localStorage.setItem(`app_draft_${appId}`, JSON.stringify(draftData));
+  const indicator = document.getElementById('draftSaveIndicator');
+  if (indicator) {
+    indicator.classList.remove('hidden');
+    setTimeout(() => indicator.classList.add('hidden'), 3000);
+  }
+}
+
+function loadSavedDraft() {
+  const appId = document.getElementById('standaloneAppId').value;
+  const rawDraft = localStorage.getItem(`app_draft_${appId}`);
+  if (!rawDraft) return;
+
+  try {
+    const draft = JSON.parse(rawDraft);
+    Object.entries(draft).forEach(([id, val]) => {
+      const field = document.getElementById(id);
+      if (field && !field.value) field.value = val;
+    });
+  } catch (e) {}
+}
+
+async function loadCandidateMyApps() {
+  const appId = document.getElementById('standaloneAppId').value;
+  const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`) || '';
+  const container = document.getElementById('myAppsStatusContainer');
+
+  if (!username) {
+    container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Please enter your Roblox username in the Application Form tab first.</div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}`);
+    const data = await res.json();
+    const sub = data.submission;
+
+    if (!sub) {
+      container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No submitted application found for "${username}".</div>`;
+      return;
     }
+
+    const stages = ['APPLIED', 'UNDER_REVIEW', 'INTERVIEW_SCHEDULED', sub.status === 'DENIED' ? 'DENIED' : 'ACCEPTED'];
+    const currentIdx = sub.status === 'DENIED' ? 3 : sub.status === 'ACCEPTED' ? 3 : sub.status === 'INTERVIEW_SCHEDULED' ? 2 : sub.status === 'UNDER_REVIEW' ? 1 : 0;
+
+    container.innerHTML = `
+      <div class="p-5 bg-[#0b0f17] card-border rounded-xl space-y-5 text-xs">
+        <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+          <div>
+            <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
+              <span>Candidate: ${sub.applicantUsername}</span>
+              <span class="text-[10px] font-mono text-slate-500">(${sub.id})</span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Submitted: ${new Date(sub.submittedAt).toLocaleString()}</div>
+          </div>
+          <span class="px-2.5 py-1 rounded text-[10px] font-bold ${sub.status === 'ACCEPTED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : sub.status === 'DENIED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
+            ${sub.status}
+          </span>
+        </div>
+
+        <!-- PROGRESS STEPPER BAR -->
+        <div class="space-y-2">
+          <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Recruitment Stage Progress</div>
+          <div class="grid grid-cols-4 gap-2">
+            ${stages.map((st, idx) => `
+              <div class="p-2 rounded-lg text-center border ${idx <= currentIdx ? (st === 'DENIED' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300 font-bold') : 'bg-[#121722] border-slate-800 text-slate-500'}">
+                <div class="text-[10px] font-mono">${idx + 1}. ${st.replace('_', ' ')}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        ${sub.notes && sub.notes.length ? `
+          <div class="p-3 bg-[#121722] card-border rounded-lg space-y-1">
+            <div class="font-bold text-slate-200 text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-comment-dots text-indigo-400"></i> Staff Comments & Feedback</div>
+            ${sub.notes.map(n => `<div class="text-slate-300 text-xs">• ${n.text} <span class="text-[10px] text-slate-500 font-mono">— ${n.author}</span></div>`).join('')}
+          </div>
+        ` : ''}
+
+        ${sub.status === 'ACCEPTED' ? `
+          <div class="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-3">
+            <div class="font-bold text-emerald-400 flex items-center gap-2">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Congratulations! Onboarding Checklist</span>
+            </div>
+            <div class="space-y-2 text-slate-300">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" ${sub.ndaSigned ? 'checked disabled' : ''} onchange="signCandidateNda('${sub.id}')" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-600" />
+                <span>I agree to uphold server rules and keep internal staff tools confidential (NDA Sign-off).</span>
+              </label>
+              <div class="text-[11px] text-slate-400 pl-6">Step 2: Join the Staff Discord and request Junior Moderator roles.</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${sub.status !== 'ACCEPTED' && sub.status !== 'DENIED' && sub.status !== 'WITHDRAWN' ? `
+          <div class="pt-2 flex justify-end">
+            <button onclick="withdrawCandidateApp('${sub.id}')" class="px-3.5 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-xmark"></i> Withdraw Application
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } catch (e) {}
+}
+
+async function withdrawCandidateApp(subId) {
+  const appId = document.getElementById('standaloneAppId').value;
+  const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`);
+  if (!confirm('Are you sure you want to withdraw your application?')) return;
+
+  try {
+    const res = await fetch(`/api/public/applications/submissions/${subId}/withdraw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicantUsername: username })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Application withdrawn cleanly.');
+      loadCandidateMyApps();
+    }
+  } catch (e) {}
+}
+
+async function signCandidateNda(subId) {
+  const appId = document.getElementById('standaloneAppId').value;
+  const username = document.getElementById('standaloneApplicantUser').value.trim() || localStorage.getItem(`submitted_user_${appId}`);
+
+  try {
+    const res = await fetch(`/api/public/applications/submissions/${subId}/onboard`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicantUsername: username, ndaSigned: true })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('NDA agreement signed!');
+      loadCandidateMyApps();
+    }
+  } catch (e) {}
+}
 
     function toggleThemeDropdown() {
       const dropdown = document.getElementById('themeDropdown');

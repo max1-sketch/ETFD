@@ -568,6 +568,32 @@ app.post('/api/applications/submissions/:subId/status', requireAuth, requireOwne
   res.json({ success: true, submission: sub, message: `Submission updated cleanly.` });
 });
 
+app.post('/api/public/applications/submissions/:subId/withdraw', (req, res) => {
+  const { subId } = req.params;
+  const { applicantUsername } = req.body;
+  const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
+  if (!sub) return res.status(404).json({ success: false, error: 'Application record not found or username mismatch.' });
+
+  sub.status = 'WITHDRAWN';
+  sub.withdrawnAt = new Date();
+  saveApplicationsToFile();
+
+  res.json({ success: true, message: 'Application successfully withdrawn.' });
+});
+
+app.post('/api/public/applications/submissions/:subId/onboard', (req, res) => {
+  const { subId } = req.params;
+  const { applicantUsername, ndaSigned } = req.body;
+  const sub = applicationSubmissions.find(s => s.id === subId && s.applicantUsername.toLowerCase() === (applicantUsername || '').toLowerCase());
+  if (!sub) return res.status(404).json({ success: false, error: 'Application record not found.' });
+
+  sub.ndaSigned = Boolean(ndaSigned);
+  sub.onboardingCompletedAt = new Date();
+  saveApplicationsToFile();
+
+  res.json({ success: true, message: 'Staff agreement and NDA signed successfully!' });
+});
+
 app.get('/api/lookup/:query', requireAuth, async (req, res) => {
   const query = req.params.query ? req.params.query.trim() : '';
   if (!query) return res.status(400).json({ success: false, error: 'Search term required.' });
