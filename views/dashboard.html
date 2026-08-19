@@ -981,6 +981,74 @@
     </main>
   </div>
 
+  <!-- SHAREABLE APPLICATION LINK MODAL -->
+  <div id="shareLinkModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121722] card-border rounded-xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative">
+      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+          <i class="fa-solid fa-link text-indigo-400"></i>
+          <span>Share Application Link</span>
+        </h3>
+        <button onclick="closeShareLinkModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Candidate Direct Link</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="shareLinkInput" readonly class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 font-mono text-xs select-all focus:outline-none" />
+          <button onclick="copyShareableLink()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-copy text-xs"></i> Copy Link
+          </button>
+        </div>
+        <p class="text-[11px] text-slate-400">Send this link to candidates or post it on Discord. Applicants can view and complete the form directly.</p>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeShareLinkModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg card-border">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLIC APPLICANT FORM MODAL / PORTAL -->
+  <div id="publicApplyPortalModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121722] card-border rounded-xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
+        <div>
+          <h3 id="publicPortalTitle" class="text-base font-bold text-slate-100">Application Form</h3>
+          <p id="publicPortalDesc" class="text-xs text-slate-400 mt-0.5">Please fill out all questions accurately.</p>
+        </div>
+        <button onclick="closePublicPortalModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="publicPortalForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="publicPortalAppId" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Roblox Username *</label>
+            <input type="text" id="publicApplicantUser" required placeholder="Enter your Roblox username..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <div class="space-y-1" id="publicDiscordContainer">
+            <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Discord Username / Tag *</label>
+            <input type="text" id="publicApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+
+        <div id="publicPortalQuestionsRender" class="space-y-4 pt-2">
+          <!-- Rendered questions injected here -->
+        </div>
+
+        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
+          <span class="text-[10px] text-slate-500 font-mono">Escape Tsunami Candidate Portal</span>
+          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane text-xs"></i> Submit Candidate Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- USER SETTINGS MODAL -->
   <div id="userSettingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722]/90 card-border rounded-xl w-full max-w-2xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
@@ -1138,6 +1206,7 @@
 
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
+  <!-- CONSOLIDATED APPLICATION JAVASCRIPT -->
   <script>
     const socket = typeof io !== 'undefined' ? io() : null;
     let previewTimer = null;
@@ -1151,7 +1220,6 @@
     let openDrawerPlayerId = null;
     let submissionAiScans = {};
 
-    // Application Builder Questions Array
     let builderQuestions = [
       { id: Date.now(), label: 'Why do you want to join the Escape Tsunami staff team?', type: 'paragraph' },
       { id: Date.now() + 1, label: 'How many hours per week can you dedicate to moderation?', type: 'short' }
@@ -1216,445 +1284,13 @@
       toggleMobileSidebar(false);
     }
 
-    async function loadCurrentUser() {
-      try {
-        const res = await fetch('/api/me');
-        const data = await res.json();
-        if (data.username) {
-          currentAdminName = data.username;
-          currentUserRole = data.role || 'mod';
-          document.getElementById('sidebarAdminName').innerText = currentAdminName;
-          document.getElementById('sidebarAdminRole').innerText = currentUserRole.toUpperCase();
-          document.getElementById('sidebarUserAvatar').src = `/api/avatar/1`;
-        }
-      } catch (e) {}
-    }
-
-    async function fetchSystemNotice() {
-      try {
-        const res = await fetch('/api/notice');
-        const data = await res.json();
-        if (data.notice) renderTopNotice(data.notice);
-      } catch (e) {}
-    }
-
-    function renderTopNotice(notice) {
-      const banner = document.getElementById('topNoticeBanner');
-      if (!notice || !notice.active) {
-        banner.classList.add('hidden');
-        return;
-      }
-      banner.classList.remove('hidden');
-      document.getElementById('noticeBannerText').innerText = notice.message;
-      document.getElementById('noticeBannerAuthor').innerText = `— Issued by ${notice.author || 'Owner'}`;
-
-      banner.className = 'w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0 ';
-      if (notice.alertLevel === 'emergency') banner.classList.add('bg-red-600', 'text-white');
-      else if (notice.alertLevel === 'warning') banner.classList.add('bg-amber-500', 'text-slate-950');
-      else banner.classList.add('bg-blue-600', 'text-white');
-
-      const iconEl = document.getElementById('noticeBannerIcon');
-      iconEl.className = `fa-solid fa-${notice.icon || 'bell'} text-sm`;
-    }
-
-    function dismissTopNotice() {
-      document.getElementById('topNoticeBanner').classList.add('hidden');
-    }
-
-    async function saveNoticeSettings() {
-      const active = document.getElementById('noticeInputActive').checked;
-      const message = document.getElementById('noticeInputMessage').value;
-      const alertLevel = document.getElementById('noticeInputLevel').value;
-      const icon = document.getElementById('noticeInputIcon').value;
-
-      try {
-        const res = await fetch('/api/notice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active, message, alertLevel, icon })
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Banner Published', 'System notice updated live across all dashboards.');
-          renderTopNotice(data.notice);
-        }
-      } catch (e) { notify('Error', 'Failed to save notice', 'error'); }
-    }
-
-    // APPLICATIONS MANAGER JS LOGIC
-    function renderQuestionBuilder() {
-      const container = document.getElementById('appBuilderQuestionsList');
-      if (!builderQuestions.length) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono">No questions added yet. Click "+ Add Question" below.</div>`;
-        return;
-      }
-
-      container.innerHTML = builderQuestions.map((q, idx) => `
-        <div class="p-3 bg-[#0b0f17] card-border rounded-lg flex items-center justify-between gap-3 text-xs">
-          <span class="font-mono text-indigo-400 font-bold w-6">#${idx + 1}</span>
-          <input type="text" value="${q.label.replace(/"/g, '&quot;')}" onchange="updateQuestionLabel(${q.id}, this.value)" placeholder="Enter question prompt..." class="flex-1 px-3 py-1.5 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500" />
-          <div class="relative flex items-center">
-            <i class="fa-solid ${q.type === 'paragraph' ? 'fa-align-left' : 'fa-font'} absolute left-2.5 text-slate-500 text-[10px] pointer-events-none"></i>
-            <select onchange="updateQuestionType(${q.id}, this.value)" class="pl-7 pr-2.5 py-1.5 bg-[#121722] card-border rounded text-slate-300 focus:outline-none cursor-pointer">
-              <option value="short" ${q.type === 'short' ? 'selected' : ''}>Short Text</option>
-              <option value="paragraph" ${q.type === 'paragraph' ? 'selected' : ''}>Paragraph</option>
-            </select>
-          </div>
-          <button onclick="removeQuestionFromBuilder(${q.id})" class="p-1.5 text-slate-500 hover:text-red-400 transition-colors" title="Delete Question">
-            <i class="fa-solid fa-trash-can text-xs"></i>
-          </button>
-        </div>
-      `).join('');
-    }
-
-    function addQuestionToBuilder() {
-      builderQuestions.push({ id: Date.now(), label: 'New Question Prompt', type: 'short' });
-      renderQuestionBuilder();
-    }
-
-    function removeQuestionFromBuilder(id) {
-      builderQuestions = builderQuestions.filter(q => q.id !== id);
-      renderQuestionBuilder();
-    }
-
-    function updateQuestionLabel(id, value) {
-      const q = builderQuestions.find(item => item.id === id);
-      if (q) q.label = value.trim();
-    }
-
-    function updateQuestionType(id, type) {
-      const q = builderQuestions.find(item => item.id === id);
-      if (q) q.type = type;
-    }
-
-    async function createApplicationForm() {
-      const title = document.getElementById('appBuilderTitle').value.trim();
-      const description = document.getElementById('appBuilderDesc').value.trim();
-
-      if (!title) {
-        notify('Validation Error', 'Application title is required.', 'error');
-        return;
-      }
-
-      if (!builderQuestions.length) {
-        notify('Validation Error', 'Please add at least one question to the form.', 'error');
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/applications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description, questions: builderQuestions })
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Form Published', data.message || 'Application form created!');
-          document.getElementById('appBuilderTitle').value = '';
-          document.getElementById('appBuilderDesc').value = '';
-          builderQuestions = [
-            { id: Date.now(), label: 'Why do you want to join the Escape Tsunami staff team?', type: 'paragraph' }
-          ];
-          renderQuestionBuilder();
-          fetchApplications();
-        } else {
-          notify('Error', data.error || 'Failed to create application form', 'error');
-        }
-      } catch (e) { notify('Network Error', 'Server connection failed', 'error'); }
-    }
-
-    async function fetchApplications() {
-      try {
-        const res = await fetch('/api/applications');
-        const data = await res.json();
-        renderApplicationsList(data.applications || []);
-        renderSubmissionsList(data.submissions || []);
-      } catch (e) {}
-    }
-
-    function renderApplicationsList(apps) {
-      const container = document.getElementById('applicationsListContainer');
-      if (!apps.length) {
-        container.innerHTML = `
-          <div class="p-8 text-center text-slate-500 text-xs space-y-2">
-            <i class="fa-solid fa-folder-open text-2xl text-slate-600 block mb-1"></i>
-            <div class="font-semibold text-slate-400">No application templates created yet.</div>
-            <div class="text-[11px] text-slate-500 font-mono">Use the Recruitment Designer above to build and publish a new form.</div>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = apps.map(app => `
-        <div class="p-4 bg-[#0b0f17] card-border rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-100">${app.title}</span>
-              <span class="sidebar-badge">${app.active ? 'OPEN' : 'CLOSED'}</span>
-              <span class="font-mono text-[10px] text-slate-500">${app.id}</span>
-            </div>
-            <div class="text-[11px] text-slate-400">${app.description || 'No description provided.'}</div>
-            <div class="text-[10px] font-mono text-slate-500">Created by ${app.createdBy || 'Owner'} • ${app.questions.length} Questions</div>
-          </div>
-
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <button onclick="toggleApplicationStatus('${app.id}')" class="px-3 py-1.5 ${app.active ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'} border text-xs font-semibold rounded transition-colors">
-              ${app.active ? 'Close Form' : 'Open Form'}
-            </button>
-            <button onclick="deleteApplicationForm('${app.id}')" class="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-semibold rounded hover:bg-red-500/20 transition-colors">
-              Delete
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderSubmissionsList(subs) {
-      const container = document.getElementById('submissionsListContainer');
-      document.getElementById('submissionCountBadge').innerText = `${subs.length} SUBMISSIONS`;
-
-      if (!subs.length) {
-        container.innerHTML = `
-          <div class="p-8 text-center text-slate-500 text-xs space-y-2">
-            <i class="fa-solid fa-file-circle-check text-2xl text-slate-600 block mb-1"></i>
-            <div class="font-semibold text-slate-400">No applicant submissions recorded yet.</div>
-            <div class="text-[11px] text-slate-500 font-mono">Once players fill out a published form, candidate data will appear here for review.</div>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = subs.map(s => {
-        const scan = submissionAiScans[s.id];
-        const isAiFlagged = scan && scan.isAi;
-
-        return `
-        <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3 ${isAiFlagged ? 'border-l-4 border-l-red-500 bg-red-950/10' : ''}">
-          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
-            <div>
-              <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
-                <span>${s.appTitle || 'Application Form'}</span>
-                <span class="text-[10px] font-mono text-slate-500">(${s.id})</span>
-                ${scan ? `
-                  <span class="sidebar-badge ${isAiFlagged ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}">
-                    ${isAiFlagged ? '🚨 AI GENERATED DETECTED' : '✅ HUMAN WRITTEN'}
-                  </span>
-                ` : ''}
-              </div>
-              <div class="text-[11px] text-slate-400">Applicant: <strong class="text-blue-400">${s.applicantUsername}</strong> • Submitted: ${new Date(s.submittedAt).toLocaleString()}</div>
-            </div>
-            <span class="sidebar-badge">${s.status}</span>
-          </div>
-
-          <div class="space-y-2 text-xs bg-[#121722] p-3 rounded-lg card-border font-mono">
-            ${Object.entries(s.answers || {}).map(([q, a]) => `
-              <div>
-                <div class="text-[10px] text-slate-400 font-bold">${q}:</div>
-                <div class="text-slate-200 mt-0.5 whitespace-pre-wrap">${a}</div>
-              </div>
-            `).join('')}
-          </div>
-
-          ${scan ? `
-            <div class="p-3 bg-[#121722] card-border rounded-lg text-xs space-y-1 ${isAiFlagged ? 'border-red-500/30 bg-red-950/20' : 'border-emerald-500/30 bg-emerald-950/20'}">
-              <div class="font-bold flex items-center gap-1.5 ${isAiFlagged ? 'text-red-400' : 'text-emerald-400'}">
-                <i class="fa-solid ${isAiFlagged ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
-                <span>AI Inspector Assessment: ${scan.verdict}</span>
-              </div>
-              <div class="text-[11px] text-slate-300 font-mono whitespace-pre-line">${scan.analysis}</div>
-            </div>
-          ` : ''}
-
-          <div class="flex items-center justify-between pt-1 text-xs">
-            <div class="text-[10px] font-mono text-slate-500">
-              ${s.reviewedBy ? `Reviewed by ${s.reviewedBy} on ${new Date(s.reviewedAt).toLocaleDateString()}` : 'Awaiting Review'}
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="scanSubmissionForAi('${s.id}')" class="px-2.5 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
-                <i class="fa-solid fa-robot text-purple-400 text-xs"></i> ${scan ? 'Re-scan AI' : 'Scan AI Content'}
-              </button>
-              <button onclick="reviewSubmissionStatus('${s.id}', 'ACCEPTED')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors">Accept</button>
-              <button onclick="reviewSubmissionStatus('${s.id}', 'DENIED')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition-colors">Decline</button>
-            </div>
-          </div>
-        </div>
-        `;
-      }).join('');
-    }
-
-    async function callGeminiApi(promptText, systemInstructionText = '') {
-      try {
-        const res = await fetch('/api/ai/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: promptText, systemInstruction: systemInstructionText })
-        });
-        const data = await res.json();
-        return data.text || 'No response generated.';
-      } catch (err) {
-        return 'AI Service connection error.';
-      }
-    }
-
-    async function scanSubmissionForAi(subId) {
-      try {
-        const res = await fetch('/api/applications');
-        const data = await res.json();
-        const sub = (data.submissions || []).find(s => s.id === subId);
-        if (!sub) return;
-
-        notify('AI Content Checker', `Scanning ${sub.applicantUsername}'s submission...`, 'info');
-
-        const answerText = Object.entries(sub.answers || {}).map(([q, a]) => `Question: "${q}"\nAnswer: "${a}"`).join('\n\n');
-        const systemPrompt = "Act as an expert AI writing detection system for staff applications. Analyze the candidate answers for markers of ChatGPT, Claude, or Gemini synthetic text (over-formal language, robotic transition phrases like 'furthermore/moreover', symmetrical structure, non-specific filler). Respond with: 1) AI Probability Verdict (HUMAN WRITTEN or LIKELY AI GENERATED or HIGH CONFIDENCE AI GENERATED), 2) Bulleted key indicators found, and 3) A short recommendation.";
-
-        const aiOutput = await callGeminiApi(`Analyze this staff application submission:\n\n${answerText}`, systemPrompt);
-        
-        const isAi = aiOutput.toUpperCase().includes('LIKELY AI') || aiOutput.toUpperCase().includes('HIGH CONFIDENCE AI') || aiOutput.toUpperCase().includes('AI GENERATED');
-
-        submissionAiScans[subId] = {
-          isAi,
-          verdict: isAi ? 'AI Content Detected' : 'Clean / Human Written',
-          analysis: aiOutput
-        };
-
-        if (isAi) {
-          notify('AI Detected!', `High probability of AI generation in ${sub.applicantUsername}'s submission.`, 'warning');
-        } else {
-          notify('Scan Complete', `Submission appears to be human written.`, 'info');
-        }
-
-        renderSubmissionsList(data.submissions || []);
-      } catch (e) {
-        notify('Scan Error', 'Failed to complete AI detection scan.', 'error');
-      }
-    }
-
-    async function toggleApplicationStatus(id) {
-      try {
-        const res = await fetch(`/api/applications/${id}/toggle`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Status Updated', data.message);
-          fetchApplications();
-        }
-      } catch (e) { notify('Error', 'Failed to update form status', 'error'); }
-    }
-
-    async function deleteApplicationForm(id) {
-      if (!confirm('Are you sure you want to delete this application form template?')) return;
-      try {
-        const res = await fetch(`/api/applications/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          notify('Form Deleted', data.message);
-          fetchApplications();
-        }
-      } catch (e) { notify('Error', 'Failed to delete application form', 'error'); }
-    }
-
-    async function reviewSubmissionStatus(subId, status) {
-      try {
-        const res = await fetch(`/api/applications/submissions/${subId}/status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
-        });
-        const data = await res.json();
-        if (data.success) {
-          notify('Application Reviewed', `Submission marked as ${status}`);
-          fetchApplications();
-        }
-      } catch (e) { notify('Error', 'Failed to review submission', 'error'); }
-    }
-
-    // INITIALIZATION
-    document.addEventListener('DOMContentLoaded', () => {
-      loadCurrentUser();
-      fetchSystemNotice();
-      renderQuestionBuilder();
-      fetchApplications();
-    });
-  </script>
-</body>
-</html>
-  <!-- SHAREABLE APPLICATION LINK MODAL -->
-  <div id="shareLinkModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] card-border rounded-xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative">
-      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-link text-indigo-400"></i>
-          <span>Share Application Link</span>
-        </h3>
-        <button onclick="closeShareLinkModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-2 text-xs">
-        <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Candidate Direct Link</label>
-        <div class="flex items-center gap-2">
-          <input type="text" id="shareLinkInput" readonly class="flex-1 px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 font-mono text-xs select-all focus:outline-none" />
-          <button onclick="copyShareableLink()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-copy text-xs"></i> Copy Link
-          </button>
-        </div>
-        <p class="text-[11px] text-slate-400">Send this link to candidates or post it on Discord. Applicants can view and complete the form directly.</p>
-      </div>
-
-      <div class="pt-2 flex justify-end">
-        <button onclick="closeShareLinkModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg card-border">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PUBLIC APPLICANT FORM MODAL / PORTAL -->
-  <div id="publicApplyPortalModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#121722] card-border rounded-xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative max-h-[85vh] overflow-y-auto">
-      <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
-        <div>
-          <h3 id="publicPortalTitle" class="text-base font-bold text-slate-100">Application Form</h3>
-          <p id="publicPortalDesc" class="text-xs text-slate-400 mt-0.5">Please fill out all questions accurately.</p>
-        </div>
-        <button onclick="closePublicPortalModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-
-      <form id="publicPortalForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-4 text-xs">
-        <input type="hidden" id="publicPortalAppId" />
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="space-y-1">
-            <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Roblox Username *</label>
-            <input type="text" id="publicApplicantUser" required placeholder="Enter your Roblox username..." class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
-          </div>
-
-          <div class="space-y-1" id="publicDiscordContainer">
-            <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Discord Username / Tag *</label>
-            <input type="text" id="publicApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3 py-2 bg-[#0b0f17] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />
-          </div>
-        </div>
-
-        <div id="publicPortalQuestionsRender" class="space-y-4 pt-2">
-          <!-- Rendered questions injected here -->
-        </div>
-
-        <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
-          <span class="text-[10px] text-slate-500 font-mono">Escape Tsunami Candidate Portal</span>
-          <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-2">
-            <i class="fa-solid fa-paper-plane text-xs"></i> Submit Candidate Application
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    let builderQuestions = [
-      { id: Date.now(), label: 'Why do you want to join the Escape Tsunami staff team?', type: 'paragraph' },
-      { id: Date.now() + 1, label: 'How many hours per week can you dedicate to moderation?', type: 'short' }
-    ];
-
     function switchDesignerTab(tab) {
       const qBtn = document.getElementById('designerTabQuestions');
       const sBtn = document.getElementById('designerTabSettings');
       const qSec = document.getElementById('designerSectionQuestions');
       const sSec = document.getElementById('designerSectionSettings');
+
+      if (!qBtn || !sBtn || !qSec || !sSec) return;
 
       if (tab === 'questions') {
         qBtn.className = 'px-3 py-1 rounded-md bg-indigo-600 text-white transition-colors flex items-center gap-1.5';
@@ -1700,7 +1336,10 @@
 
     function renderQuestionBuilder() {
       const container = document.getElementById('appBuilderQuestionsList');
-      document.getElementById('questionCounterBadge').innerText = `${builderQuestions.length} QUESTIONS`;
+      const badge = document.getElementById('questionCounterBadge');
+      if (badge) badge.innerText = `${builderQuestions.length} QUESTIONS`;
+
+      if (!container) return;
 
       if (!builderQuestions.length) {
         container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs font-mono">No questions added yet. Click "+ Add New Question" below.</div>`;
@@ -1979,6 +1618,8 @@
 
     function renderApplicationsList(apps) {
       const container = document.getElementById('applicationsListContainer');
+      if (!container) return;
+
       if (!apps.length) {
         container.innerHTML = `
           <div class="p-8 text-center text-slate-500 text-xs space-y-2">
@@ -2017,6 +1658,167 @@
           </div>
         </div>
       `).join('');
+    }
+
+    function renderSubmissionsList(subs) {
+      const container = document.getElementById('submissionsListContainer');
+      const badge = document.getElementById('submissionCountBadge');
+      if (badge) badge.innerText = `${subs.length} SUBMISSIONS`;
+
+      if (!container) return;
+
+      if (!subs.length) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-500 text-xs space-y-2">
+            <i class="fa-solid fa-file-circle-check text-2xl text-slate-600 block mb-1"></i>
+            <div class="font-semibold text-slate-400">No applicant submissions recorded yet.</div>
+            <div class="text-[11px] text-slate-500 font-mono">Once players fill out a published form, candidate data will appear here for review.</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = subs.map(s => {
+        const scan = submissionAiScans[s.id];
+        const isAiFlagged = scan && scan.isAi;
+
+        return `
+        <div class="p-4 bg-[#0b0f17] card-border rounded-lg space-y-3 ${isAiFlagged ? 'border-l-4 border-l-red-500 bg-red-950/10' : ''}">
+          <div class="flex items-center justify-between border-b border-slate-800/60 pb-2">
+            <div>
+              <div class="text-xs font-bold text-slate-100 flex items-center gap-2">
+                <span>${s.appTitle || 'Application Form'}</span>
+                <span class="text-[10px] font-mono text-slate-500">(${s.id})</span>
+                ${scan ? `
+                  <span class="sidebar-badge ${isAiFlagged ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}">
+                    ${isAiFlagged ? '🚨 AI GENERATED DETECTED' : '✅ HUMAN WRITTEN'}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-[11px] text-slate-400">Applicant: <strong class="text-blue-400">${s.applicantUsername}</strong> • Submitted: ${new Date(s.submittedAt).toLocaleString()}</div>
+            </div>
+            <span class="sidebar-badge">${s.status}</span>
+          </div>
+
+          <div class="space-y-2 text-xs bg-[#121722] p-3 rounded-lg card-border font-mono">
+            ${Object.entries(s.answers || {}).map(([q, a]) => `
+              <div>
+                <div class="text-[10px] text-slate-400 font-bold">${q}:</div>
+                <div class="text-slate-200 mt-0.5 whitespace-pre-wrap">${a}</div>
+              </div>
+            `).join('')}
+          </div>
+
+          ${scan ? `
+            <div class="p-3 bg-[#121722] card-border rounded-lg text-xs space-y-1 ${isAiFlagged ? 'border-red-500/30 bg-red-950/20' : 'border-emerald-500/30 bg-emerald-950/20'}">
+              <div class="font-bold flex items-center gap-1.5 ${isAiFlagged ? 'text-red-400' : 'text-emerald-400'}">
+                <i class="fa-solid ${isAiFlagged ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
+                <span>AI Inspector Assessment: ${scan.verdict}</span>
+              </div>
+              <div class="text-[11px] text-slate-300 font-mono whitespace-pre-line">${scan.analysis}</div>
+            </div>
+          ` : ''}
+
+          <div class="flex items-center justify-between pt-1 text-xs">
+            <div class="text-[10px] font-mono text-slate-500">
+              ${s.reviewedBy ? `Reviewed by ${s.reviewedBy} on ${new Date(s.reviewedAt).toLocaleDateString()}` : 'Awaiting Review'}
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="scanSubmissionForAi('${s.id}')" class="px-2.5 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-semibold rounded transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-robot text-purple-400 text-xs"></i> ${scan ? 'Re-scan AI' : 'Scan AI Content'}
+              </button>
+              <button onclick="reviewSubmissionStatus('${s.id}', 'ACCEPTED')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors">Accept</button>
+              <button onclick="reviewSubmissionStatus('${s.id}', 'DENIED')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition-colors">Decline</button>
+            </div>
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    async function callGeminiApi(promptText, systemInstructionText = '') {
+      try {
+        const res = await fetch('/api/ai/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: promptText, systemInstruction: systemInstructionText })
+        });
+        const data = await res.json();
+        return data.text || 'No response generated.';
+      } catch (err) {
+        return 'AI Service connection error.';
+      }
+    }
+
+    async function scanSubmissionForAi(subId) {
+      try {
+        const res = await fetch('/api/applications');
+        const data = await res.json();
+        const sub = (data.submissions || []).find(s => s.id === subId);
+        if (!sub) return;
+
+        notify('AI Content Checker', `Scanning ${sub.applicantUsername}'s submission...`, 'info');
+
+        const answerText = Object.entries(sub.answers || {}).map(([q, a]) => `Question: "${q}"\nAnswer: "${a}"`).join('\n\n');
+        const systemPrompt = "Act as an expert AI writing detection system for staff applications. Analyze the candidate answers for markers of ChatGPT, Claude, or Gemini synthetic text (over-formal language, robotic transition phrases like 'furthermore/moreover', symmetrical structure, non-specific filler). Respond with: 1) AI Probability Verdict (HUMAN WRITTEN or LIKELY AI GENERATED or HIGH CONFIDENCE AI GENERATED), 2) Bulleted key indicators found, and 3) A short recommendation.";
+
+        const aiOutput = await callGeminiApi(`Analyze this staff application submission:\n\n${answerText}`, systemPrompt);
+        
+        const isAi = aiOutput.toUpperCase().includes('LIKELY AI') || aiOutput.toUpperCase().includes('HIGH CONFIDENCE AI') || aiOutput.toUpperCase().includes('AI GENERATED');
+
+        submissionAiScans[subId] = {
+          isAi,
+          verdict: isAi ? 'AI Content Detected' : 'Clean / Human Written',
+          analysis: aiOutput
+        };
+
+        if (isAi) {
+          notify('AI Detected!', `High probability of AI generation in ${sub.applicantUsername}'s submission.`, 'warning');
+        } else {
+          notify('Scan Complete', `Submission appears to be human written.`, 'info');
+        }
+
+        renderSubmissionsList(data.submissions || []);
+      } catch (e) {
+        notify('Scan Error', 'Failed to complete AI detection scan.', 'error');
+      }
+    }
+
+    async function toggleApplicationStatus(id) {
+      try {
+        const res = await fetch(`/api/applications/${id}/toggle`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          notify('Status Updated', data.message);
+          fetchApplications();
+        }
+      } catch (e) { notify('Error', 'Failed to update form status', 'error'); }
+    }
+
+    async function deleteApplicationForm(id) {
+      if (!confirm('Are you sure you want to delete this application form template?')) return;
+      try {
+        const res = await fetch(`/api/applications/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          notify('Form Deleted', data.message);
+          fetchApplications();
+        }
+      } catch (e) { notify('Error', 'Failed to delete application form', 'error'); }
+    }
+
+    async function reviewSubmissionStatus(subId, status) {
+      try {
+        const res = await fetch(`/api/applications/submissions/${subId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (data.success) {
+          notify('Application Reviewed', `Submission marked as ${status}`);
+          fetchApplications();
+        }
+      } catch (e) { notify('Error', 'Failed to review submission', 'error'); }
     }
 
     async function openPublicPortalModal(appId) {
@@ -2147,8 +1949,61 @@
       } catch (err) { notify('Error', 'Server connection error', 'error'); }
     }
 
-    /* Check if current route is a public application URL (/apply/APP-XXXX) */
+    async function loadCurrentUser() {
+      try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        if (data.username) {
+          currentAdminName = data.username;
+          currentUserRole = data.role || 'mod';
+          document.getElementById('sidebarAdminName').innerText = currentAdminName;
+          document.getElementById('sidebarAdminRole').innerText = currentUserRole.toUpperCase();
+          document.getElementById('sidebarUserAvatar').src = `/api/avatar/1`;
+        }
+      } catch (e) {}
+    }
+
+    async function fetchSystemNotice() {
+      try {
+        const res = await fetch('/api/notice');
+        const data = await res.json();
+        if (data.notice) renderTopNotice(data.notice);
+      } catch (e) {}
+    }
+
+    function renderTopNotice(notice) {
+      const banner = document.getElementById('topNoticeBanner');
+      if (!banner) return;
+      if (!notice || !notice.active) {
+        banner.classList.add('hidden');
+        return;
+      }
+      banner.classList.remove('hidden');
+      document.getElementById('noticeBannerText').innerText = notice.message;
+      document.getElementById('noticeBannerAuthor').innerText = `— Issued by ${notice.author || 'Owner'}`;
+
+      banner.className = 'w-full px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all duration-300 z-50 shrink-0 ';
+      if (notice.alertLevel === 'emergency') banner.classList.add('bg-red-600', 'text-white');
+      else if (notice.alertLevel === 'warning') banner.classList.add('bg-amber-500', 'text-slate-950');
+      else banner.classList.add('bg-blue-600', 'text-white');
+
+      const iconEl = document.getElementById('noticeBannerIcon');
+      if (iconEl) iconEl.className = `fa-solid fa-${notice.icon || 'bell'} text-sm`;
+    }
+
+    function dismissTopNotice() {
+      const banner = document.getElementById('topNoticeBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    // INITIALIZATION
     document.addEventListener('DOMContentLoaded', () => {
+      loadCurrentUser();
+      fetchSystemNotice();
+      renderQuestionBuilder();
+      fetchApplications();
+
+      /* Check if current route is a public application URL (/apply/APP-XXXX) */
       const path = window.location.pathname;
       if (path.startsWith('/apply/')) {
         const appId = path.replace('/apply/', '');
