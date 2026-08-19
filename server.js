@@ -424,6 +424,18 @@ app.get('/api/public/applications/:id', (req, res) => {
   res.json({ success: true, application: appItem });
 });
 
+app.get('/api/public/applications/:id/check', (req, res) => {
+  const appId = req.params.id;
+  const username = String(req.query.username || '').trim().toLowerCase();
+  const appItem = applicationsMap.get(appId);
+  
+  if (!appItem) return res.status(404).json({ success: false, error: 'Form not found' });
+  if (!username) return res.json({ alreadySubmitted: false });
+
+  const existing = applicationSubmissions.find(s => s.appId === appId && s.applicantUsername.toLowerCase() === username);
+  res.json({ alreadySubmitted: Boolean(existing && appItem.settings?.limitOneResponse), submission: existing || null });
+});
+
 app.get('/api/public/applications/:id/roster', (req, res) => {
   const appId = req.params.id;
   const appItem = applicationsMap.get(appId);

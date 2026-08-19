@@ -52,6 +52,8 @@
       --bg-sidebar: #120d24;
       --bg-card: #171030;
       --bg-input: #0b0718;
+      --border-color: rgba(139, 92, 246, 0.15);
+      --accent-blue: #8b5cf6;
       background-color: #090614 !important;
     }
 
@@ -60,6 +62,8 @@
       --bg-sidebar: #0a0a0a;
       --bg-card: #111111;
       --bg-input: #000000;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-blue: #64748b;
       background-color: #050505 !important;
     }
 
@@ -196,27 +200,42 @@
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
         <input type="hidden" id="standaloneAppId" />
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="space-y-1.5">
-            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
-            <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-semibold" />
+        <div id="alreadySubmittedNotice" class="hidden p-6 bg-slate-900/90 border border-indigo-500/30 rounded-xl text-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto text-lg">
+            <i class="fa-solid fa-circle-check"></i>
           </div>
-
-          <div class="space-y-1.5" id="standaloneDiscordContainer">
-            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Discord Handle *</label>
-            <input type="text" id="standaloneApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500" />
+          <h3 class="text-sm font-bold text-slate-100">Application Already Submitted</h3>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">This form is limited to 1 response per applicant. Your submission has already been logged for review.</p>
+          <div class="pt-2">
+            <button type="button" onclick="switchStandaloneView('roster')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-xs"></i> Check Live Status on Roster
+            </button>
           </div>
         </div>
 
-        <div id="standaloneQuestionsList" class="space-y-4 pt-2">
-          <!-- Dynamic Form Questions Rendered Here -->
-        </div>
+        <div id="standaloneFormFieldsContainer" class="space-y-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
+              <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 font-semibold" onblur="checkLimitOneStatus()" />
+            </div>
 
-        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-          <span class="text-[10px] text-slate-500 font-mono">Secure Candidate Portal</span>
-          <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
-            <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
-          </button>
+            <div class="space-y-1.5" id="standaloneDiscordContainer">
+              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Discord Handle *</label>
+              <input type="text" id="standaloneApplicantDiscord" placeholder="e.g. Username#0000" class="w-full px-3.5 py-2.5 bg-[#0b0f17] card-border rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div id="standaloneQuestionsList" class="space-y-4 pt-2">
+            <!-- Dynamic Form Questions Rendered Here -->
+          </div>
+
+          <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-[10px] text-slate-500 font-mono">Secure Candidate Portal</span>
+            <button type="submit" id="standaloneSubmitBtn" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+              <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
+            </button>
+          </div>
         </div>
       </form>
 
@@ -1083,11 +1102,7 @@
     let currentAdminName = 'roblox';
     let currentUserRole = 'owner';
     let submissionAiScans = {};
-
-    let builderQuestions = [
-      { id: Date.now(), label: 'Why do you want to join the Escape Tsunami staff team?', type: 'paragraph' },
-      { id: Date.now() + 1, label: 'How many hours per week can you dedicate to moderation?', type: 'short' }
-    ];
+    let currentStandaloneApp = null;
 
     function notify(title, message, type = 'info') {
       const container = document.getElementById('toastContainer');
@@ -1111,7 +1126,8 @@
     }
 
     function toggleThemeDropdown() {
-      document.getElementById('themeDropdown').classList.toggle('hidden');
+      const dropdown = document.getElementById('themeDropdown');
+      if (dropdown) dropdown.classList.toggle('hidden');
     }
 
     function setAppTheme(theme) {
@@ -1476,6 +1492,7 @@
         }
 
         const app = data.application;
+        currentStandaloneApp = app;
         document.getElementById('standaloneAppId').value = app.id;
         document.getElementById('standalonePortalTitle').innerText = app.title;
         document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out all fields accurately.';
@@ -1486,13 +1503,34 @@
 
         const qContainer = document.getElementById('standaloneQuestionsList');
         qContainer.innerHTML = app.questions.map((q, idx) => `
-          <div class="p-3.5 bg-[#0b0f17] card-border rounded-lg space-y-2">
+          <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-2">
             <label class="font-semibold text-slate-200 block text-xs">
-              <span class="text-indigo-400 font-mono">Q${idx + 1}.</span> ${q.label}
+              <span class="text-indigo-400 font-mono font-bold">Q${idx + 1}.</span> ${q.label}
             </label>
-            ${q.type === 'paragraph' ? `<textarea name="q_${idx}" rows="3" required class="w-full px-3 py-2 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>` : `<input type="text" name="q_${idx}" required class="w-full px-3 py-2 bg-[#121722] card-border rounded text-slate-200 focus:outline-none focus:border-indigo-500" />`}
+            ${q.type === 'paragraph' ? `<textarea name="q_${idx}" rows="3" required placeholder="Type your response here..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>` : `<input type="text" name="q_${idx}" required placeholder="Your answer..." class="w-full px-3.5 py-2.5 bg-[#121722] card-border rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500" />`}
           </div>
         `).join('');
+      } catch (e) {}
+    }
+
+    async function checkLimitOneStatus() {
+      const appId = document.getElementById('standaloneAppId').value;
+      const username = document.getElementById('standaloneApplicantUser').value.trim();
+      if (!appId || !username || !currentStandaloneApp?.settings?.limitOneResponse) return;
+
+      try {
+        const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        const notice = document.getElementById('alreadySubmittedNotice');
+        const formFields = document.getElementById('standaloneFormFieldsContainer');
+
+        if (data.alreadySubmitted) {
+          formFields.classList.add('hidden');
+          notice.classList.remove('hidden');
+        } else {
+          notice.classList.add('hidden');
+          formFields.classList.remove('hidden');
+        }
       } catch (e) {}
     }
 
