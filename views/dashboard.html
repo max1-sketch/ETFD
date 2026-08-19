@@ -296,7 +296,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="text-[11px] font-medium text-slate-300 uppercase tracking-wider block">Roblox Username *</label>
-              <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3 py-2 bg-[#0b0f17] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" onblur="validateApplicantRobloxLive(); checkLimitOneStatus();" oninput="checkLimitOneStatus(); loadSavedDraft(); debounceRobloxValidation();" />
+              <input type="text" id="standaloneApplicantUser" required placeholder="Enter exact Roblox username..." class="w-full px-3 py-2 bg-[#0b0f17] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" onblur="validateApplicantRobloxLive();" oninput="loadSavedDraft(); debounceRobloxValidation();" />
               <div id="robloxUserValidationBadge" class="hidden mt-2 p-2.5 bg-[#0b0f17] border border-white/10 rounded-lg flex items-center justify-between text-xs"></div>
             </div>
 
@@ -1220,7 +1220,7 @@
       <div id="confirmModalDetails" class="hidden p-3 bg-[#0b0f17] border border-slate-800 rounded-lg text-xs font-mono text-slate-300 space-y-1"></div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
-        <button id="confirmModalCancelBtn" onclick="closeCustomConfirmModal(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
+        <button id="confirmModalCancelBtn" onclick="closeCustomConfirmModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors">
           Cancel
         </button>
         <button id="confirmModalSubmitBtn" onclick="executePendingConfirmAction()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-red-600/20">
@@ -1323,6 +1323,7 @@
     let activeDeviceSignature = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
     let pendingConfirmCallback = null;
     let appBuilderQuestions = [];
+    let systemNotice = { active: false, message: 'Maintenance scheduled tonight at 10:00 PM EST.', alertLevel: 'warning', icon: 'bullhorn', author: 'Owner' };
 
     if (!localStorage.getItem('et_device_signature')) {
       localStorage.setItem('et_device_signature', activeDeviceSignature);
@@ -1385,7 +1386,29 @@
       }
     });
 
-    // Custom Confirmation Dialog (No Browser Native Popups)
+    async function fetchPortalApplication(appId) {
+      try {
+        const res = await fetch(`/api/public/applications/${appId}`);
+        const data = await res.json();
+        if (data.success && data.application) {
+          const app = data.application;
+          document.getElementById('standalonePortalTitle').innerText = app.title || 'New Staff Application';
+          document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out the form below';
+
+          const questionsList = document.getElementById('standaloneQuestionsList');
+          if (questionsList && Array.isArray(app.questions)) {
+            questionsList.innerHTML = app.questions.map((q, idx) => `
+              <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
+                <label class="text-[11px] font-medium text-slate-300 block">${q.text} ${q.required ? '<span class="text-indigo-400">*</span>' : ''}</label>
+                <textarea id="standalone_q_${idx}" data-question="${q.text}" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>
+              </div>
+            `).join('');
+          }
+          loadSavedDraft();
+        }
+      } catch (err) {}
+    }
+
     function openCustomConfirmModal(options) {
       const modal = document.getElementById('customConfirmModal');
       const title = document.getElementById('confirmModalTitle');
@@ -1441,7 +1464,6 @@
     }
 
     async function executeSecurityGateCheck() {
-      const btn = document.getElementById('gateBoxBtn');
       const spinner = document.getElementById('gateSpinner');
       const checkmark = document.getElementById('gateCheckmark');
       const label = document.getElementById('gateLabelText');
@@ -1592,6 +1614,11 @@
       } else {
         sBtn.className = 'pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5';
         qBtn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5';
+        qSec.classList.add('hidden');
+        sSec.classList.remove('hidden');
+      }
+    }
+
     let verifiedRobloxUser = null;
     let validateRobloxTimer = null;
 
@@ -2724,7 +2751,6 @@
       const username = document.getElementById('newUsername').value.trim();
       const email = document.getElementById('newEmail').value.trim();
       const password = document.getElementById('newPassword').value.trim();
-      const role = document.getElementById('newRole').value;
 
       if (!username || !password) {
         showToast('Username and Password required!', 'warning');
