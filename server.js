@@ -244,7 +244,8 @@ app.get('/auth/google', (req, res) => {
   }
 
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
-  const returnTo = req.query.returnTo || '/';
+  // Capture returnTo query param or Referer so candidate returns to exact form URL (/apply/:id)
+  const returnTo = req.query.returnTo || req.headers.referer || '/';
   req.session.googleReturnTo = returnTo;
 
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&prompt=select_account`;
@@ -584,6 +585,12 @@ app.get('/api/public/applications/:id/roster', async (req, res) => {
 
 app.post('/api/applications/submit', async (req, res) => {
   const { appId, applicantUsername, discordTag, answers, deviceSignature, proofUrl } = req.body;
+
+  // STRICT SERVER-SIDE CHECK: Require Google Authentication
+  if (!req.session || !req.session.applicantGoogle) {
+    return res.status(401).json({ success: false, error: 'Google Sign-In is REQUIRED to submit an application. Please sign in with Google first.' });
+  }
+
   const appItem = applicationsMap.get(appId);
   if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
   if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
