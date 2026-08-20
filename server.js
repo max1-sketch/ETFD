@@ -8,6 +8,9 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
 
+// DISCORD BOT DEPENDENCIES
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+
 let mongoose;
 try {
   mongoose = require('mongoose');
@@ -739,7 +742,7 @@ app.get('/api/public/validate-roblox/:username', async (req, res) => {
 
 app.get('/api/avatar-by-username/:username', async (req, res) => {
   const username = req.params.username ? req.params.username.trim() : '';
-  if (!username) return res.redirect('/api/avatar/1');
+  if (!username) return res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=RBX`);
 
   try {
     const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
@@ -749,16 +752,26 @@ app.get('/api/avatar-by-username/:username', async (req, res) => {
 
     if (userRes.data?.data?.[0]?.id) {
       const rbxId = userRes.data.data[0].id;
-      return res.redirect(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${rbxId}&size=150x150&format=Png&isCircular=false`);
+      const thumbRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${rbxId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
+      if (thumbRes.data?.data?.[0]?.imageUrl) {
+        return res.redirect(thumbRes.data.data[0].imageUrl);
+      }
     }
   } catch (e) {}
 
-  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase())}`);
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase() || 'RBX')}`);
 });
 
-app.get('/api/avatar/:userId', (req, res) => {
+app.get('/api/avatar/:userId', async (req, res) => {
   const { userId } = req.params;
-  res.redirect(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+  try {
+    const thumbRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
+    if (thumbRes.data?.data?.[0]?.imageUrl) {
+      return res.redirect(thumbRes.data.data[0].imageUrl);
+    }
+  } catch (e) {}
+
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=RBX`);
 });
 
 app.get('/api/lookup/:query', requireAuth, async (req, res) => {
@@ -926,4 +939,123 @@ io.on('connection', (socket) => {
   socket.emit('systemNoticeUpdate', systemNotice);
 });
 
-server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Command Center Online on Port 3000!'));
+// ==========================================
+// DISCORD BOT & ACTIVE DEVELOPER BADGE ENGINE
+// ==========================================
+if (process.env.DISCORD_BOT_TOKEN) {
+  const discordClient = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent
+    ]
+  });
+
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('devbadge')
+      .setDescription('Claim your Discord Active Developer Badge!'),
+    new SlashCommandBuilder()
+      .setName('stats')
+      .setDescription('Check live Staff Command Center server telemetry'),
+    new SlashCommandBuilder()
+      .setName('lookup')
+      .setDescription('Lookup a Roblox user by Username or UserID')
+      .addStringOption(opt => 
+        opt.setName('target')
+          .setDescription('Roblox Username or UserID')
+          .setRequired(true)
+      )
+  ].map(cmd => cmd.toJSON());
+
+  async function registerSlashCommands() {
+    try {
+      if (!process.env.DISCORD_CLIENT_ID) {
+        console.warn('⚠️ DISCORD_CLIENT_ID missing in env. Slash commands skipped.');
+        return;
+      }
+      const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+      console.log('📡 Registering Discord Slash Commands...');
+      await rest.put(
+        Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
+        { body: commands }
+      );
+      console.log('✅ Discord Slash Commands Registered!');
+    } catch (err) {
+      console.error('❌ Failed to register Discord slash commands:', err.message);
+    }
+  }
+
+  discordClient.once('ready', () => {
+    console.log(`🤖 Discord Bot online as ${discordClient.user.tag}!`);
+    registerSlashCommands();
+  });
+
+  discordClient.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const { commandName } = interaction;
+
+    if (commandName === 'devbadge') {
+      const embed = new EmbedBuilder()
+        .setTitle('🏅 Active Developer Badge Command Logged!')
+        .setColor(0x3b82f6)
+        .setDescription(
+          `**Command Executed Successfully!**\n\n` +
+          `• **Status**: Interaction recorded on Discord's developer gateway.\n` +
+          `• **Claim URL**: https://discord.com/developers/active-developer\n\n` +
+          `*Note: Discord refreshes active developer status eligibility once every 24 hours. Check back tomorrow on the Developer Portal to claim your badge!*`
+        )
+        .setFooter({ text: 'Escape Tsunami Staff Engine' })
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+    } else if (commandName === 'stats') {
+      const embed = new EmbedBuilder()
+        .setTitle('📊 Live Server Telemetry')
+        .setColor(0x10b981)
+        .addFields(
+          { name: 'Active Applications', value: `${applicationsMap.size}`, inline: true },
+          { name: 'Total Submissions', value: `${applicationSubmissions.length}`, inline: true },
+          { name: 'Global Bans', value: `${bannedUsersMap.size}`, inline: true }
+        )
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+    } else if (commandName === 'lookup') {
+      const target = interaction.options.getString('target');
+      await interaction.deferReply();
+
+      try {
+        const res = await axios.post('https://users.roblox.com/v1/usernames/users', {
+          usernames: [target],
+          excludeBannedUsers: false
+        }, { timeout: 4000 });
+
+        if (res.data?.data?.[0]) {
+          const u = res.data.data[0];
+          const embed = new EmbedBuilder()
+            .setTitle(`Roblox User: ${u.name}`)
+            .setColor(0x8b5cf6)
+            .setThumbnail(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${u.id}&size=150x150&format=Png&isCircular=false`)
+            .addFields(
+              { name: 'Username', value: u.name, inline: true },
+              { name: 'Display Name', value: u.displayName || u.name, inline: true },
+              { name: 'UserID', value: `${u.id}`, inline: true }
+            );
+          await interaction.editReply({ embeds: [embed] });
+        } else {
+          await interaction.editReply(`❌ Roblox user \`${target}\` not found.`);
+        }
+      } catch (e) {
+        await interaction.editReply(`❌ Failed to query Roblox API.`);
+      }
+    }
+  });
+
+  discordClient.login(process.env.DISCORD_BOT_TOKEN).catch(err => {
+    console.error('❌ Discord Bot Login Failed:', err.message);
+  });
+}
+
+server.listen(process.env.PORT || 3000,
