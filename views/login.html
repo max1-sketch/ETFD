@@ -1,572 +1,406 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#070a0f] text-slate-200">
+<html lang="en" class="h-full bg-[#05070c] text-slate-200">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami - Staff Command Center</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <title>Cyber Command Terminal - Secure Access</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            cyber: {
-              bg: '#070a0f',
-              panel: '#0a0e17',
-              card: '#0f1420',
-              cardHover: '#131928',
-              border: 'rgba(255, 255, 255, 0.08)',
-              borderFocus: 'rgba(59, 130, 246, 0.5)',
-              accent: '#3b82f6',
-              glow: '#60a5fa',
-              purpleGlow: '#8b5cf6',
-              emerald: '#10b981',
-              danger: '#ef4444',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #070a0f;
-      color: #cbd5e1;
-      -webkit-font-smoothing: antialiased;
+    :root {
+      --bg-terminal: #05070c;
+      --card-bg: #0b0f17;
+      --card-border: rgba(255, 255, 255, 0.07);
+      --accent-blue: #3b82f6;
+      --accent-emerald: #10b981;
+      --text-muted: #64748b;
     }
 
-    .card-border {
-      border: 1px solid rgba(255, 255, 255, 0.07);
+    * {
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     }
 
-    /* Ambient Glowing Blobs */
-    .glow-blob-blue {
-      position: absolute;
-      width: 480px;
-      height: 480px;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(15, 23, 42, 0) 70%);
-      filter: blur(60px);
-      pointer-events: none;
-      animation: floatPulse 12s ease-in-out infinite alternate;
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .glow-blob-purple {
-      position: absolute;
-      width: 420px;
-      height: 420px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, rgba(15, 23, 42, 0) 70%);
-      filter: blur(65px);
-      pointer-events: none;
-      animation: floatPulse 15s ease-in-out infinite alternate-reverse;
+    /* Scanline Animation for Establish Connection Button */
+    @keyframes scanlineAnim {
+      0% { top: -100%; opacity: 0; }
+      50% { opacity: 0.6; }
+      100% { top: 200%; opacity: 0; }
     }
 
-    @keyframes floatPulse {
-      0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-      100% { transform: translate(40px, -30px) scale(1.1); opacity: 1; }
-    }
-
-    /* Film Grain Noise Texture Overlay */
-    .bg-noise {
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
-    }
-
-    /* Subtle Glass Card Effect */
-    .glass-card {
-      background: rgba(15, 20, 32, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    /* Input Soft Power-On Inner Glow */
-    .cyber-input {
-      background-color: rgba(10, 14, 23, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .cyber-input:focus {
-      outline: none;
-      border-color: rgba(59, 130, 246, 0.6);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.18), inset 0 0 10px rgba(59, 130, 246, 0.08);
-      background-color: rgba(12, 17, 28, 0.95);
-    }
-
-    /* Laser Scanner Hover Effect on Primary Button */
-    .scan-button {
+    .scanline-btn {
       position: relative;
       overflow: hidden;
-      transition: all 0.25s ease;
     }
-    .scan-button::before {
+
+    .scanline-btn::after {
       content: '';
       position: absolute;
       top: -100%;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, transparent, rgba(147, 197, 253, 0.4), transparent);
-      opacity: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.9), rgba(59, 130, 246, 0.9), transparent);
+      animation: scanlineAnim 3s infinite linear;
+      pointer-events: none;
+    }
+
+    /* Hover Glow Border */
+    .btn-glow-border {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-glow-border:hover {
+      border-color: rgba(99, 102, 241, 0.8);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.25), inset 0 0 10px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Outlined Duo-tone Input Style */
+    .duotone-input-wrapper {
+      background: rgba(11, 15, 23, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+
+    .duotone-input-wrapper:focus-within {
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .duotone-icon {
+      color: #3b82f6;
+      opacity: 0.7;
       transition: opacity 0.2s ease;
-      pointer-events: none;
     }
-    .scan-button:hover::before {
+
+    .duotone-input-wrapper:focus-within .duotone-icon {
       opacity: 1;
-      animation: laserScan 1.4s ease-in-out infinite;
     }
 
-    @keyframes laserScan {
-      0% { top: -100%; }
-      100% { top: 100%; }
+    /* Background Boot Log Scroll Effect */
+    @keyframes bootLogFade {
+      0%, 100% { opacity: 0.12; }
+      50% { opacity: 0.22; }
     }
 
-    /* Modern Pill Toggle Switch */
-    .toggle-switch {
-      position: relative;
-      width: 38px;
-      height: 20px;
-      background-color: rgba(255, 255, 255, 0.12);
-      border-radius: 9999px;
-      transition: background-color 0.25s ease;
-      cursor: pointer;
-    }
-    .toggle-switch-checkbox:checked + .toggle-switch {
-      background-color: #3b82f6;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-    }
-    .toggle-switch-dot {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 16px;
-      height: 16px;
-      background-color: #ffffff;
-      border-radius: 9999px;
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .toggle-switch-checkbox:checked + .toggle-switch .toggle-switch-dot {
-      transform: translateX(18px);
+    .boot-log-bg {
+      animation: bootLogFade 8s infinite ease-in-out;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0) 100%);
     }
 
-    #waveCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.25;
-      pointer-events: none;
+    /* Terminal Blinking Cursor */
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .terminal-cursor {
+      animation: cursorBlink 1s infinite;
     }
   </style>
 </head>
-<body class="h-full flex overflow-hidden select-none bg-[#070a0f] text-slate-200 bg-noise">
+<body class="h-full bg-[#05070c] text-slate-200 select-none overflow-x-hidden flex flex-col justify-between min-h-screen">
 
-  <div class="w-full h-full flex min-h-screen relative overflow-hidden">
-
-    <!-- LEFT PANEL (60%): ATMOSPHERIC CYBER TELEMETRY -->
-    <div class="hidden lg:flex lg:w-[58%] xl:w-[62%] relative bg-[#070a0f] flex-col justify-between p-12 overflow-hidden border-r border-slate-800/60">
-      
-      <!-- Background Glowing Blobs -->
-      <div class="glow-blob-blue -top-20 -left-20"></div>
-      <div class="glow-blob-purple bottom-10 right-10"></div>
-
-      <!-- Wave Visualizer Canvas -->
-      <canvas id="waveCanvas"></canvas>
-      <div class="absolute inset-0 bg-gradient-to-t from-[#070a0f] via-transparent to-[#070a0f]/40 z-10 pointer-events-none"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#070a0f] z-10 pointer-events-none"></div>
-
-      <!-- TOP OVERLAY & LOGO -->
-      <div class="relative z-20 flex items-center justify-between">
-        <div class="flex items-center gap-3.5">
-          <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-            <i class="fa-solid fa-shield-halved text-lg"></i>
-          </div>
-          <div>
-            <h1 class="text-sm font-semibold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
-            <span class="text-[10px] font-mono text-blue-400/90 font-medium tracking-widest uppercase mt-1 block">Staff Command Center</span>
-          </div>
-        </div>
-
-        <!-- Micro System Logs Overlay (Top Right) -->
-        <div class="font-mono text-[9px] text-slate-500/80 space-y-0.5 text-right tracking-wider hidden xl:block">
-          <div>SEC_LINK: <span class="text-emerald-400 font-semibold">ESTABLISHED</span></div>
-          <div>LATENCY: <span class="text-blue-400 font-semibold" id="sysLatency">12ms</span></div>
-          <div>ENCRYPTION: <span class="text-slate-400">TLS_1.3_AES256</span></div>
-        </div>
-      </div>
-
-      <!-- HERO CONTENT -->
-      <div class="relative z-20 max-w-xl my-auto space-y-5">
-        <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-medium rounded-full backdrop-blur-md">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-          </span>
-          <span class="font-mono uppercase text-[10px] tracking-wider">Open Cloud Telemetry Engine</span>
-        </div>
-
-        <h2 class="text-2xl xl:text-3xl font-medium text-slate-100 tracking-tight leading-snug">
-          Enterprise Game Moderation & Cyber Command Terminal
-        </h2>
-
-        <p class="text-xs text-slate-400 leading-relaxed font-normal max-w-lg">
-          Real-time player instance telemetry, inventory state inspection, automated AI chat moderation, and DataStore synchronization across active Roblox servers.
-        </p>
-
-        <!-- Monospace Technical Status Bar -->
-        <div class="p-2.5 rounded-md bg-[#0a0e17]/80 border border-slate-800/80 font-mono text-[10px] text-slate-400/90 flex items-center justify-between max-w-md">
-          <span class="flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>SYSTEM_STATUS: OK</span>
-          </span>
-          <span class="text-slate-500">ID: TSUNAMI-MOD-V2.5</span>
-        </div>
-      </div>
-
-      <!-- BOTTOM TELEMETRY METRICS CARDS -->
-      <div class="relative z-20 grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/60">
-        
-        <!-- Live Players Card -->
-        <div class="p-3.5 glass-card rounded-lg relative overflow-hidden group hover:border-slate-700/80 transition-colors">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Concurrent Neural Links</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Telemetry Active"></span>
-          </div>
-          <div class="text-lg font-semibold text-slate-100 mt-1.5 flex items-baseline justify-between font-mono">
-            <span id="counterLivePlayers">0</span>
-            <span class="text-[10px] text-emerald-400 font-sans font-medium flex items-center gap-1">
-              <i class="fa-solid fa-heart-pulse text-[9px] text-emerald-400 animate-pulse"></i>
-              <span>+3/min</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Active Instances Card -->
-        <div class="p-3.5 glass-card rounded-lg relative overflow-hidden group hover:border-slate-700/80 transition-colors">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Active Instances</span>
-            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-          </div>
-          <div class="text-lg font-semibold text-slate-100 mt-1.5 flex items-baseline justify-between font-mono">
-            <span>8 Servers</span>
-            <span class="text-[10px] text-blue-400 font-sans font-medium">Synced</span>
-          </div>
-        </div>
-
-        <!-- DataStore Card -->
-        <div class="p-3.5 glass-card rounded-lg relative overflow-hidden group hover:border-slate-700/80 transition-colors">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">DataStore Engine</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          </div>
-          <div class="text-xs font-semibold text-emerald-400 mt-2 flex items-center gap-1.5 font-mono">
-            <i class="fa-solid fa-database text-[10px]"></i>
-            <span>WebBanList_v3</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Background Micro Data Clutter Footer -->
-      <div class="absolute bottom-2 left-12 font-mono text-[8px] text-slate-600/60 pointer-events-none uppercase tracking-widest z-10">
-        PACKET_LOSS: 0.00% &nbsp;|&nbsp; BUFFER: 1024KB &nbsp;|&nbsp; TLS: ACTIVE
-      </div>
-    </div>
-
-    <!-- RIGHT PANEL (40%): AUTHENTICATION FORM -->
-    <div class="w-full lg:w-[42%] xl:w-[38%] bg-[#0a0e17] flex flex-col justify-between p-8 sm:p-12 z-20 min-h-screen relative border-l border-slate-800/40">
-      
-      <!-- Top Mobile Header -->
-      <div class="lg:hidden flex items-center gap-3 mb-8 pb-6 border-b border-slate-800/80">
-        <div class="w-9 h-9 rounded-lg bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-          <i class="fa-solid fa-shield-halved text-base"></i>
-        </div>
-        <div>
-          <h1 class="text-sm font-semibold text-slate-100 tracking-tight leading-none">Escape Tsunami</h1>
-          <span class="text-[10px] font-mono text-blue-400 font-medium tracking-wider uppercase mt-1 block">Staff Portal v2.5.0</span>
-        </div>
-      </div>
-
-      <!-- CENTER FORM CONTAINER -->
-      <div class="my-auto max-w-md w-full mx-auto space-y-7">
-        
-        <!-- Welcome Title Header -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-slate-100 tracking-tight">Establish Connection</h2>
-            <span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono rounded-full">v2.5.0</span>
-          </div>
-          <p class="text-xs text-slate-400 font-normal leading-relaxed">
-            Provide authorized staff credentials or owner access key to enter the moderation console.
-          </p>
-        </div>
-
-        <!-- Error Alert Container -->
-        <div id="errorAlert" class="hidden p-3 bg-red-500/10 border border-red-500/25 rounded-md text-xs text-red-400 flex items-start gap-2.5 backdrop-blur-sm">
-          <i class="fa-solid fa-triangle-exclamation text-sm mt-0.5 shrink-0 text-red-400"></i>
-          <span id="errorMessage">Invalid credentials! Please check your access key.</span>
-        </div>
-
-        <!-- LOGIN FORM -->
-        <form id="loginForm" class="space-y-4" onsubmit="handleAuth(event)">
-          
-          <!-- Username Input -->
-          <div class="space-y-1.5">
-            <label for="username" class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">
-              Staff Identity / Username
-            </label>
-            <div class="relative flex items-center">
-              <div class="absolute left-3.5 text-slate-500/90 text-xs flex items-center justify-center pointer-events-none">
-                <i class="fa-solid fa-user-shield text-blue-400/80"></i>
-              </div>
-              <input 
-                type="text" 
-                id="username" 
-                name="username" 
-                placeholder="e.g. ModeratorUsername" 
-                class="w-full pl-10 pr-3.5 py-2.5 cyber-input rounded-md text-xs text-slate-100 placeholder:text-slate-600 font-normal"
-                autocomplete="username"
-              />
-            </div>
-          </div>
-
-          <!-- Password / Secret Code Input -->
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <label for="password" class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">
-                Access Key / Passcode *
-              </label>
-              <button type="button" onclick="showOwnerCodeHelp()" class="text-[10px] text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1 transition-colors">
-                <i class="fa-solid fa-circle-question text-[10px]"></i> Key Support
-              </button>
-            </div>
-            <div class="relative flex items-center">
-              <div class="absolute left-3.5 text-slate-500/90 text-xs flex items-center justify-center pointer-events-none">
-                <i class="fa-solid fa-key text-blue-400/80"></i>
-              </div>
-              <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                placeholder="Enter password or secret code..." 
-                required
-                class="w-full pl-10 pr-10 py-2.5 cyber-input rounded-md text-xs text-slate-100 placeholder:text-slate-600 font-mono"
-                autocomplete="current-password"
-              />
-              <button 
-                type="button" 
-                onclick="togglePasswordVisibility()" 
-                class="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors p-1"
-                title="Toggle Key Visibility"
-              >
-                <i class="fa-solid fa-eye text-xs" id="toggleEyeIcon"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Modern Sliding Pill Toggle Switch: Remember Session -->
-          <div class="flex items-center justify-between pt-1">
-            <label class="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" id="rememberMe" class="toggle-switch-checkbox hidden" />
-              <div class="toggle-switch">
-                <div class="toggle-switch-dot"></div>
-              </div>
-              <span class="text-xs text-slate-400 font-normal">Remember session state</span>
-            </label>
-          </div>
-
-          <!-- Primary Submit Button with Laser Scanning Hover Effect -->
-          <button 
-            type="submit" 
-            id="submitBtn" 
-            class="scan-button w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-md transition-all shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_25px_rgba(59,130,246,0.35)] flex items-center justify-center gap-2 cursor-pointer mt-3"
-          >
-            <span id="btnText" class="flex items-center gap-2">
-              <i class="fa-solid fa-shield-cat text-xs"></i>
-              <span>Establish Connection</span>
-            </span>
-            <i id="btnSpinner" class="fa-solid fa-circle-notch fa-spin hidden text-xs"></i>
-          </button>
-        </form>
-
-        <!-- Help Modal Tooltip -->
-        <div id="helpModal" class="hidden p-4 bg-[#0f1420] card-border rounded-md text-xs space-y-2 border-l-2 border-l-blue-500">
-          <div class="font-semibold text-slate-200 flex items-center justify-between">
-            <span class="flex items-center gap-2 text-xs"><i class="fa-solid fa-user-shield text-blue-400"></i> Access Key Assistance</span>
-            <button onclick="hideOwnerCodeHelp()" class="text-slate-500 hover:text-slate-300"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <p class="text-slate-400 leading-relaxed text-[11px]">
-            Access keys and staff accounts are restricted. If you forgot your password or need owner privileges, contact Ownership via internal Discord channels.
-          </p>
-        </div>
-
-      </div>
-
-      <!-- FOOTER -->
-      <div class="pt-6 border-t border-slate-800/60 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-500">
-        <div class="flex items-center gap-1.5 font-medium">
-          <i class="fa-solid fa-lock text-slate-600 text-[10px]"></i>
-          <span>Encrypted Protocol &nbsp;•&nbsp; Audit Logged</span>
-        </div>
-        <div class="font-mono text-slate-600 text-[9px]">
-          SYS_ID: 0x9981
-        </div>
-      </div>
-
+  <!-- BACKGROUND FAINT SYSTEM BOOT LOG (VOID TEXTURE) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 flex items-start justify-start p-6">
+    <div class="boot-log-bg font-mono text-[10px] text-slate-500 leading-relaxed space-y-1 max-w-xl select-none">
+      <div>[0.0012] <span class="text-blue-500/80">SYS_INIT</span> Kernel initialized cleanly on core node 0x8F3</div>
+      <div>[0.0028] <span class="text-indigo-500/80">NET_CORE</span> Mounting Socket.IO transport mesh [WS/WSS]</div>
+      <div>[0.0041] <span class="text-emerald-500/80">AUTH_GATE</span> SecGate v2.5.0 listener attached to port 3000</div>
+      <div>[0.0089] <span class="text-purple-500/80">DB_ATLAS</span> TLS v1.3 cluster handshake verified ok</div>
+      <div>[0.0114] <span class="text-slate-400">MONITOR</span> Telemetry stream listening for Live Instance Population...</div>
+      <div>[0.0152] <span class="text-amber-500/80">GATEKEEPER</span> Device signature restriction engine loaded [0 blocked]</div>
+      <div>[0.0198] <span class="text-blue-500/80">SYS_READY</span> Cyber Command Gateway ready for administrator authentication</div>
     </div>
   </div>
 
+  <!-- TOP TECHNICAL METADATA BAR -->
+  <header class="relative z-10 w-full px-6 py-4 flex items-center justify-between border-b border-white/5 bg-[#05070c]/80 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-2.5 h-2.5 rounded-sm bg-blue-500 shadow-sm shadow-blue-500/50"></div>
+      <span class="text-[11px] font-mono font-bold tracking-widest uppercase text-slate-300">CYBER_COMMAND // AUTH_GATE</span>
+    </div>
+
+    <div class="flex items-center gap-4 text-[10px] font-mono text-slate-400">
+      <div class="hidden sm:flex items-center gap-2">
+        <span class="text-slate-600">LATENCY:</span>
+        <span class="text-emerald-400 font-bold">11ms</span>
+      </div>
+      <div class="hidden sm:flex items-center gap-2">
+        <span class="text-slate-600">ENCRYPTION:</span>
+        <span class="text-indigo-400 font-bold">TLS_AES_256_GCM</span>
+      </div>
+      <div class="flex items-center gap-2 bg-[#0b0f17] px-2.5 py-1 rounded border border-white/5">
+        <span class="text-slate-500">SEC_LINK:</span>
+        <span class="text-emerald-400 font-bold tracking-wider">ESTABLISHED</span>
+        <span class="relative flex h-2 w-2 ml-0.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN AUTHENTICATION TERMINAL -->
+  <main class="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
+    <div class="w-full max-w-md bg-[#0b0f17]/90 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden space-y-6">
+      
+      <!-- SUBTLE GLOW DECORATIONS -->
+      <div class="absolute -top-16 -left-16 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- HEADER TYPOGRAPHY WITH WEIGHT CONTRAST -->
+      <div class="space-y-1.5 border-b border-white/5 pb-5">
+        <div class="text-[10px] font-mono text-blue-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-xs"></i>
+          <span>Secure Gateway Access</span>
+        </div>
+        <h1 class="text-lg sm:text-xl text-slate-100 leading-tight">
+          <span class="font-light text-slate-400 block sm:inline">Enterprise Game Moderation</span>
+          <span class="font-extrabold text-white block sm:inline">Cyber Command Terminal</span>
+        </h1>
+        <p class="text-xs text-slate-400 font-medium pt-0.5">Enter authorized staff credentials to initiate secure session</p>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="commandLoginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        
+        <!-- USERNAME FIELD WITH OUTLINED DUO-TONE ICON -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Operator Username</label>
+          <div class="duotone-input-wrapper rounded-xl px-3.5 py-2.5 flex items-center gap-3">
+            <div class="w-5 h-5 flex items-center justify-center shrink-0 duotone-icon">
+              <!-- Outlined duo-tone user icon -->
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              id="usernameInput" 
+              required 
+              placeholder="Enter staff handle..." 
+              class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-xs font-mono focus:outline-none" 
+            />
+          </div>
+        </div>
+
+        <!-- PASSWORD FIELD WITH OUTLINED DUO-TONE ICON -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Security Keycode</label>
+          <div class="duotone-input-wrapper rounded-xl px-3.5 py-2.5 flex items-center gap-3">
+            <div class="w-5 h-5 flex items-center justify-center shrink-0 duotone-icon">
+              <!-- Outlined duo-tone key icon -->
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              id="passwordInput" 
+              required 
+              placeholder="••••••••••••" 
+              class="w-full bg-transparent text-slate-100 placeholder-slate-500 text-xs font-mono focus:outline-none" 
+            />
+          </div>
+        </div>
+
+        <!-- REMEMBER SESSION TOGGLE WITH MICRO-TEXT -->
+        <div class="pt-1 flex items-center justify-between">
+          <label class="flex items-center gap-2.5 cursor-pointer select-none group">
+            <input type="checkbox" id="rememberSessionToggle" checked class="w-3.5 h-3.5 rounded bg-[#05070c] border-slate-700 text-blue-600 focus:ring-0 cursor-pointer" />
+            <div>
+              <span class="text-xs font-medium text-slate-300 group-hover:text-white transition-colors block leading-none">Remember Session</span>
+              <span class="text-[9px] font-mono text-slate-500 uppercase tracking-widest block mt-0.5">SEC_LEVEL: PERSISTENT</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- ESTABLISH CONNECTION BUTTON WITH SCANLINE & HOVER GLOW -->
+        <div class="pt-2 space-y-2">
+          <button 
+            type="submit" 
+            id="loginSubmitBtn" 
+            class="scanline-btn btn-glow-border w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-mono tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i class="fa-solid fa-bolt text-xs text-indigo-300"></i>
+            <span>Establish Connection</span>
+          </button>
+
+          <!-- HANDSHAKE STATUS BLINKING LINE -->
+          <div class="text-center pt-1">
+            <div class="text-[9px] font-mono text-slate-500 tracking-wider inline-flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+              <span>GATEWAY_HANDSHAKE: WAITING FOR DEVICE SIGNATURE...</span>
+              <span class="terminal-cursor text-blue-400 font-bold">_</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERROR NOTIFICATION CONTAINER -->
+        <div id="loginErrorBox" class="hidden p-3 bg-red-950/30 border border-red-500/40 rounded-xl text-center space-y-1 backdrop-blur-md">
+          <div class="text-xs font-bold text-red-400 font-mono flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+            <span>AUTHENTICATION REJECTED</span>
+          </div>
+          <p id="loginErrorText" class="text-[11px] text-slate-300 leading-snug">Invalid operator keycode or staff credentials.</p>
+        </div>
+
+      </form>
+
+      <!-- BOTTOM RIGHT FORM VERSION NUMBER -->
+      <div class="flex items-center justify-between pt-2 border-t border-white/5 text-[9px] font-mono text-slate-500">
+        <span>GATEWAY_ID: #SYS-8820</span>
+        <span class="text-slate-400 font-semibold">VERSION: v2.5.0</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- TELEMETRY BENTO CARDS AT BOTTOM -->
+  <footer class="relative z-10 w-full px-4 sm:px-6 py-4 border-t border-white/5 bg-[#05070c]/90 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+      
+      <!-- BENTO CARD 1: LIVE INSTANCE POPULATION -->
+      <div class="p-3 bg-[#0b0f17]/80 border border-white/5 rounded-xl flex items-center justify-between">
+        <div class="space-y-0.5">
+          <div class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#666666] flex items-center gap-1.5">
+            <!-- 20% smaller muted duo-tone icon -->
+            <svg class="w-3.5 h-3.5 text-[#666666]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+            </svg>
+            <span>Live Instance Population</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-base font-mono font-black text-slate-200">1,428</span>
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">+4.2%</span>
+          </div>
+        </div>
+
+        <!-- Inline SVG Sparkline Graph -->
+        <div class="w-16 h-7 shrink-0 opacity-80">
+          <svg class="w-full h-full" viewBox="0 0 60 25" fill="none">
+            <path d="M0 18 L10 14 L20 19 L30 10 L40 12 L50 4 L60 8" stroke="#10b981" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M0 18 L10 14 L20 19 L30 10 L40 12 L50 4 L60 8 L60 25 L0 25 Z" fill="url(#sparklineGrad1)" opacity="0.15"/>
+            <defs>
+              <linearGradient id="sparklineGrad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+
+      <!-- BENTO CARD 2: ACTIVE TELEMETRY NODES -->
+      <div class="p-3 bg-[#0b0f17]/80 border border-white/5 rounded-xl flex items-center justify-between">
+        <div class="space-y-0.5">
+          <div class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#666666] flex items-center gap-1.5">
+            <!-- 20% smaller muted icon -->
+            <svg class="w-3.5 h-3.5 text-[#666666]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+            </svg>
+            <span>Active Telemetry Nodes</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-base font-mono font-black text-slate-200">12/12 Nodes</span>
+            <span class="text-[9px] font-mono text-blue-400 font-bold">100% UP</span>
+          </div>
+        </div>
+
+        <!-- Inline SVG Sparkline Graph -->
+        <div class="w-16 h-7 shrink-0 opacity-80">
+          <svg class="w-full h-full" viewBox="0 0 60 25" fill="none">
+            <path d="M0 12 L12 12 L20 6 L32 18 L44 10 L52 14 L60 11" stroke="#3b82f6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- BENTO CARD 3: SECURITY GATE DISPATCH RATE -->
+      <div class="p-3 bg-[#0b0f17]/80 border border-white/5 rounded-xl flex items-center justify-between">
+        <div class="space-y-0.5">
+          <div class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#666666] flex items-center gap-1.5">
+            <!-- 20% smaller muted icon -->
+            <svg class="w-3.5 h-3.5 text-[#666666]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z"/>
+            </svg>
+            <span>SecGate Sync Rate</span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-base font-mono font-black text-slate-200">0.02s</span>
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">OPTIMAL</span>
+          </div>
+        </div>
+
+        <!-- Inline SVG Sparkline Graph -->
+        <div class="w-16 h-7 shrink-0 opacity-80">
+          <svg class="w-full h-full" viewBox="0 0 60 25" fill="none">
+            <path d="M0 15 L15 15 L25 8 L35 15 L45 15 L50 5 L60 15" stroke="#10b981" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- CLIENT JAVASCRIPT HANDLER -->
   <script>
-    function togglePasswordVisibility() {
-      const passInput = document.getElementById('password');
-      const eyeIcon = document.getElementById('toggleEyeIcon');
-      
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
-      } else {
-        passInput.type = 'password';
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
-      }
-    }
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
 
-    function showOwnerCodeHelp() {
-      document.getElementById('helpModal').classList.remove('hidden');
-    }
+      const username = document.getElementById('usernameInput').value.trim();
+      const password = document.getElementById('passwordInput').value.trim();
+      const btn = document.getElementById('loginSubmitBtn');
+      const errorBox = document.getElementById('loginErrorBox');
+      const errorText = document.getElementById('loginErrorText');
 
-    function hideOwnerCodeHelp() {
-      document.getElementById('helpModal').classList.add('hidden');
-    }
+      if (!username || !password) return;
 
-    async function handleAuth(event) {
-      event.preventDefault();
-      
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const submitBtn = document.getElementById('submitBtn');
-      const btnText = document.getElementById('btnText');
-      const btnSpinner = document.getElementById('btnSpinner');
-      const errorAlert = document.getElementById('errorAlert');
-      const errorMessage = document.getElementById('errorMessage');
-      const passInput = document.getElementById('password');
-
-      submitBtn.disabled = true;
-      submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
-      btnText.innerHTML = 'Connecting to Neural Telemetry...';
-      btnSpinner.classList.remove('hidden');
-      errorAlert.classList.add('hidden');
-      passInput.classList.remove('border-red-500');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> <span>Authenticating Operator...</span>`;
+      errorBox.classList.add('hidden');
 
       try {
-        const response = await fetch('/auth/login', {
+        const res = await fetch('/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (response.ok && data.success) {
-          btnText.innerHTML = 'Access Granted. Redirecting...';
-          window.location.href = '/dashboard';
+        if (res.ok && data.success) {
+          btn.className = "w-full py-3 bg-emerald-600 text-white text-xs font-bold font-mono tracking-wider uppercase rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2";
+          btn.innerHTML = `<i class="fa-solid fa-check text-xs"></i> <span>Access Granted // Redirecting...</span>`;
+          setTimeout(() => {
+            window.location.href = data.redirect || '/dashboard';
+          }, 450);
         } else {
-          errorMessage.innerText = data.message || 'Invalid Credentials! Check your access key.';
-          errorAlert.classList.remove('hidden');
-          passInput.classList.add('border-red-500');
-          
-          submitBtn.disabled = false;
-          submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-          btnText.innerHTML = '<i class="fa-solid fa-shield-cat text-xs"></i> Establish Connection';
-          btnSpinner.classList.add('hidden');
+          btn.disabled = false;
+          btn.className = "scanline-btn btn-glow-border w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-mono tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer";
+          btn.innerHTML = `<i class="fa-solid fa-bolt text-xs text-indigo-300"></i> <span>Establish Connection</span>`;
+
+          errorText.innerText = data.message || "Invalid operator keycode or staff credentials.";
+          errorBox.classList.remove('hidden');
         }
       } catch (err) {
-        errorMessage.innerText = 'Network connection failed. Check server status.';
-        errorAlert.classList.remove('hidden');
-        
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-        btnText.innerHTML = '<i class="fa-solid fa-shield-cat text-xs"></i> Establish Connection';
-        btnSpinner.classList.add('hidden');
+        btn.disabled = false;
+        btn.className = "scanline-btn btn-glow-border w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-mono tracking-wider uppercase rounded-xl transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer";
+        btn.innerHTML = `<i class="fa-solid fa-bolt text-xs text-indigo-300"></i> <span>Establish Connection</span>`;
+
+        errorText.innerText = "Connection timeout. Gateway server unavailable.";
+        errorBox.classList.remove('hidden');
       }
     }
-
-    // Animated Load-Up Rolling Number Counter for Live Players
-    function animateCounter(id, target, duration = 1800) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      let start = 0;
-      const increment = Math.ceil(target / (duration / 16));
-      
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= target) {
-          el.innerText = target.toLocaleString();
-          clearInterval(timer);
-        } else {
-          el.innerText = start.toLocaleString();
-        }
-      }, 16);
-    }
-
-    // Interactive Wave Animation for Ambient Hero Canvas
-    const canvas = document.getElementById('waveCanvas');
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      let width = canvas.width = canvas.offsetWidth;
-      let height = canvas.height = canvas.offsetHeight;
-      
-      window.addEventListener('resize', () => {
-        width = canvas.width = canvas.offsetWidth;
-        height = canvas.height = canvas.offsetHeight;
-      });
-
-      let step = 0;
-      function drawWave() {
-        ctx.clearRect(0, 0, width, height);
-        step += 0.012;
-
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          ctx.lineWidth = 1.2;
-          ctx.strokeStyle = i === 0 ? 'rgba(59, 130, 246, 0.35)' : i === 1 ? 'rgba(139, 92, 246, 0.20)' : 'rgba(147, 197, 253, 0.12)';
-
-          for (let x = 0; x <= width; x += 12) {
-            const y = Math.sin(x * 0.004 + step + (i * 1.5)) * 30 + (height * 0.5) + Math.cos(x * 0.002 + step) * 15;
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.stroke();
-        }
-        requestAnimationFrame(drawWave);
-      }
-      drawWave();
-    }
-
-    // Page Initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      animateCounter('counterLivePlayers', 1248);
-      
-      // Dynamic Latency Jitter Simulation
-      setInterval(() => {
-        const sysLatency = document.getElementById('sysLatency');
-        if (sysLatency) {
-          const lat = Math.floor(10 + Math.random() * 5);
-          sysLatency.innerText = `${lat}ms`;
-        }
-      }, 3000);
-    });
   </script>
 </body>
 </html>
