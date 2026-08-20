@@ -1099,6 +1099,66 @@ app.get('/api/system/notice', (req, res) => {
   res.json({ success: true, notice: systemNotice });
 });
 
+app.get('/ttestt', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="en" class="h-full bg-black text-white">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Inspection</title>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+    iframe { width: 100vw; height: 100vh; border: none; }
+    #overlay {
+      position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; font-family: system-ui, -apple-system, sans-serif; text-align: center; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay" onclick="startRickroll()">
+    <div style="font-size: 28px; font-weight: 800; margin-bottom: 8px; color: #3b82f6;">⚠️ Click Anywhere to Continue</div>
+    <div style="font-size: 14px; color: #94a3b8;">System security check in progress...</div>
+  </div>
+  <div id="player"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'dQw4w9WgXcQ',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1,
+          'enablejsapi': 1,
+          'playsinline': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': (e) => {
+            e.target.setVolume(100);
+            e.target.playVideo();
+          }
+        }
+      });
+    }
+    function startRickroll() {
+      const overlay = document.getElementById('overlay');
+      if (overlay) overlay.style.display = 'none';
+      if (player) {
+        player.setVolume(100);
+        player.unMute();
+        player.playVideo();
+      }
+    }
+  </script>
+</body>
+</html>`);
+});
+
 app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
   const { message, alertLevel, icon, active, author } = req.body;
   systemNotice = {
