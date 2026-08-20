@@ -704,6 +704,10 @@ app.post('/api/applications/submissions/:id/status', requireAuth, async (req, re
   if (!sub && isMongoConnected) {
     try {
       sub = await SubmissionModel.findOne({ id });
+      if (sub) {
+        sub = sub.toObject();
+        applicationSubmissions.unshift(sub);
+      }
     } catch (e) {}
   }
 
@@ -715,6 +719,14 @@ app.post('/api/applications/submissions/:id/status', requireAuth, async (req, re
   sub.reviewedBy = req.session.adminName || 'roblox';
   sub.reviewedAt = new Date();
 
+  // Ensure live array in memory is updated directly
+  const memIdx = applicationSubmissions.findIndex(s => s.id === id);
+  if (memIdx !== -1) {
+    applicationSubmissions[memIdx].status = sub.status;
+    applicationSubmissions[memIdx].reviewedBy = sub.reviewedBy;
+    applicationSubmissions[memIdx].reviewedAt = sub.reviewedAt;
+  }
+
   saveApplicationsToFile();
 
   if (isMongoConnected) {
@@ -723,7 +735,7 @@ app.post('/api/applications/submissions/:id/status', requireAuth, async (req, re
     } catch (err) {}
   }
 
-  res.json({ success: true, message: `Submission status updated to ${status}` });
+  res.json({ success: true, message: `Submission status updated to ${status}`, status: sub.status });
 });
 
 app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, async (req, res) => {
