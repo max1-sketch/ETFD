@@ -381,6 +381,24 @@ app.post('/api/gate/verify', (req, res) => {
   res.json({ success: true, blocked: false, signature: cleanSig });
 });
 
+// EMERGENCY PUBLIC DEVICE SIGNATURE RESET ENDPOINT
+app.post('/api/public/gate/reset-signature', (req, res) => {
+  const { signature } = req.body;
+  if (signature) {
+    const cleanSig = String(signature).trim();
+    blockedSignatures.delete(cleanSig);
+    saveSecurityGateToFile();
+    if (isMongoConnected) {
+      SecurityGateModel.findOneAndUpdate(
+        { configId: 'default' },
+        { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+        { upsert: true }
+      ).catch(() => {});
+    }
+  }
+  res.json({ success: true, message: 'Device signature restrictions reset cleanly.' });
+});
+
 app.get('/api/gate/logs', requireAuth, (req, res) => {
   res.json({
     success: true,
@@ -508,11 +526,12 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
   const { id } = req.params;
   const { username, deviceSignature } = req.query;
 
-  const appItem = applicationsMap.get(id);
-  if (!appItem) return res.status(404).json({ success: false, error: 'Form not found.' });
-
   const cleanUser = username ? String(username).trim().toLowerCase() : '';
   const cleanSig = deviceSignature ? String(deviceSignature).trim() : '';
+
+  if (!cleanUser && !cleanSig) {
+    return res.json({ success: true, alreadySubmitted: false, submission: null });
+  }
 
   let existing = null;
 
@@ -522,15 +541,18 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
       if (cleanUser) orConditions.push({ applicantUsername: new RegExp(`^${cleanUser}$`, 'i') });
       if (cleanSig && cleanSig !== 'SIG-UNTRACKED') orConditions.push({ deviceSignature: cleanSig });
 
-      if (orConditions.length > 0) {
-        existing = await SubmissionModel.findOne({ appId: id, $or: orConditions });
+      const query = { $or: orConditions };
+      if (id && id !== 'APP-DEFAULT' && id !== 'any') {
+        query.appId = id;
       }
+
+      existing = await SubmissionModel.findOne(query);
     } catch (e) {}
   }
 
   if (!existing) {
     existing = applicationSubmissions.find(s => 
-      s.appId === id && (
+      (id === 'APP-DEFAULT' || id === 'any' || s.appId === id) && (
         (cleanUser && s.applicantUsername.toLowerCase() === cleanUser) ||
         (cleanSig && cleanSig !== 'SIG-UNTRACKED' && s.deviceSignature === cleanSig)
       )

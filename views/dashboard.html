@@ -222,6 +222,12 @@
           <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Your device signature has been restricted by system administration.</p>
         </div>
         <div id="restrictedSigTag" class="text-[9px] font-mono text-red-400/70 bg-red-950/40 px-2 py-0.5 rounded border border-red-500/20 inline-block mt-1"></div>
+        
+        <div class="pt-2">
+          <button type="button" onclick="resetDeviceSignature()" class="w-full py-2 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition-colors shadow-md flex items-center justify-center gap-2">
+            <i class="fa-solid fa-rotate-left"></i> Reset Signature & Unblock
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1390,6 +1396,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('reset') === '1' || urlParams.get('unblock') === '1') {
+        resetDeviceSignature();
+        return;
+      }
+
       checkTopNotice();
       executeSecurityGateCheck();
       checkGoogleAuthApplicant();
@@ -1431,13 +1443,19 @@
             const u = data.googleUser;
             if (info) {
               info.innerHTML = `
-                <img src="${u.picture}" class="w-6 h-6 rounded-full border border-slate-700" onerror="this.src='/api/avatar/1'" />
-                <span class="text-emerald-400 font-semibold">Verified candidate email: ${u.email}</span>
+                <img src="${u.picture}" class="w-8 h-8 rounded-full border border-emerald-500/50 shadow-sm" onerror="this.src='/api/avatar/1'" />
+                <div>
+                  <div class="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i> Google Login Successful!
+                  </div>
+                  <div class="text-[11px] text-slate-300 font-medium">${u.name || 'Verified User'} <span class="text-slate-400 font-mono">(${u.email})</span></div>
+                </div>
               `;
             }
             if (btn) {
-              btn.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out`;
+              btn.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sign Out`;
               btn.href = '/auth/google/logout';
+              btn.className = "px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 shrink-0 card-border";
             }
           }
         }).catch(() => {});
@@ -1591,18 +1609,26 @@
       }
     }
 
-    function toggleMobileSidebar(show) {
-      const drawer = document.getElementById('sidebarDrawer');
-      const backdrop = document.getElementById('mobileSidebarBackdrop');
-      if (show) {
-        backdrop.classList.remove('hidden');
-        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-        drawer.classList.remove('-translate-x-full');
-      } else {
-        backdrop.classList.add('opacity-0');
-        drawer.classList.add('-translate-x-full');
-        setTimeout(() => backdrop.classList.add('hidden'), 300);
-      }
+    async function resetDeviceSignature() {
+      const oldSig = activeDeviceSignature;
+      const newSig = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      activeDeviceSignature = newSig;
+      localStorage.setItem('et_device_signature', newSig);
+      sessionStorage.removeItem('gate_verified');
+
+      try {
+        await fetch('/api/public/gate/reset-signature', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: oldSig })
+        });
+      } catch (e) {}
+
+      showToast('Device signature reset cleanly! Reloading...', 'success');
+      setTimeout(() => {
+        window.location.href = window.location.pathname;
+      }, 600);
+    }
     }
 
     function toggleThemeDropdown() {
@@ -1851,10 +1877,12 @@
     }
 
     function searchMyAppsStatus() {
-      const searchVal = document.getElementById('myAppsUserSearchInput')?.value.trim();
+      const searchInput = document.getElementById('myAppsUserSearchInput');
       const formUserInput = document.getElementById('standaloneApplicantUser');
-      if (searchVal && formUserInput) {
-        formUserInput.value = searchVal;
+      const searchVal = searchInput?.value.trim() || formUserInput?.value.trim();
+      
+      if (searchVal && searchInput && !searchInput.value) {
+        searchInput.value = searchVal;
       }
       fetchPortalMyApps();
     }
@@ -1865,82 +1893,129 @@
       const formUserInput = document.getElementById('standaloneApplicantUser');
       
       const userVal = (searchInput?.value.trim() || formUserInput?.value.trim() || '');
-      const appId = document.getElementById('standaloneAppId').value;
+      const appId = document.getElementById('standaloneAppId')?.value || 'APP-DEFAULT';
+
+      if (!container) return;
 
       if (!userVal) {
         container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Enter your Roblox username above to check your application status.</div>`;
         return;
       }
 
+      container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs font-mono"><i class="fa-solid fa-circle-notch fa-spin text-indigo-400 text-base mb-2 block"></i> Searching application records for "${userVal}"...</div>`;
+
       try {
         const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(userVal)}&deviceSignature=${encodeURIComponent(activeDeviceSignature)}`);
         const data = await res.json();
 
         if (!data.submission) {
-          container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">No active submission found for username "${userVal}".</div>`;
+          container.innerHTML = `
+            <div class="p-6 bg-[#0b0f17] border border-white/5 rounded-xl text-center space-y-2">
+              <div class="w-10 h-10 rounded-full bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-base">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </div>
+              <div class="text-xs font-bold text-slate-300">No Application Found</div>
+              <p class="text-[11px] text-slate-500 max-w-sm mx-auto">No submission records found for username "<span class="text-slate-300 font-mono">${userVal}</span>". Please ensure your Roblox username is typed correctly.</p>
+            </div>
+          `;
           return;
         }
 
         const sub = data.submission;
         const stages = ['PENDING', 'UNDER_REVIEW', 'INTERVIEW_SCHEDULED', 'ACCEPTED'];
         let currentStageIdx = stages.indexOf(sub.status);
-        if (currentStageIdx === -1) currentStageIdx = 0;
+        if (sub.status === 'DENIED') currentStageIdx = -1;
+        if (currentStageIdx === -1 && sub.status !== 'DENIED') currentStageIdx = 0;
 
         const stageLabels = ['Submitted', 'Under Review', 'Interview', 'Decision'];
 
         container.innerHTML = `
           <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div class="flex items-center gap-3">
-                <img src="/api/avatar-by-username/${encodeURIComponent(sub.applicantUsername)}" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='/api/avatar/1'" />
+                <img src="/api/avatar-by-username/${encodeURIComponent(sub.applicantUsername)}" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 object-cover" onerror="this.src='/api/avatar/1'" />
                 <div>
-                  <span class="text-xs font-bold text-slate-100">${sub.appTitle || 'Staff Application'}</span>
-                  <span class="text-[10px] font-mono text-slate-500 block">Candidate: ${sub.applicantUsername}</span>
+                  <h3 class="text-xs font-bold text-slate-100">${sub.appTitle || 'Staff Application'}</h3>
+                  <div class="text-[10px] font-mono text-slate-400 mt-0.5">Applicant: <span class="text-slate-200 font-semibold">${sub.applicantUsername}</span> • Discord: ${sub.discordTag || 'N/A'}</div>
                 </div>
               </div>
-              <span class="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-[11px] font-bold rounded-lg">
+              <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-xs font-bold rounded-lg shrink-0">
                 ${formatStatusLabel(sub.status)}
               </span>
             </div>
 
-            <div class="relative py-2">
-              <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+            <!-- TIMELINE STEPPER -->
+            <div class="relative py-3 px-2">
+              <div class="absolute top-1/2 left-6 right-6 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
               <div class="relative z-10 flex items-center justify-between">
                 ${stageLabels.map((lbl, idx) => {
-                  const isDone = idx < currentStageIdx;
-                  const isCurrent = idx === currentStageIdx;
+                  const isDone = sub.status !== 'DENIED' && idx < currentStageIdx;
+                  const isCurrent = sub.status !== 'DENIED' && idx === currentStageIdx;
+                  const isDenied = sub.status === 'DENIED' && idx === 3;
+                  
+                  let circleClass = 'bg-slate-800 text-slate-500 border border-slate-700';
+                  if (isDone) circleClass = 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30';
+                  if (isCurrent) circleClass = 'bg-indigo-500 text-white ring-4 ring-indigo-500/20 shadow-lg shadow-indigo-500/40';
+                  if (isDenied) circleClass = 'bg-red-600 text-white ring-4 ring-red-500/20';
+
                   return `
                     <div class="flex flex-col items-center gap-1.5">
-                      <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                        isDone ? 'bg-indigo-600 text-white' :
-                        isCurrent ? 'bg-indigo-500 text-white ring-4 ring-indigo-500/20' :
-                        'bg-slate-800 text-slate-500 border border-slate-700'
-                      }">
-                        ${isDone ? '✓' : idx + 1}
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${circleClass}">
+                        ${isDone ? '<i class="fa-solid fa-check"></i>' : isDenied ? '<i class="fa-solid fa-xmark"></i>' : idx + 1}
                       </div>
-                      <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-bold' : 'text-slate-400'}">${lbl}</span>
+                      <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-bold' : isDenied ? 'text-red-400 font-bold' : 'text-slate-400'}">${lbl}</span>
                     </div>
                   `;
                 }).join('')}
               </div>
             </div>
 
+            <!-- SUBMITTED ANSWERS PREVIEW -->
+            ${sub.answers && Object.keys(sub.answers).length ? `
+              <div class="p-3.5 bg-[#121722] rounded-lg border border-white/5 space-y-2 text-xs">
+                <div class="font-bold text-slate-300 border-b border-slate-800/80 pb-1.5 flex items-center justify-between">
+                  <span>Submitted Responses</span>
+                  <span class="text-[10px] font-mono text-slate-500 font-normal">${Object.keys(sub.answers).length} fields</span>
+                </div>
+                <div class="space-y-2 pt-1">
+                  ${Object.entries(sub.answers).map(([q, a]) => `
+                    <div>
+                      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${q}</div>
+                      <div class="text-slate-200 mt-0.5 leading-relaxed bg-[#0b0f17] p-2 rounded border border-white/5 text-[11px]">${a}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
             ${sub.notes && sub.notes.length ? `
-              <div class="p-3 bg-[#121722] rounded-lg border border-white/5 space-y-1 text-xs">
-                <div class="font-bold text-slate-300">Reviewer Notes:</div>
-                ${sub.notes.map(n => `<div class="text-slate-400 text-[11px]">• ${n.text} <span class="text-slate-600 font-mono">(${n.author})</span></div>`).join('')}
+              <div class="p-3.5 bg-[#121722] rounded-lg border border-indigo-500/20 space-y-1.5 text-xs">
+                <div class="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
+                  <i class="fa-solid fa-comment-dots text-indigo-400"></i> Reviewer Feedback
+                </div>
+                ${sub.notes.map(n => `
+                  <div class="text-slate-300 text-[11px] leading-relaxed bg-[#0b0f17] p-2 rounded border border-white/5">
+                    "${n.text}" <span class="text-slate-500 font-mono text-[10px] block mt-1">— Reviewed by ${n.author}</span>
+                  </div>
+                `).join('')}
               </div>
             ` : ''}
 
             <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
               <span class="text-slate-500 font-mono">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</span>
-              <button onclick="triggerWithdrawalConfirmation('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs">
-                Withdraw Application
-              </button>
+              ${sub.status !== 'WITHDRAWN' && sub.status !== 'DENIED' ? `
+                <button onclick="triggerWithdrawalConfirmation('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs font-medium inline-flex items-center gap-1">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i> Withdraw Application
+                </button>
+              ` : `
+                <span class="text-slate-600 font-mono text-[10px]">${sub.status === 'WITHDRAWN' ? 'Withdrawn' : 'Finalized'}</span>
+              `}
             </div>
           </div>
         `;
-      } catch (err) {}
+      } catch (err) {
+        container.innerHTML = `<div class="p-6 text-center text-red-400 text-xs font-mono">Failed to connect to application records server.</div>`;
+      }
     }
 
     function triggerWithdrawalConfirmation(subId) {
