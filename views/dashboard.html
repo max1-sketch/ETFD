@@ -178,6 +178,7 @@
 </head>
 <body class="h-full flex flex-col min-h-screen select-none">
 
+  <!-- SECURITY GATE OVERLAY -->
   <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f]/95 backdrop-blur-xl z-[100] flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
     <div class="relative max-w-sm w-full bg-[#0d121d] border border-slate-800/80 rounded-2xl p-6 shadow-2xl shadow-black/80 space-y-4 overflow-hidden">
       <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -232,6 +233,7 @@
     </div>
   </div>
 
+  <!-- STANDALONE APPLICANT PUBLIC PORTAL -->
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-start justify-center min-h-screen overflow-y-auto py-8 sm:py-12">
     <div class="max-w-2xl w-full bg-[#121722] border border-white/5 rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl my-auto">
       
@@ -256,6 +258,9 @@
           <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-table-list text-xs"></i> Public Roster
           </button>
+        </div>
+      </div>
+
       <!-- GOOGLE OAUTH LOGIN BAR FOR APPLICANTS (MANDATORY) -->
       <div id="googleAuthApplicantBar" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
         <div id="googleAuthApplicantInfo" class="flex items-center gap-2.5">
@@ -273,6 +278,7 @@
         </a>
       </div>
 
+      <!-- CANDIDATE REQUIREMENTS CARD -->
       <div id="portalVerificationCard" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center justify-between text-xs">
         <div class="flex items-center gap-3">
           <div class="w-7 h-7 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
@@ -288,6 +294,7 @@
         </span>
       </div>
 
+      <!-- PUBLIC APPLICATION FORM -->
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
         <input type="hidden" id="standaloneAppId" value="APP-DEFAULT" />
 
@@ -419,6 +426,7 @@
     </div>
   </div>
 
+  <!-- MAIN STAFF DASHBOARD COMMAND APP -->
   <div id="mainDashboardApp" class="flex-1 flex flex-col min-h-0 overflow-hidden">
     
     <div id="topNoticeBanner" class="hidden max-w-3xl w-[92%] mx-auto mt-3 px-4 py-2.5 rounded-full backdrop-blur-xl shadow-2xl flex items-center justify-between transition-all duration-300 z-50 shrink-0 banner-glass-warning">
@@ -572,6 +580,7 @@
         </header>
 
         <div class="p-4 sm:p-6 space-y-6 flex-1">
+          <!-- TAB DASHBOARD / MODERATION -->
           <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               
@@ -704,6 +713,7 @@
             </div>
           </section>
 
+          <!-- TAB LIVE PLAYERS -->
           <section id="tab-players" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -725,6 +735,7 @@
             </div>
           </section>
 
+          <!-- TAB CHAT SCANNER -->
           <section id="tab-chat" class="tab-content space-y-4 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
               <div class="lg:col-span-8 bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4 flex flex-col justify-between" id="chatFeedCard">
@@ -795,6 +806,7 @@
             </div>
           </section>
 
+          <!-- TAB BANNED USERS -->
           <section id="tab-banned" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -834,6 +846,7 @@
             </div>
           </section>
 
+          <!-- TAB SECURITY CENTER -->
           <section id="tab-security" class="tab-content space-y-6 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -892,6 +905,7 @@
             </div>
           </section>
 
+          <!-- TAB ACTION LOGS -->
           <section id="tab-logs" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
@@ -920,6 +934,7 @@
             </div>
           </section>
 
+          <!-- TAB ROBLOX LOOKUP -->
           <section id="tab-lookup" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3">
@@ -941,6 +956,7 @@
             </div>
           </section>
 
+          <!-- TAB MANAGEMENT / STAFF CENTER -->
           <section id="tab-management" class="tab-content space-y-6 hidden">
             <div id="noticeConfigCard" class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -1030,6 +1046,7 @@
             </div>
           </section>
 
+          <!-- TAB APPLICATIONS / RECRUITMENT DESIGNER -->
           <section id="tab-applications" class="tab-content space-y-6 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -1217,6 +1234,7 @@
             </div>
           </section>
 
+          <!-- TAB SYSTEM TERMINAL -->
           <section id="tab-system" class="tab-content space-y-4 hidden">
             <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
               <div class="border-b border-slate-800/60 pb-3 flex items-center justify-between">
@@ -1243,6 +1261,7 @@
     </div>
   </div>
 
+  <!-- MODALS -->
   <div id="customConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] border border-slate-700/80 rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative overflow-hidden">
       <div id="confirmModalAccentBar" class="absolute top-0 left-0 right-0 h-1 bg-red-500"></div>
@@ -1352,6 +1371,7 @@
 
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
+  <!-- CLIENT JAVASCRIPT HANDLERS -->
   <script>
     let activeApplications = [];
     let applicationSubmissions = [];
@@ -1435,6 +1455,66 @@
       }
     });
 
+    async function executeSecurityGateCheck() {
+      const spinner = document.getElementById('gateSpinner');
+      const checkmark = document.getElementById('gateCheckmark');
+      const label = document.getElementById('gateLabelText');
+      const notice = document.getElementById('gateRestrictedNotice');
+      const sigTag = document.getElementById('restrictedSigTag');
+
+      if (spinner) spinner.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: activeDeviceSignature })
+        });
+        const data = await res.json();
+
+        if (data.blocked) {
+          if (spinner) spinner.classList.add('hidden');
+          if (label) label.innerText = 'Access Denied';
+          if (notice) notice.classList.remove('hidden');
+          if (sigTag) sigTag.innerText = activeDeviceSignature;
+        } else {
+          if (spinner) spinner.classList.add('hidden');
+          if (checkmark) checkmark.classList.remove('hidden');
+          if (label) label.innerText = "Verified cleanly";
+          
+          sessionStorage.setItem('gate_verified', 'true');
+          setTimeout(() => {
+            document.documentElement.classList.add('gate-verified');
+          }, 400);
+        }
+      } catch (e) {
+        if (spinner) spinner.classList.add('hidden');
+        if (checkmark) checkmark.classList.remove('hidden');
+        sessionStorage.setItem('gate_verified', 'true');
+        document.documentElement.classList.add('gate-verified');
+      }
+    }
+
+    async function resetDeviceSignature() {
+      const newSig = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const oldSig = activeDeviceSignature;
+      activeDeviceSignature = newSig;
+      localStorage.setItem('et_device_signature', newSig);
+
+      try {
+        await fetch('/api/public/gate/reset-signature', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature: oldSig })
+        });
+      } catch (e) {}
+
+      showToast('Device signature reset cleanly!', 'success');
+      setTimeout(() => {
+        window.location.href = window.location.pathname;
+      }, 500);
+    }
+
     function checkGoogleAuthApplicant() {
       fetch('/api/public/auth/me')
         .then(res => res.json())
@@ -1465,7 +1545,6 @@
           } else {
             currentGoogleUser = null;
             if (btn) {
-              // Dynamically append returnTo so candidate is returned directly back to current form page (/apply/:id)
               btn.href = `/auth/google?returnTo=${encodeURIComponent(currentPath)}`;
             }
           }
@@ -1813,6 +1892,237 @@
           });
         }
       } catch (e) {}
+    }
+
+    let verifiedRobloxUser = null;
+    let validateRobloxTimer = null;
+
+    function debounceRobloxValidation() {
+      clearTimeout(validateRobloxTimer);
+      validateRobloxTimer = setTimeout(validateApplicantRobloxLive, 600);
+    }
+
+    async function validateApplicantRobloxLive() {
+      const input = document.getElementById('standaloneApplicantUser');
+      const badge = document.getElementById('robloxUserValidationBadge');
+      if (!input || !badge) return;
+
+      const userVal = input.value.trim();
+      if (!userVal) {
+        badge.classList.add('hidden');
+        verifiedRobloxUser = null;
+        return;
+      }
+
+      badge.classList.remove('hidden');
+      badge.innerHTML = `<span class="text-slate-400 text-[11px] font-mono flex items-center gap-1.5"><i class="fa-solid fa-circle-notch fa-spin text-indigo-400"></i> Verifying Roblox Username...</span>`;
+
+      try {
+        const res = await fetch(`/api/public/validate-roblox/${encodeURIComponent(userVal)}`);
+        const data = await res.json();
+
+        if (data.valid) {
+          verifiedRobloxUser = data;
+          input.classList.remove('border-red-500');
+          input.classList.add('border-emerald-500/50');
+
+          badge.className = 'mt-2 p-2.5 bg-emerald-950/20 border border-emerald-500/30 rounded-lg flex items-center justify-between text-xs';
+          badge.innerHTML = `
+            <div class="flex items-center gap-2.5">
+              <img src="${data.avatarUrl}" class="w-8 h-8 rounded-md bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='/api/avatar/1'" />
+              <div>
+                <div class="font-bold text-slate-100 text-xs">${data.exactName} <span class="text-slate-400 text-[10px] font-mono">(${data.displayName})</span></div>
+                <div class="text-[10px] text-slate-400 font-mono">Account Age: ${data.accountAgeDays} days • ID: ${data.userId}</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold rounded">
+              ✓ VERIFIED
+            </span>
+          `;
+        } else {
+          verifiedRobloxUser = null;
+          input.classList.remove('border-emerald-500/50');
+          input.classList.add('border-red-500');
+
+          badge.className = 'mt-2 p-2.5 bg-red-950/20 border border-red-500/30 rounded-lg flex items-center justify-between text-xs';
+          badge.innerHTML = `
+            <div class="flex items-center gap-2 text-red-400 text-xs font-semibold">
+              <i class="fa-solid fa-circle-xmark text-sm"></i>
+              <span>Roblox account not found. Please enter your exact Roblox username.</span>
+            </div>
+          `;
+        }
+      } catch (err) {
+        badge.classList.add('hidden');
+      }
+    }
+
+    async function fetchPortalApplication(appId) {
+      try {
+        const res = await fetch(`/api/public/applications/${appId}`);
+        const data = await res.json();
+        if (data.success && data.application) {
+          const app = data.application;
+          document.getElementById('standalonePortalTitle').innerText = app.title || 'New Staff Application';
+          document.getElementById('standalonePortalDesc').innerText = app.description || 'Fill out the form below';
+
+          const questionsList = document.getElementById('standaloneQuestionsList');
+          if (questionsList && Array.isArray(app.questions)) {
+            questionsList.innerHTML = app.questions.map((q, idx) => {
+              const qType = q.type || 'textarea';
+              const reqAsterisk = q.required ? '<span class="text-indigo-400">*</span>' : '';
+              let inputFieldHtml = '';
+
+              if (qType === 'text') {
+                inputFieldHtml = `<input type="text" id="standalone_q_${idx}" data-question="${q.text}" data-type="text" ${q.required ? 'required' : ''} placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />`;
+              } else if (qType === 'select') {
+                const options = (q.options || '').split(',').map(o => o.trim()).filter(Boolean);
+                inputFieldHtml = `
+                  <select id="standalone_q_${idx}" data-question="${q.text}" data-type="select" ${q.required ? 'required' : ''} class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs">
+                    <option value="">-- Select an option --</option>
+                    ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                  </select>
+                `;
+              } else if (qType === 'checkbox') {
+                inputFieldHtml = `
+                  <label class="flex items-center gap-2 cursor-pointer pt-1">
+                    <input type="checkbox" id="standalone_q_${idx}" data-question="${q.text}" data-type="checkbox" ${q.required ? 'required' : ''} class="w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-xs text-slate-300">${q.text}</span>
+                  </label>
+                `;
+              } else if (qType === 'number') {
+                inputFieldHtml = `<input type="number" id="standalone_q_${idx}" data-question="${q.text}" data-type="number" ${q.required ? 'required' : ''} placeholder="Enter a number..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />`;
+              } else {
+                inputFieldHtml = `<textarea id="standalone_q_${idx}" data-question="${q.text}" data-type="textarea" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>`;
+              }
+
+              return `
+                <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
+                  ${qType !== 'checkbox' ? `<label class="text-[11px] font-medium text-slate-300 block">${q.text} ${reqAsterisk}</label>` : ''}
+                  ${inputFieldHtml}
+                </div>
+              `;
+            }).join('');
+          }
+          loadSavedDraft();
+        }
+      } catch (err) {}
+    }
+
+    function toggleMobileSidebar(show) {
+      const drawer = document.getElementById('sidebarDrawer');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      if (show) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+        drawer.classList.remove('-translate-x-full');
+      } else {
+        backdrop.classList.add('opacity-0');
+        drawer.classList.add('-translate-x-full');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    }
+
+    function toggleThemeDropdown() {
+      document.getElementById('themeDropdown').classList.toggle('hidden');
+    }
+
+    function setAppTheme(theme) {
+      document.body.classList.remove('theme-purple', 'theme-stealth');
+      if (theme === 'purple') document.body.classList.add('theme-purple');
+      if (theme === 'stealth') document.body.classList.add('theme-stealth');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('nav-active', 'text-slate-100'));
+
+      const target = document.getElementById(`tab-${tabId}`);
+      const navBtn = document.getElementById(`nav-${tabId}`);
+
+      if (target) target.classList.remove('hidden');
+      if (navBtn) navBtn.classList.add('nav-active', 'text-slate-100');
+
+      const headings = {
+        dashboard: ['Staff Command Center', 'Live game data and moderation console'],
+        players: ['Live Server Instances', 'Check player items, ping, and issue punishments'],
+        chat: ['Live Chat Feed & Chat Scanner', 'Real-time live game chat with auto-flagging'],
+        banned: ['Active Global Bans', 'Managed persistence synced across WebBanList_v3'],
+        security: ['Security Center', 'Connection Gateway logs and device restrictions'],
+        logs: ['Action Logs', 'Historical audit trail of all moderation actions'],
+        lookup: ['Roblox Inspector', 'Query Roblox API by Username or UserID'],
+        management: ['Staff Center', 'Invite staff and manage notice broadcasts'],
+        applications: ['Recruitment Center', 'Build forms and review candidate submissions'],
+        system: ['Console Terminal', 'Open Cloud WebSocket and server console']
+      };
+
+      if (headings[tabId]) {
+        document.getElementById('pageTitleHeading').innerHTML = `<i class="fa-solid fa-layer-group text-blue-400 text-xs"></i> <span>${headings[tabId][0]}</span>`;
+        document.getElementById('pageSubHeading').innerText = headings[tabId][1];
+      }
+      toggleMobileSidebar(false);
+    }
+
+    function switchPortalTab(tab) {
+      const formView = document.getElementById('standalonePublicForm');
+      const myAppsView = document.getElementById('standaloneMyAppsView');
+      const rosterView = document.getElementById('standaloneRosterView');
+      const verificationCard = document.getElementById('portalVerificationCard');
+
+      const tabForm = document.getElementById('portalTabForm');
+      const tabMyApps = document.getElementById('portalTabMyApps');
+      const tabRoster = document.getElementById('portalTabRoster');
+
+      if (formView) formView.classList.add('hidden');
+      if (myAppsView) myAppsView.classList.add('hidden');
+      if (rosterView) rosterView.classList.add('hidden');
+
+      [tabForm, tabMyApps, tabRoster].forEach(btn => {
+        if (btn) btn.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
+      });
+
+      if (tab === 'form') {
+        if (formView) formView.classList.remove('hidden');
+        if (verificationCard) verificationCard.classList.remove('hidden');
+        if (tabForm) tabForm.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+      } else if (tab === 'my_apps') {
+        if (myAppsView) myAppsView.classList.remove('hidden');
+        if (verificationCard) verificationCard.classList.add('hidden');
+        if (tabMyApps) tabMyApps.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        
+        const mainUserVal = document.getElementById('standaloneApplicantUser')?.value.trim();
+        const searchInput = document.getElementById('myAppsUserSearchInput');
+        if (mainUserVal && searchInput && !searchInput.value) {
+          searchInput.value = mainUserVal;
+        }
+        fetchPortalMyApps();
+      } else if (tab === 'roster') {
+        if (rosterView) rosterView.classList.remove('hidden');
+        if (verificationCard) verificationCard.classList.add('hidden');
+        if (tabRoster) tabRoster.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        fetchPortalRoster();
+      }
+    }
+
+    function switchDesignerTab(tab) {
+      const qBtn = document.getElementById('designerTabQuestions');
+      const sBtn = document.getElementById('designerTabSettings');
+      const qSec = document.getElementById('designerSectionQuestions');
+      const sSec = document.getElementById('designerSectionSettings');
+
+      if (!qBtn || !sBtn || !qSec || !sSec) return;
+
+      if (tab === 'questions') {
+        qBtn.className = 'pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5';
+        sBtn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5';
+        qSec.classList.remove('hidden');
+        sSec.classList.add('hidden');
+      } else {
+        sBtn.className = 'pb-2 border-b-2 border-indigo-500 text-indigo-400 font-semibold transition-all flex items-center gap-1.5';
+        qBtn.className = 'pb-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1.5';
+        qSec.classList.add('hidden');
+        sSec.classList.remove('hidden');
+      }
     }
 
     function renderAppBuilderQuestions() {
@@ -2777,6 +3087,60 @@
       });
 
       ctx.stroke();
+    }
+
+    function openCustomConfirmModal(options) {
+      const modal = document.getElementById('customConfirmModal');
+      const title = document.getElementById('confirmModalTitle');
+      const desc = document.getElementById('confirmModalDesc');
+      const details = document.getElementById('confirmModalDetails');
+      const submitBtn = document.getElementById('confirmModalSubmitBtn');
+      const accent = document.getElementById('confirmModalAccentBar');
+      const iconBg = document.getElementById('confirmModalIconBg');
+      const icon = document.getElementById('confirmModalIcon');
+
+      title.innerText = options.title || 'Confirm Action';
+      desc.innerText = options.message || 'Are you sure you want to execute this command?';
+      
+      if (options.details) {
+        details.innerHTML = options.details;
+        details.classList.remove('hidden');
+      } else {
+        details.classList.add('hidden');
+      }
+
+      submitBtn.innerText = options.confirmText || 'Confirm';
+
+      if (options.isDanger !== false) {
+        accent.className = 'absolute top-0 left-0 right-0 h-1 bg-red-500';
+        iconBg.className = 'w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0';
+        icon.className = 'fa-solid fa-triangle-exclamation text-base';
+        submitBtn.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-red-600/20';
+      } else {
+        accent.className = 'absolute top-0 left-0 right-0 h-1 bg-blue-500';
+        iconBg.className = 'w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0';
+        icon.className = 'fa-solid fa-circle-question text-base';
+        submitBtn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-lg shadow-blue-600/20';
+      }
+
+      pendingConfirmCallback = options.onConfirm || null;
+      modal.classList.remove('hidden');
+    }
+
+    function closeCustomConfirmModal() {
+      const modal = document.getElementById('customConfirmModal');
+      modal.classList.add('hidden');
+      pendingConfirmCallback = null;
+    }
+
+    function executePendingConfirmAction() {
+      if (pendingConfirmCallback) {
+        const cb = pendingConfirmCallback;
+        closeCustomConfirmModal();
+        cb();
+      } else {
+        closeCustomConfirmModal();
+      }
     }
   </script>
 </body>
