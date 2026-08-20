@@ -237,76 +237,97 @@
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-start justify-center min-h-screen overflow-y-auto py-8 sm:py-12">
     <div class="max-w-2xl w-full bg-[#121722] border border-white/5 rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl my-auto">
       
-      <!-- PORTAL HEADER -->
-      <div class="border-b border-slate-800/80 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-medium uppercase tracking-wider mb-1">
-            <i class="fa-solid fa-shield-halved text-xs"></i>
-            <span>Escape Tsunami</span>
-          </div>
-          <h1 id="standalonePortalTitle" class="text-lg font-bold text-slate-100">New Staff Application</h1>
-          <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-0.5">Fill out the form below</p>
-        </div>
-
-        <div class="flex items-center gap-1 bg-[#0b0f17] border border-white/5 p-1 rounded-lg text-xs">
-          <button onclick="switchPortalTab('form')" id="portalTabForm" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-file-pen text-xs"></i> Application Form
-          </button>
-          <button onclick="switchPortalTab('my_apps')" id="portalTabMyApps" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-line text-xs"></i> My Status
-          </button>
-          <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-table-list text-xs"></i> Public Roster
-          </button>
-        </div>
-      </div>
-
-      <!-- GOOGLE OAUTH LOGIN BAR FOR APPLICANTS (MANDATORY) -->
-      <div id="googleAuthApplicantBar" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-        <div id="googleAuthApplicantInfo" class="flex items-center gap-2.5">
-          <i class="fa-brands fa-google text-indigo-400 text-base shrink-0"></i>
+      <!-- PORTAL HEADER WITH COMPACT GOOGLE USER CHIP -->
+      <div class="border-b border-slate-800/80 pb-4 space-y-3">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <div class="font-medium text-slate-200 text-xs flex items-center gap-1.5">
-              <span>Sign in with Google</span>
-              <span class="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-mono font-bold rounded">REQUIRED *</span>
+            <div class="flex items-center gap-2 text-indigo-400 font-mono text-xs font-medium uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-shield-halved text-xs"></i>
+              <span>Escape Tsunami Recruitment</span>
             </div>
-            <div class="text-[11px] text-slate-400">Verify candidate email identity for staff review and status tracking.</div>
+            <h1 id="standalonePortalTitle" class="text-lg font-bold text-slate-100">New Staff Application</h1>
+            <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-0.5">Complete all required sections below</p>
+          </div>
+
+          <!-- COMPACT GOOGLE USER CHIP -->
+          <div id="googleAuthApplicantBar" class="shrink-0">
+            <div id="googleAuthApplicantInfo">
+              <a id="googleAuthBtnLink" href="/auth/google" class="px-3 py-1.5 bg-[#0b0f17] hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-semibold rounded-lg transition-all inline-flex items-center gap-2 shadow-sm group">
+                <i class="fa-brands fa-google text-indigo-400 group-hover:scale-110 transition-transform"></i>
+                <span>Sign in with Google</span>
+                <span class="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-mono font-bold rounded">REQUIRED *</span>
+              </a>
+            </div>
           </div>
         </div>
-        <a id="googleAuthBtnLink" href="/auth/google" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2 shrink-0 shadow-md">
-          <i class="fa-brands fa-google text-xs"></i> Google Sign-In
-        </a>
+
+        <!-- PORTAL NAVIGATION TABS -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center gap-1 bg-[#0b0f17] border border-white/5 p-1 rounded-lg text-xs w-full sm:w-auto">
+            <button onclick="switchPortalTab('form')" id="portalTabForm" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-file-pen text-xs"></i> Application Form
+            </button>
+            <button onclick="switchPortalTab('my_apps')" id="portalTabMyApps" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-chart-line text-xs"></i> My Status
+            </button>
+            <button onclick="switchPortalTab('roster')" id="portalTabRoster" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-table-list text-xs"></i> Public Roster
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- CANDIDATE REQUIREMENTS CARD -->
-      <div id="portalVerificationCard" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center justify-between text-xs">
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-user-check text-xs"></i>
+      <!-- RULES & REQUIREMENTS BENTO CARD -->
+      <div id="portalVerificationCard" class="p-4 bg-[#0b0f17] border border-white/5 rounded-xl space-y-2.5">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2 font-mono">
+            <i class="fa-solid fa-shield-cat text-indigo-400"></i> Recruitment Guidelines & Requirements
+          </span>
+          <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium rounded shrink-0 hidden sm:inline">
+            ✓ ELIGIBLE
+          </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-user-check text-indigo-400 text-xs shrink-0"></i>
+            <span>Roblox account age <strong>30+ days</strong> required.</span>
           </div>
-          <div>
-            <div class="font-medium text-slate-200 text-xs">Requirements</div>
-            <div class="text-[11px] text-slate-400">Roblox account age 30+ days and clean moderation history.</div>
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-brain text-purple-400 text-xs shrink-0"></i>
+            <span>AI-generated answers result in instant rejection.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-fingerprint text-blue-400 text-xs shrink-0"></i>
+            <span>Device signature tracked for security compliance.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-lock text-amber-400 text-xs shrink-0"></i>
+            <span>Strict 1 application limit per candidate.</span>
           </div>
         </div>
-        <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-medium rounded shrink-0 hidden sm:inline">
-          ✓ ELIGIBLE
-        </span>
       </div>
 
       <!-- PUBLIC APPLICATION FORM -->
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
         <input type="hidden" id="standaloneAppId" value="APP-DEFAULT" />
 
-        <div id="alreadySubmittedNotice" class="hidden p-6 bg-[#0b0f17] border border-indigo-500/20 rounded-xl text-center space-y-3">
-          <div class="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-base">
-            <i class="fa-solid fa-circle-check"></i>
+        <!-- ALREADY SUBMITTED NOTICE CARD -->
+        <div id="alreadySubmittedNotice" class="hidden p-6 bg-[#0b0f17] border border-indigo-500/30 rounded-xl text-center space-y-3 shadow-xl">
+          <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto text-lg shadow-inner">
+            <i class="fa-solid fa-file-circle-check"></i>
           </div>
-          <h3 class="text-sm font-semibold text-slate-100">Application Recorded</h3>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">This form is limited to 1 response per applicant. Track your progress under "My Status".</p>
+          <div>
+            <h3 class="text-sm font-bold text-slate-100">Application Already Filled Out</h3>
+            <p class="text-xs text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
+              A submission has already been recorded for your account. You can monitor review feedback and recruitment stages under "My Status".
+            </p>
+          </div>
+          <div id="alreadySubmittedCaseTag" class="inline-block px-3 py-1 bg-cyan-950/40 border border-cyan-500/30 text-cyan-400 font-mono text-xs font-bold rounded-lg">
+            CASE FILE RECORDED
+          </div>
           <div class="pt-2 flex items-center justify-center gap-2">
-            <button type="button" onclick="switchPortalTab('my_apps')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors inline-flex items-center gap-2">
-              <i class="fa-solid fa-chart-line text-xs"></i> Track My Application
+            <button type="button" onclick="switchPortalTab('my_apps')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+              <i class="fa-solid fa-chart-line text-xs"></i> View My Application Status
             </button>
           </div>
         </div>
@@ -335,10 +356,10 @@
 
           <div id="standaloneQuestionsList" class="space-y-3 pt-1"></div>
 
-          <!-- FORM GUIDELINES AGREEMENT CHECKBOX -->
-          <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg space-y-1.5">
-            <label class="flex items-start gap-2.5 cursor-pointer select-none">
-              <input type="checkbox" id="standaloneAgreeGuidelines" required class="mt-0.5 w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0 shrink-0 cursor-pointer" />
+          <!-- FORM GUIDELINES INTERACTIVE CHECKBOX -->
+          <div class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-1.5">
+            <label class="flex items-start gap-3 cursor-pointer select-none">
+              <input type="checkbox" id="standaloneAgreeGuidelines" required class="mt-0.5 w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0 shrink-0 cursor-pointer" onchange="toggleSubmitButtonState()" />
               <span class="text-[11px] text-slate-300 leading-relaxed">
                 I have read and agree to the <strong>Form Guidelines</strong>, and confirm that all submitted details are true, original, and accurate. <span class="text-indigo-400">*</span>
               </span>
@@ -364,7 +385,7 @@
                 <i class="fa-solid fa-floppy-disk text-xs"></i> Save Draft
               </button>
               
-              <button type="submit" id="standaloneSubmitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-2">
+              <button type="submit" id="standaloneSubmitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/20">
                 <i class="fa-solid fa-paper-plane text-xs"></i> Submit Application
               </button>
             </div>
@@ -372,23 +393,21 @@
         </div>
       </form>
 
-      <!-- CANDIDATE STATUS TRACKING VIEW -->
+      <!-- CANDIDATE STATUS TRACKING VIEW (AUTOMATIC LOAD) -->
       <div id="standaloneMyAppsView" class="hidden space-y-4">
-        <div class="border-b border-slate-800/80 pb-2.5">
-          <h2 class="text-sm font-semibold text-slate-200">Application Status</h2>
-          <p class="text-[11px] text-slate-400">Track your recruitment stage and reviewer feedback</p>
-        </div>
-
-        <div class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center gap-2">
-          <input type="text" id="myAppsUserSearchInput" placeholder="Enter your Roblox username to check status..." class="flex-1 px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" onkeydown="if(event.key==='Enter') searchMyAppsStatus();" />
-          <button onclick="searchMyAppsStatus()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-magnifying-glass text-xs"></i> Check Status
+        <div class="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100">Application File Status</h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Live case tracking for your logged-in recruitment record</p>
+          </div>
+          <button onclick="fetchPortalMyApps()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate text-xs"></i> Refresh
           </button>
         </div>
 
         <div id="myAppsStatusContainer" class="space-y-4">
-          <div class="p-6 text-center text-slate-500 text-xs font-mono">
-            Enter your Roblox username above to check your application status.
+          <div class="p-8 text-center text-slate-400 text-xs font-mono">
+            <i class="fa-solid fa-circle-notch fa-spin text-indigo-400 text-base mb-2 block"></i> Loading application status...
           </div>
         </div>
       </div>
@@ -1520,7 +1539,6 @@
         .then(res => res.json())
         .then(data => {
           const info = document.getElementById('googleAuthApplicantInfo');
-          const btn = document.getElementById('googleAuthBtnLink');
           const currentPath = window.location.pathname;
 
           if (data.authenticated && data.googleUser) {
@@ -1528,27 +1546,46 @@
             const u = data.googleUser;
             if (info) {
               info.innerHTML = `
-                <img src="${u.picture}" class="w-8 h-8 rounded-full border border-emerald-500/50 shadow-sm" onerror="this.src='/api/avatar/1'" />
-                <div>
-                  <div class="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-check text-emerald-400"></i> Google Login Successful!
+                <div class="px-2.5 py-1 bg-[#0b0f17] border border-emerald-500/30 rounded-lg flex items-center gap-2 text-xs">
+                  <img src="${u.picture}" class="w-6 h-6 rounded-full border border-emerald-500/50 shadow-sm" onerror="this.src='/api/avatar/1'" />
+                  <div>
+                    <span class="font-bold text-emerald-400 text-[11px] block leading-none flex items-center gap-1">
+                      <i class="fa-solid fa-circle-check text-emerald-400 text-[10px]"></i> Verified Identity
+                    </span>
+                    <span class="text-[10px] text-slate-300 font-mono">${u.email}</span>
                   </div>
-                  <div class="text-[11px] text-slate-300 font-medium">${u.name || 'Verified User'} <span class="text-slate-400 font-mono">(${u.email})</span></div>
+                  <a href="/auth/google/logout?returnTo=${encodeURIComponent(currentPath)}" class="ml-1 text-slate-500 hover:text-red-400 transition-colors" title="Sign Out">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </a>
                 </div>
               `;
             }
-            if (btn) {
-              btn.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sign Out`;
-              btn.href = `/auth/google/logout?returnTo=${encodeURIComponent(currentPath)}`;
-              btn.className = "px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 shrink-0 card-border";
-            }
           } else {
             currentGoogleUser = null;
-            if (btn) {
-              btn.href = `/auth/google?returnTo=${encodeURIComponent(currentPath)}`;
+            if (info) {
+              info.innerHTML = `
+                <a id="googleAuthBtnLink" href="/auth/google?returnTo=${encodeURIComponent(currentPath)}" class="px-3 py-1.5 bg-[#0b0f17] hover:bg-slate-800 border border-white/10 text-slate-200 text-xs font-semibold rounded-lg transition-all inline-flex items-center gap-2 shadow-sm group">
+                  <i class="fa-brands fa-google text-indigo-400 group-hover:scale-110 transition-transform"></i>
+                  <span>Sign in with Google</span>
+                  <span class="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-mono font-bold rounded">REQUIRED *</span>
+                </a>
+              `;
             }
           }
         }).catch(() => {});
+    }
+
+    function toggleSubmitButtonState() {
+      const agree = document.getElementById('standaloneAgreeGuidelines');
+      const btn = document.getElementById('standaloneSubmitBtn');
+      if (agree && btn) {
+        if (agree.checked) {
+          btn.disabled = false;
+          btn.className = "px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 cursor-pointer";
+        } else {
+          btn.className = "px-5 py-2 bg-slate-800 text-slate-500 border border-slate-700/50 text-xs font-medium rounded-lg transition-all flex items-center gap-2 opacity-60 cursor-not-allowed";
+        }
+      }
     }
 
     async function handlePublicPortalSubmit(e) {
@@ -1614,7 +1651,7 @@
           localStorage.removeItem(`draft_app_${appId}`);
           switchPortalTab('my_apps');
         } else {
-          showToast(data.error || 'Submission failed.', 'emergency');
+          showToast(data.error || 'Security Restriction: A submission is already associated with this Device Signature.', 'emergency');
           submitBtn.disabled = false;
           submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> Submit Application`;
         }
@@ -1638,52 +1675,55 @@
       return labels[st] || st || 'Pending Review';
     }
 
-    function searchMyAppsStatus() {
-      const searchInput = document.getElementById('myAppsUserSearchInput');
-      const formUserInput = document.getElementById('standaloneApplicantUser');
-      const searchVal = searchInput?.value.trim() || formUserInput?.value.trim();
-      
-      if (searchVal && searchInput && !searchInput.value) {
-        searchInput.value = searchVal;
-      }
-      fetchPortalMyApps();
-    }
-
+    /* AUTOMATIC MY_APPS STATUS LOADER WITH ENHANCED STEPPER & RESPONSES */
     async function fetchPortalMyApps() {
       const container = document.getElementById('myAppsStatusContainer');
-      const searchInput = document.getElementById('myAppsUserSearchInput');
-      const formUserInput = document.getElementById('standaloneApplicantUser');
-      
-      const userVal = (searchInput?.value.trim() || formUserInput?.value.trim() || '');
       const appId = document.getElementById('standaloneAppId')?.value || 'APP-DEFAULT';
 
       if (!container) return;
 
-      if (!userVal) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Enter your Roblox username above to check your application status.</div>`;
-        return;
-      }
-
-      container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs font-mono"><i class="fa-solid fa-circle-notch fa-spin text-indigo-400 text-base mb-2 block"></i> Searching application records for "${userVal}"...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs font-mono"><i class="fa-solid fa-circle-notch fa-spin text-indigo-400 text-base mb-2 block"></i> Retrieving recruitment file records...</div>`;
 
       try {
+        const userVal = document.getElementById('standaloneApplicantUser')?.value.trim() || '';
         const res = await fetch(`/api/public/applications/${appId}/check?username=${encodeURIComponent(userVal)}&deviceSignature=${encodeURIComponent(activeDeviceSignature)}`);
         const data = await res.json();
 
         if (!data.submission) {
           container.innerHTML = `
-            <div class="p-6 bg-[#0b0f17] border border-white/5 rounded-xl text-center space-y-2">
-              <div class="w-10 h-10 rounded-full bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-base">
-                <i class="fa-solid fa-magnifying-glass"></i>
+            <div class="p-8 bg-[#0b0f17] border border-white/5 rounded-xl text-center space-y-3">
+              <div class="w-12 h-12 rounded-full bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto text-lg">
+                <i class="fa-solid fa-file-circle-plus"></i>
               </div>
-              <div class="text-xs font-bold text-slate-300">No Application Found</div>
-              <p class="text-[11px] text-slate-500 max-w-sm mx-auto">No submission records found for username "<span class="text-slate-300 font-mono">${userVal}</span>". Please ensure your Roblox username is typed correctly.</p>
+              <div>
+                <h3 class="text-sm font-bold text-slate-200">No Application Found</h3>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1 leading-relaxed">You have not submitted an application for this recruitment drive yet.</p>
+              </div>
+              <div class="pt-2">
+                <button onclick="switchPortalTab('form')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2 shadow-md">
+                  <i class="fa-solid fa-file-pen text-xs"></i> Start New Application
+                </button>
+              </div>
             </div>
           `;
+
+          // Ensure form views are visible if they haven't submitted yet
+          document.getElementById('alreadySubmittedNotice')?.classList.add('hidden');
+          document.getElementById('standaloneFormFieldsContainer')?.classList.remove('hidden');
           return;
         }
 
         const sub = data.submission;
+
+        // Trigger "Application Already Filled Out" on form tab
+        const alreadyNotice = document.getElementById('alreadySubmittedNotice');
+        const formContainer = document.getElementById('standaloneFormFieldsContainer');
+        const caseTag = document.getElementById('alreadySubmittedCaseTag');
+
+        if (alreadyNotice) alreadyNotice.classList.remove('hidden');
+        if (formContainer) formContainer.classList.add('hidden');
+        if (caseTag) caseTag.innerText = `CASE FILE: ${sub.id || 'SUB-RECORDED'}`;
+
         const stages = ['PENDING', 'UNDER_REVIEW', 'INTERVIEW_SCHEDULED', 'ACCEPTED'];
         let currentStageIdx = stages.indexOf(sub.status);
         if (sub.status === 'DENIED') currentStageIdx = -1;
@@ -1691,24 +1731,41 @@
 
         const stageLabels = ['Submitted', 'Under Review', 'Interview', 'Decision'];
 
+        // Determine pulse color for status badge
+        let dotColor = 'bg-amber-400 animate-pulse';
+        if (sub.status === 'ACCEPTED') dotColor = 'bg-emerald-400 animate-pulse';
+        if (sub.status === 'DENIED') dotColor = 'bg-red-400';
+        if (sub.status === 'UNDER_REVIEW') dotColor = 'bg-blue-400 animate-pulse';
+
         container.innerHTML = `
           <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6">
+            
+            <!-- CASE FILE HEADER -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div class="flex items-center gap-3">
                 <img src="/api/avatar-by-username/${encodeURIComponent(sub.applicantUsername)}" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 object-cover" onerror="this.src='/api/avatar/1'" />
                 <div>
-                  <h3 class="text-xs font-bold text-slate-100">${sub.appTitle || 'Staff Application'}</h3>
-                  <div class="text-[10px] font-mono text-slate-400 mt-0.5">Applicant: <span class="text-slate-200 font-semibold">${sub.applicantUsername}</span> • Discord: ${sub.discordTag || 'N/A'}</div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-xs font-bold text-slate-100">${sub.appTitle || 'Staff Application'}</h3>
+                    <span class="px-2 py-0.5 bg-cyan-950/50 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold rounded">
+                      ${sub.id || 'SUB-FILE'}
+                    </span>
+                  </div>
+                  <div class="text-[10px] font-mono text-slate-400 mt-0.5">Candidate: <span class="text-slate-200 font-semibold">${sub.applicantUsername}</span> • Discord: ${sub.discordTag || 'N/A'}</div>
                 </div>
               </div>
-              <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-xs font-bold rounded-lg shrink-0">
-                ${formatStatusLabel(sub.status)}
-              </span>
+
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono text-xs font-bold rounded-lg shrink-0 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                  <span>${formatStatusLabel(sub.status)}</span>
+                </span>
+              </div>
             </div>
 
-            <!-- TIMELINE STEPPER -->
+            <!-- ENHANCED STEPPER TIMELINE WITH THICK CONNECTOR LINE & CHECKMARKS -->
             <div class="relative py-3 px-2">
-              <div class="absolute top-1/2 left-6 right-6 h-0.5 bg-slate-800 -translate-y-1/2 z-0"></div>
+              <div class="absolute top-1/2 left-6 right-6 h-1 bg-slate-800/90 -translate-y-1/2 z-0 rounded-full"></div>
               <div class="relative z-10 flex items-center justify-between">
                 ${stageLabels.map((lbl, idx) => {
                   const isDone = sub.status !== 'DENIED' && idx < currentStageIdx;
@@ -1723,7 +1780,7 @@
                   return `
                     <div class="flex flex-col items-center gap-1.5">
                       <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${circleClass}">
-                        ${isDone ? '<i class="fa-solid fa-check"></i>' : isDenied ? '<i class="fa-solid fa-xmark"></i>' : idx + 1}
+                        ${isDone ? '<i class="fa-solid fa-check text-xs"></i>' : isDenied ? '<i class="fa-solid fa-xmark text-xs"></i>' : idx + 1}
                       </div>
                       <span class="text-[10px] font-medium ${isCurrent ? 'text-indigo-400 font-bold' : isDenied ? 'text-red-400 font-bold' : 'text-slate-400'}">${lbl}</span>
                     </div>
@@ -1732,51 +1789,55 @@
               </div>
             </div>
 
-            <!-- SUBMITTED ANSWERS PREVIEW -->
+            <!-- SUBMITTED RESPONSES SECTION (QUESTION ABOVE ANSWER FORMATTING) -->
             ${sub.answers && Object.keys(sub.answers).length ? `
-              <div class="p-3.5 bg-[#121722] rounded-lg border border-white/5 space-y-2 text-xs">
-                <div class="font-bold text-slate-300 border-b border-slate-800/80 pb-1.5 flex items-center justify-between">
-                  <span>Submitted Responses</span>
-                  <span class="text-[10px] font-mono text-slate-500 font-normal">${Object.keys(sub.answers).length} fields</span>
+              <div class="p-4 bg-[#121722] rounded-xl border border-white/5 space-y-3 text-xs">
+                <div class="font-bold text-slate-300 border-b border-slate-800/80 pb-2 flex items-center justify-between">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-indigo-400"></i> Submitted Document Responses</span>
+                  <span class="text-[10px] font-mono text-slate-500 font-normal">${Object.keys(sub.answers).length} fields recorded</span>
                 </div>
-                <div class="space-y-2 pt-1">
+                <div class="space-y-3 pt-1">
                   ${Object.entries(sub.answers).map(([q, a]) => `
-                    <div>
-                      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${q}</div>
-                      <div class="text-slate-200 mt-0.5 leading-relaxed bg-[#0b0f17] p-2 rounded border border-white/5 text-[11px]">${a}</div>
+                    <div class="space-y-1">
+                      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">${q}</div>
+                      <div class="text-slate-200 leading-relaxed bg-[#0b0f17] p-2.5 rounded-lg border border-white/5 text-[11px] font-medium">${a || 'N/A'}</div>
                     </div>
                   `).join('')}
                 </div>
               </div>
             ` : ''}
 
+            <!-- REVIEWER FEEDBACK NOTES -->
             ${sub.notes && sub.notes.length ? `
-              <div class="p-3.5 bg-[#121722] rounded-lg border border-indigo-500/20 space-y-1.5 text-xs">
-                <div class="font-bold text-slate-200 flex items-center gap-1.5 text-xs">
-                  <i class="fa-solid fa-comment-dots text-indigo-400"></i> Reviewer Feedback
+              <div class="p-4 bg-[#121722] rounded-xl border border-indigo-500/20 space-y-2 text-xs">
+                <div class="font-bold text-slate-200 flex items-center gap-2">
+                  <i class="fa-solid fa-comment-dots text-indigo-400"></i> Reviewer Feedback & Communication
                 </div>
                 ${sub.notes.map(n => `
-                  <div class="text-slate-300 text-[11px] leading-relaxed bg-[#0b0f17] p-2 rounded border border-white/5">
+                  <div class="text-slate-300 text-[11px] leading-relaxed bg-[#0b0f17] p-2.5 rounded-lg border border-white/5">
                     "${n.text}" <span class="text-slate-500 font-mono text-[10px] block mt-1">— Reviewed by ${n.author}</span>
                   </div>
                 `).join('')}
               </div>
             ` : ''}
 
-            <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
-              <span class="text-slate-500 font-mono">Submitted: ${new Date(sub.submittedAt).toLocaleDateString()}</span>
-              ${sub.status !== 'WITHDRAWN' && sub.status !== 'DENIED' ? `
-                <button onclick="triggerWithdrawalConfirmation('${sub.id}')" class="text-slate-500 hover:text-red-400 transition-colors text-xs font-medium inline-flex items-center gap-1">
-                  <i class="fa-solid fa-trash-can text-[10px]"></i> Withdraw Application
-                </button>
-              ` : `
-                <span class="text-slate-600 font-mono text-[10px]">${sub.status === 'WITHDRAWN' ? 'Withdrawn' : 'Finalized'}</span>
-              `}
+            <!-- BOTTOM FOOTER WITH RELOCATED WITHDRAW BUTTON (BOTTOM-LEFT) -->
+            <div class="pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px]">
+              <div>
+                ${sub.status !== 'WITHDRAWN' && sub.status !== 'DENIED' ? `
+                  <button onclick="triggerWithdrawalConfirmation('${sub.id}')" class="px-3 py-1.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-500/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i> Withdraw Application
+                  </button>
+                ` : `
+                  <span class="text-slate-500 font-mono text-[11px]">Status: ${sub.status === 'WITHDRAWN' ? 'Withdrawn by Candidate' : 'Finalized'}</span>
+                `}
+              </div>
+              <span class="text-slate-500 font-mono">Submitted On: ${new Date(sub.submittedAt).toLocaleDateString()}</span>
             </div>
           </div>
         `;
       } catch (err) {
-        container.innerHTML = `<div class="p-6 text-center text-red-400 text-xs font-mono">Failed to connect to application records server.</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-red-400 text-xs font-mono">Failed to retrieve recruitment file.</div>`;
       }
     }
 
@@ -1968,7 +2029,13 @@
 
           const questionsList = document.getElementById('standaloneQuestionsList');
           if (questionsList && Array.isArray(app.questions)) {
-            questionsList.innerHTML = app.questions.map((q, idx) => {
+            // Filter out duplicate prompt questions asking for Roblox Username / Discord Handle again
+            const filteredQuestions = app.questions.filter(q => {
+              const text = (q.text || '').toLowerCase();
+              return !text.includes('roblox username') && !text.includes('discord handle');
+            });
+
+            questionsList.innerHTML = filteredQuestions.map((q, idx) => {
               const qType = q.type || 'textarea';
               const reqAsterisk = q.required ? '<span class="text-indigo-400">*</span>' : '';
               let inputFieldHtml = '';
@@ -2078,28 +2145,23 @@
       if (rosterView) rosterView.classList.add('hidden');
 
       [tabForm, tabMyApps, tabRoster].forEach(btn => {
-        if (btn) btn.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center gap-1.5';
+        if (btn) btn.className = 'flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md text-slate-400 hover:text-slate-200 font-medium transition-colors flex items-center justify-center gap-1.5';
       });
 
       if (tab === 'form') {
         if (formView) formView.classList.remove('hidden');
         if (verificationCard) verificationCard.classList.remove('hidden');
-        if (tabForm) tabForm.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        if (tabForm) tabForm.className = 'flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center justify-center gap-1.5';
       } else if (tab === 'my_apps') {
         if (myAppsView) myAppsView.classList.remove('hidden');
         if (verificationCard) verificationCard.classList.add('hidden');
-        if (tabMyApps) tabMyApps.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        if (tabMyApps) tabMyApps.className = 'flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center justify-center gap-1.5';
         
-        const mainUserVal = document.getElementById('standaloneApplicantUser')?.value.trim();
-        const searchInput = document.getElementById('myAppsUserSearchInput');
-        if (mainUserVal && searchInput && !searchInput.value) {
-          searchInput.value = mainUserVal;
-        }
         fetchPortalMyApps();
       } else if (tab === 'roster') {
         if (rosterView) rosterView.classList.remove('hidden');
         if (verificationCard) verificationCard.classList.add('hidden');
-        if (tabRoster) tabRoster.className = 'px-3 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center gap-1.5';
+        if (tabRoster) tabRoster.className = 'flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center justify-center gap-1.5';
         fetchPortalRoster();
       }
     }
@@ -3043,25 +3105,26 @@
       }
     }
 
+    /* GLASSMORPHISM TOAST NOTIFICATION HANDLER WITH AUTHORITATIVE SECURITY WORDING */
     function showToast(msg, type = 'info') {
       const container = document.getElementById('toastContainer');
       if (!container) return;
 
       const colors = {
-        success: 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200',
-        warning: 'bg-amber-950/90 border-amber-500/40 text-amber-200',
-        emergency: 'bg-red-950/90 border-red-500/40 text-red-200',
-        info: 'bg-blue-950/90 border-blue-500/40 text-blue-200'
+        success: 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200 shadow-emerald-950/40',
+        warning: 'bg-amber-950/80 border-amber-500/40 text-amber-200 shadow-amber-950/40',
+        emergency: 'bg-red-950/80 border-red-500/40 text-red-200 shadow-red-950/40',
+        info: 'bg-blue-950/80 border-blue-500/40 text-blue-200 shadow-blue-950/40'
       };
 
       const toast = document.createElement('div');
-      toast.className = `p-3 rounded-lg border backdrop-blur-md shadow-xl text-xs font-semibold flex items-center justify-between pointer-events-auto transition-all duration-300 ${colors[type] || colors.info}`;
-      toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-3 hover:opacity-70"><i class="fa-solid fa-xmark"></i></button>`;
+      toast.className = `p-3.5 rounded-xl border backdrop-blur-md shadow-2xl text-xs font-semibold flex items-center justify-between pointer-events-auto transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span class="flex-1 pr-3 leading-relaxed">${msg}</span><button onclick="this.parentElement.remove()" class="p-1 text-slate-400 hover:text-white transition-colors shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>`;
 
       container.appendChild(toast);
       setTimeout(() => {
         if (toast.parentElement) toast.remove();
-      }, 4000);
+      }, 5000);
     }
 
     function renderToxicityCanvas() {
