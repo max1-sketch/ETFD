@@ -194,6 +194,13 @@ if (fs.existsSync(SECURITY_FILE)) {
   } catch (err) { console.error('Error reading security_gate.json:', err.message); }
 }
 
+if (fs.existsSync(USERS_FILE)) {
+  try {
+    const rawUsers = fs.readFileSync(USERS_FILE, 'utf8');
+    JSON.parse(rawUsers).forEach(u => usersMap.set(u.username.toLowerCase(), u));
+  } catch (err) { console.error('Error reading users.json:', err.message); }
+}
+
 if (mongoose && process.env.MONGODB_URI) {
   mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
@@ -327,6 +334,60 @@ app.post('/auth/login', (req, res) => {
   }
 
   res.status(401).json({ success: false, message: 'Invalid credentials! Check your access key.' });
+});
+
+// CREATE STAFF MEMBER / MODERATOR ACCOUNT
+app.post('/api/users/create', requireAuth, requireOwner, async (req, res) => {
+  const { username, email, password, role } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'Username and Password are required.' });
+  }
+
+  const cleanUser = username.trim().toLowerCase();
+
+  if (usersMap.has(cleanUser) || cleanUser === 'roblox') {
+    return res.status(400).json({ success: false, error: `A staff account for "${username}" already exists.` });
+  }
+
+  const newUser = {
+    username: username.trim(),
+    email: email ? email.trim() : '',
+    password: password.trim(),
+    role: role || 'mod',
+    createdAt: new Date()
+  };
+
+  usersMap.set(cleanUser, newUser);
+
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
+  } catch (err) {
+    console.error('Error saving users.json:', err.message);
+  }
+
+  if (isMongoConnected) {
+    try {
+      await UserModel.findOneAndUpdate({ username: cleanUser }, newUser, { upsert: true });
+    } catch (err) {
+      console.error('MongoDB User Save Error:', err.message);
+    }
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'CREATE_STAFF_USER',
+    userId: 0,
+    admin: adminName,
+    reason: `Created staff account for ${username.trim()} (${role === 'admin' ? 'Admin' : 'Moderator'}).`,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Staff account for ${username.trim()} created successfully! They can now log in.`
+  });
 });
 
 app.get('/auth/logout', (req, res) => {

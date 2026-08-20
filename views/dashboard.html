@@ -3008,19 +3008,42 @@
     }
 
     async function createModerator() {
-      const username = document.getElementById('newUsername').value.trim();
-      const email = document.getElementById('newEmail').value.trim();
-      const password = document.getElementById('newPassword').value.trim();
+      const usernameInput = document.getElementById('newUsername');
+      const emailInput = document.getElementById('newEmail');
+      const passwordInput = document.getElementById('newPassword');
+      const roleInput = document.getElementById('newRole');
+
+      const username = usernameInput ? usernameInput.value.trim() : '';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value.trim() : '';
+      const role = roleInput ? roleInput.value : 'mod';
 
       if (!username || !password) {
-        showToast('Username and Password required!', 'warning');
+        showToast('Roblox Username and Password are required!', 'warning');
         return;
       }
 
-      showToast(`Staff invitation generated cleanly for ${username}!`, 'success');
-      document.getElementById('newUsername').value = '';
-      document.getElementById('newEmail').value = '';
-      document.getElementById('newPassword').value = '';
+      showToast(`Creating staff account for ${username}...`, 'info');
+
+      try {
+        const res = await fetch('/api/users/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, role })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast(data.message, 'success');
+          if (usernameInput) usernameInput.value = '';
+          if (emailInput) emailInput.value = '';
+          if (passwordInput) passwordInput.value = '';
+        } else {
+          showToast(data.error || 'Failed to create staff account.', 'emergency');
+        }
+      } catch (err) {
+        showToast('Network error while creating staff account.', 'emergency');
+      }
     }
 
     function executeTerminalCommand() {
