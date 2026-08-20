@@ -61,7 +61,8 @@ if (mongoose) {
     questions: Array,
     settings: Object,
     active: { type: Boolean, default: true },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
   });
 
   const SubmissionSchema = new mongoose.Schema({
@@ -72,6 +73,7 @@ if (mongoose) {
     robloxUserId: Number,
     accountAgeDays: Number,
     discordTag: String,
+    googleProfile: Object,
     deviceSignature: String,
     proofUrl: String,
     answers: Object,
@@ -125,8 +127,6 @@ let usersMap = new Map();
 let blockedSignatures = new Set();
 let securityLogs = [];
 let actionLogs = [];
-let liveInGamePlayers = new Map();
-let liveChatMessages = [];
 let lastActionTimestamp = 0;
 
 let systemNotice = {
@@ -234,6 +234,76 @@ if (mongoose && process.env.MONGODB_URI) {
     });
 }
 
+// ==========================================
+// GOOGLE OAUTH 2.0 APPLICANT AUTHENTICATION
+// ==========================================
+app.get('/auth/google', (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).send('Google Client ID is not configured in server environment variables.');
+  }
+
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+  const returnTo = req.query.returnTo || '/';
+  req.session.googleReturnTo = returnTo;
+
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&prompt=select_account`;
+  res.redirect(authUrl);
+});
+
+app.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+  const returnTo = req.session.googleReturnTo || '/';
+
+  if (!code || !clientId || !clientSecret) {
+    return res.status(400).send('Google OAuth authentication failed. Missing code or credentials.');
+  }
+
+  try {
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
+    });
+
+    const accessToken = tokenRes.data.access_token;
+    const userRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    req.session.applicantGoogle = {
+      id: userRes.data.id,
+      name: userRes.data.name,
+      email: userRes.data.email,
+      picture: userRes.data.picture
+    };
+
+    delete req.session.googleReturnTo;
+    res.redirect(returnTo);
+  } catch (err) {
+    console.error('Google OAuth Error:', err.response?.data || err.message);
+    res.redirect(`${returnTo}?google_error=auth_failed`);
+  }
+});
+
+app.get('/auth/google/logout', (req, res) => {
+  delete req.session.applicantGoogle;
+  const returnTo = req.query.returnTo || '/';
+  res.redirect(returnTo);
+});
+
+app.get('/api/public/auth/me', (req, res) => {
+  res.json({
+    authenticated: Boolean(req.session && req.session.applicantGoogle),
+    googleUser: req.session ? req.session.applicantGoogle || null : null
+  });
+});
+
 app.post('/auth/login', (req, res) => {
   const { username, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD || 'ETFD23';
@@ -277,7 +347,6 @@ app.post('/api/gate/verify', (req, res) => {
   const cleanSig = signature ? String(signature).trim() : 'SIG-UNTRACKED';
 
   const isBlocked = blockedSignatures.has(cleanSig);
-
   const existingIndex = securityLogs.findIndex(l => l.signature === cleanSig);
   const now = new Date();
 
@@ -347,6 +416,9 @@ app.post('/api/gate/block', requireAuth, requireOwner, async (req, res) => {
   res.json({ success: true, message: `Device signature ${cleanSig} ${action === 'unblock' ? 'unblocked' : 'restricted'}.` });
 });
 
+// ==========================================
+// RECRUITMENT APPLICATIONS & EDITING API
+// ==========================================
 app.get('/api/applications', requireAuth, (req, res) => {
   res.json({
     success: true,
@@ -355,19 +427,28 @@ app.get('/api/applications', requireAuth, (req, res) => {
   });
 });
 
+// CREATE OR UPDATE APPLICATION FORM
 app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
-  const { title, description, guidelines, questions, settings } = req.body;
+  const { id, title, description, guidelines, questions, settings } = req.body;
   if (!title) return res.status(400).json({ success: false, error: 'Application title is required.' });
 
+  let appId = id && String(id).trim();
+  const existingApp = appId ? applicationsMap.get(appId) : null;
+
+  if (!appId || !existingApp) {
+    appId = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+
   const appObj = {
-    id: 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    id: appId,
     title: title.trim(),
     description: description ? description.trim() : '',
     guidelines: guidelines ? guidelines.trim() : '',
     questions: Array.isArray(questions) ? questions : [],
     settings: settings || { limitOneResponse: true, acceptingResponses: true, minAge: 30 },
-    active: true,
-    createdAt: new Date()
+    active: existingApp ? existingApp.active : true,
+    createdAt: existingApp ? existingApp.createdAt : new Date(),
+    updatedAt: new Date()
   };
 
   applicationsMap.set(appObj.id, appObj);
@@ -376,10 +457,15 @@ app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
   if (isMongoConnected) {
     try {
       await ApplicationModel.findOneAndUpdate({ id: appObj.id }, appObj, { upsert: true, new: true });
-    } catch (err) { console.error('MongoDB Application Create Error:', err.message); }
+    } catch (err) { console.error('MongoDB Application Save Error:', err.message); }
   }
 
-  res.json({ success: true, message: 'Application form published cleanly!', application: appObj });
+  res.json({
+    success: true,
+    isEdit: Boolean(existingApp),
+    message: existingApp ? `Application form "${appObj.title}" updated successfully!` : 'Application form published cleanly!',
+    application: appObj
+  });
 });
 
 app.post('/api/applications/:id/toggle', requireAuth, requireOwner, async (req, res) => {
@@ -559,6 +645,7 @@ app.post('/api/applications/submit', async (req, res) => {
     robloxUserId: robloxAccountData ? robloxAccountData.userId : null,
     accountAgeDays: robloxAccountData ? robloxAccountData.accountAgeDays : null,
     discordTag: discordTag ? discordTag.trim() : 'Not provided',
+    googleProfile: req.session ? req.session.applicantGoogle || null : null,
     deviceSignature: cleanSignature,
     proofUrl: proofUrl ? proofUrl.trim() : '',
     answers: answers || {},
@@ -742,7 +829,7 @@ app.get('/api/public/validate-roblox/:username', async (req, res) => {
 
 app.get('/api/avatar-by-username/:username', async (req, res) => {
   const username = req.params.username ? req.params.username.trim() : '';
-  if (!username) return res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=RBX`);
+  if (!username) return res.redirect('/api/avatar/1');
 
   try {
     const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
@@ -752,25 +839,21 @@ app.get('/api/avatar-by-username/:username', async (req, res) => {
 
     if (userRes.data?.data?.[0]?.id) {
       const rbxId = userRes.data.data[0].id;
-      const thumbRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${rbxId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
-      if (thumbRes.data?.data?.[0]?.imageUrl) {
-        return res.redirect(thumbRes.data.data[0].imageUrl);
-      }
+      return res.redirect(`/api/avatar/${rbxId}`);
     }
   } catch (e) {}
 
-  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase() || 'RBX')}`);
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase())}`);
 });
 
 app.get('/api/avatar/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-    const thumbRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
-    if (thumbRes.data?.data?.[0]?.imageUrl) {
-      return res.redirect(thumbRes.data.data[0].imageUrl);
+    const rbxRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
+    if (rbxRes.data?.data?.[0]?.imageUrl) {
+      return res.redirect(rbxRes.data.data[0].imageUrl);
     }
   } catch (e) {}
-
   res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=RBX`);
 });
 
@@ -855,6 +938,7 @@ app.post('/api/action', requireAuth, async (req, res) => {
   res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
 });
 
+// UNBAN ALL ENDPOINT
 app.post('/api/unban-all', requireAuth, requireOwner, async (req, res) => {
   bannedUsersMap.clear();
   saveBansToFile();
@@ -935,127 +1019,7 @@ app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  socket.emit('initialChatLogs', liveChatMessages);
   socket.emit('systemNoticeUpdate', systemNotice);
 });
 
-// ==========================================
-// DISCORD BOT & ACTIVE DEVELOPER BADGE ENGINE
-// ==========================================
-if (process.env.DISCORD_BOT_TOKEN) {
-  const discordClient = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent
-    ]
-  });
-
-  const commands = [
-    new SlashCommandBuilder()
-      .setName('devbadge')
-      .setDescription('Claim your Discord Active Developer Badge!'),
-    new SlashCommandBuilder()
-      .setName('stats')
-      .setDescription('Check live Staff Command Center server telemetry'),
-    new SlashCommandBuilder()
-      .setName('lookup')
-      .setDescription('Lookup a Roblox user by Username or UserID')
-      .addStringOption(opt => 
-        opt.setName('target')
-          .setDescription('Roblox Username or UserID')
-          .setRequired(true)
-      )
-  ].map(cmd => cmd.toJSON());
-
-  async function registerSlashCommands() {
-    try {
-      if (!process.env.DISCORD_CLIENT_ID) {
-        console.warn('⚠️ DISCORD_CLIENT_ID missing in env. Slash commands skipped.');
-        return;
-      }
-      const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-      console.log('📡 Registering Discord Slash Commands...');
-      await rest.put(
-        Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
-        { body: commands }
-      );
-      console.log('✅ Discord Slash Commands Registered!');
-    } catch (err) {
-      console.error('❌ Failed to register Discord slash commands:', err.message);
-    }
-  }
-
-  discordClient.once('ready', () => {
-    console.log(`🤖 Discord Bot online as ${discordClient.user.tag}!`);
-    registerSlashCommands();
-  });
-
-  discordClient.on('interactionCreate', async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-
-    const { commandName } = interaction;
-
-    if (commandName === 'devbadge') {
-      const embed = new EmbedBuilder()
-        .setTitle('🏅 Active Developer Badge Command Logged!')
-        .setColor(0x3b82f6)
-        .setDescription(
-          `**Command Executed Successfully!**\n\n` +
-          `• **Status**: Interaction recorded on Discord's developer gateway.\n` +
-          `• **Claim URL**: https://discord.com/developers/active-developer\n\n` +
-          `*Note: Discord refreshes active developer status eligibility once every 24 hours. Check back tomorrow on the Developer Portal to claim your badge!*`
-        )
-        .setFooter({ text: 'Escape Tsunami Staff Engine' })
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [embed] });
-    } else if (commandName === 'stats') {
-      const embed = new EmbedBuilder()
-        .setTitle('📊 Live Server Telemetry')
-        .setColor(0x10b981)
-        .addFields(
-          { name: 'Active Applications', value: `${applicationsMap.size}`, inline: true },
-          { name: 'Total Submissions', value: `${applicationSubmissions.length}`, inline: true },
-          { name: 'Global Bans', value: `${bannedUsersMap.size}`, inline: true }
-        )
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [embed] });
-    } else if (commandName === 'lookup') {
-      const target = interaction.options.getString('target');
-      await interaction.deferReply();
-
-      try {
-        const res = await axios.post('https://users.roblox.com/v1/usernames/users', {
-          usernames: [target],
-          excludeBannedUsers: false
-        }, { timeout: 4000 });
-
-        if (res.data?.data?.[0]) {
-          const u = res.data.data[0];
-          const embed = new EmbedBuilder()
-            .setTitle(`Roblox User: ${u.name}`)
-            .setColor(0x8b5cf6)
-            .setThumbnail(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${u.id}&size=150x150&format=Png&isCircular=false`)
-            .addFields(
-              { name: 'Username', value: u.name, inline: true },
-              { name: 'Display Name', value: u.displayName || u.name, inline: true },
-              { name: 'UserID', value: `${u.id}`, inline: true }
-            );
-          await interaction.editReply({ embeds: [embed] });
-        } else {
-          await interaction.editReply(`❌ Roblox user \`${target}\` not found.`);
-        }
-      } catch (e) {
-        await interaction.editReply(`❌ Failed to query Roblox API.`);
-      }
-    }
-  });
-
-  discordClient.login(process.env.DISCORD_BOT_TOKEN).catch(err => {
-    console.error('❌ Discord Bot Login Failed:', err.message);
-  });
-}
-
-server.listen(process.env.PORT || 3000,
+server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Command Center Online on Port 3000!'));

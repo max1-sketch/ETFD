@@ -178,6 +178,7 @@
 </head>
 <body class="h-full flex flex-col min-h-screen select-none">
 
+  <!-- SECURITY GATE CHECK OVERLAY -->
   <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f]/95 backdrop-blur-xl z-[100] flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
     <div class="relative max-w-sm w-full bg-[#0d121d] border border-slate-800/80 rounded-2xl p-6 shadow-2xl shadow-black/80 space-y-4 overflow-hidden">
       <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -226,6 +227,7 @@
     </div>
   </div>
 
+  <!-- STANDALONE APPLICANT PUBLIC PORTAL -->
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-center justify-center min-h-screen">
     <div class="max-w-2xl w-full bg-[#121722] border border-white/5 rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl">
       
@@ -253,6 +255,17 @@
         </div>
       </div>
 
+      <!-- GOOGLE OAUTH LOGIN BAR FOR APPLICANTS -->
+      <div id="googleAuthApplicantBar" class="p-3 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center justify-between text-xs">
+        <div id="googleAuthApplicantInfo" class="flex items-center gap-2.5">
+          <i class="fa-brands fa-google text-slate-400 text-sm"></i>
+          <span class="text-slate-400">Sign in with Google to auto-verify candidate email identity (Optional).</span>
+        </div>
+        <a id="googleAuthBtnLink" href="/auth/google" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2 border border-white/10 shrink-0">
+          <i class="fa-brands fa-google text-indigo-400"></i> Google Sign-In
+        </a>
+      </div>
+
       <div id="portalVerificationCard" class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-lg flex items-center justify-between text-xs">
         <div class="flex items-center gap-3">
           <div class="w-7 h-7 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
@@ -269,7 +282,7 @@
       </div>
 
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
-        <input type="hidden" id="standaloneAppId" />
+        <input type="hidden" id="standaloneAppId" value="APP-DEFAULT" />
 
         <div id="alreadySubmittedNotice" class="hidden p-6 bg-[#0b0f17] border border-indigo-500/20 rounded-xl text-center space-y-3">
           <div class="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-base">
@@ -345,6 +358,7 @@
         </div>
       </form>
 
+      <!-- CANDIDATE STATUS TRACKING VIEW -->
       <div id="standaloneMyAppsView" class="hidden space-y-4">
         <div class="border-b border-slate-800/80 pb-2.5">
           <h2 class="text-sm font-semibold text-slate-200">Application Status</h2>
@@ -365,6 +379,7 @@
         </div>
       </div>
 
+      <!-- PUBLIC CANDIDATE ROSTER -->
       <div id="standaloneRosterView" class="hidden space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -397,6 +412,7 @@
     </div>
   </div>
 
+  <!-- MAIN STAFF DASHBOARD INTERFACE -->
   <div id="mainDashboardApp" class="flex-1 flex flex-col min-h-0 overflow-hidden">
     
     <div id="topNoticeBanner" class="hidden max-w-3xl w-[92%] mx-auto mt-3 px-4 py-2.5 rounded-full backdrop-blur-xl shadow-2xl flex items-center justify-between transition-all duration-300 z-50 shrink-0 banner-glass-warning">
@@ -418,6 +434,7 @@
     <div class="flex-1 flex min-h-0 overflow-hidden">
       <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileSidebar(false)"></div>
 
+      <!-- SIDEBAR DRAWER -->
       <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/60 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 transition-transform duration-300">
         <div class="flex flex-col h-full justify-between">
           <div class="p-4 space-y-5 overflow-y-auto">
@@ -514,6 +531,7 @@
         </div>
       </aside>
 
+      <!-- MAIN PANEL -->
       <main class="flex-1 flex flex-col min-w-0 bg-[#080b11] overflow-y-auto">
         <header class="sticky top-0 z-30 bg-[#0e131f]/90 backdrop-blur-md border-b border-slate-800/60 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-3">
@@ -1029,6 +1047,13 @@
               </div>
 
               <div id="designerSectionQuestions" class="space-y-4">
+                <input type="hidden" id="editingFormId" value="" />
+                
+                <div id="editingModeBadge" class="hidden p-2.5 bg-indigo-950/30 border border-indigo-500/30 rounded-lg flex items-center justify-between text-xs text-indigo-300">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-pen text-indigo-400"></i> Currently editing form: <strong id="editingFormTitleLabel">Form</strong></span>
+                  <button type="button" onclick="cancelEditingForm()" class="text-slate-400 hover:text-white text-xs underline">Cancel Editing (New Form)</button>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
                   <div class="md:col-span-5 space-y-1">
                     <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Application Title *</label>
@@ -1151,7 +1176,7 @@
 
               <div class="pt-3 border-t border-slate-800/60 flex justify-end">
                 <button onclick="createApplicationForm()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-2 border-t border-indigo-400/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] active:translate-y-0.5">
-                  <i class="fa-solid fa-paper-plane text-xs"></i> Publish Application Form
+                  <i class="fa-solid fa-paper-plane text-xs"></i> <span id="saveFormBtnLabel">Publish Application Form</span>
                 </button>
               </div>
             </div>
@@ -1368,6 +1393,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       checkTopNotice();
       executeSecurityGateCheck();
+      checkGoogleAuthApplicant();
 
       if (window.location.pathname.startsWith('/apply/')) {
         const parts = window.location.pathname.split('/');
@@ -1396,6 +1422,28 @@
       }
     });
 
+    function checkGoogleAuthApplicant() {
+      fetch('/api/public/auth/me')
+        .then(res => res.json())
+        .then(data => {
+          const info = document.getElementById('googleAuthApplicantInfo');
+          const btn = document.getElementById('googleAuthBtnLink');
+          if (data.authenticated && data.googleUser) {
+            const u = data.googleUser;
+            if (info) {
+              info.innerHTML = `
+                <img src="${u.picture}" class="w-6 h-6 rounded-full border border-slate-700" onerror="this.src='/api/avatar/1'" />
+                <span class="text-emerald-400 font-semibold">Verified candidate email: ${u.email}</span>
+              `;
+            }
+            if (btn) {
+              btn.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out`;
+              btn.href = '/auth/google/logout';
+            }
+          }
+        }).catch(() => {});
+    }
+
     async function fetchPortalApplication(appId) {
       try {
         const res = await fetch(`/api/public/applications/${appId}`);
@@ -1408,16 +1456,18 @@
           const questionsList = document.getElementById('standaloneQuestionsList');
           if (questionsList && Array.isArray(app.questions)) {
             questionsList.innerHTML = app.questions.map((q, idx) => {
+              const qText = q.text || q.label || 'Question';
               const qType = q.type || 'textarea';
               const reqAsterisk = q.required ? '<span class="text-indigo-400">*</span>' : '';
               let inputFieldHtml = '';
 
               if (qType === 'text') {
-                inputFieldHtml = `<input type="text" id="standalone_q_${idx}" data-question="${q.text}" data-type="text" ${q.required ? 'required' : ''} placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />`;
+                inputFieldHtml = `<input type="text" id="standalone_q_${idx}" data-question="${qText}" data-type="text" ${q.required ? 'required' : ''} placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />`;
               } else if (qType === 'select') {
-                const options = (q.options || '').split(',').map(o => o.trim()).filter(Boolean);
+                const optionsStr = Array.isArray(q.options) ? q.options.join(',') : (q.options || '');
+                const options = optionsStr.split(',').map(o => o.trim()).filter(Boolean);
                 inputFieldHtml = `
-                  <select id="standalone_q_${idx}" data-question="${q.text}" data-type="select" ${q.required ? 'required' : ''} class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs">
+                  <select id="standalone_q_${idx}" data-question="${qText}" data-type="select" ${q.required ? 'required' : ''} class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs">
                     <option value="">-- Select an option --</option>
                     ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
                   </select>
@@ -1425,19 +1475,19 @@
               } else if (qType === 'checkbox') {
                 inputFieldHtml = `
                   <label class="flex items-center gap-2 cursor-pointer pt-1">
-                    <input type="checkbox" id="standalone_q_${idx}" data-question="${q.text}" data-type="checkbox" ${q.required ? 'required' : ''} class="w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-xs text-slate-300">${q.text}</span>
+                    <input type="checkbox" id="standalone_q_${idx}" data-question="${qText}" data-type="checkbox" ${q.required ? 'required' : ''} class="w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-xs text-slate-300">${qText}</span>
                   </label>
                 `;
               } else if (qType === 'number') {
-                inputFieldHtml = `<input type="number" id="standalone_q_${idx}" data-question="${q.text}" data-type="number" ${q.required ? 'required' : ''} placeholder="Enter a number..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />`;
+                inputFieldHtml = `<input type="number" id="standalone_q_${idx}" data-question="${qText}" data-type="number" ${q.required ? 'required' : ''} placeholder="Enter a number..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />`;
               } else {
-                inputFieldHtml = `<textarea id="standalone_q_${idx}" data-question="${q.text}" data-type="textarea" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>`;
+                inputFieldHtml = `<textarea id="standalone_q_${idx}" data-question="${qText}" data-type="textarea" ${q.required ? 'required' : ''} rows="3" placeholder="Type your answer..." class="w-full px-3 py-2 bg-[#121722] border border-white/5 rounded-lg text-slate-100 focus:outline-none focus:border-indigo-500 text-xs resize-none"></textarea>`;
               }
 
               return `
                 <div class="space-y-1.5 p-3 bg-[#0b0f17] border border-white/5 rounded-lg">
-                  ${qType !== 'checkbox' ? `<label class="text-[11px] font-medium text-slate-300 block">${q.text} ${reqAsterisk}</label>` : ''}
+                  ${qType !== 'checkbox' ? `<label class="text-[11px] font-medium text-slate-300 block">${qText} ${reqAsterisk}</label>` : ''}
                   ${inputFieldHtml}
                 </div>
               `;
@@ -1768,7 +1818,7 @@
         const res = await fetch('/api/applications/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appId, applicantUsername: verifiedRobloxUser.exactName, discordTag, answers, deviceSignature: activeDeviceSignature })
+          body: JSON.stringify({ appId, applicantUsername: verifiedRobloxUser.exactName, discordTag, answers, deviceSignature: activeDeviceSignature, proofUrl: proof })
         });
         const data = await res.json();
 
@@ -1952,7 +2002,7 @@
                   ${formatStatusLabel(s.status)}
                 </span>
               </td>
-              <td class="p-3 text-slate-400 text-[11px]">${s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Pending'}</td>
+              <td class="p-3 text-slate-400 text-[11px]">${s.reviewedBy ? `${s.reviewedBy}` : 'Pending'}</td>
               <td class="p-3 text-right">
                 <button onclick="switchPortalTab('my_apps')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium rounded transition-colors">
                   View
@@ -1973,8 +2023,8 @@
       const proof = document.getElementById('standaloneApplicantProof').value;
 
       const answers = {};
-      document.querySelectorAll('#standaloneQuestionsList textarea').forEach((ta, idx) => {
-        answers[idx] = ta.value;
+      document.querySelectorAll('#standaloneQuestionsList textarea, #standaloneQuestionsList input, #standaloneQuestionsList select').forEach((el, idx) => {
+        answers[idx] = el.value;
       });
 
       localStorage.setItem(`draft_app_${appId}`, JSON.stringify({ user, discord, proof, answers }));
@@ -2001,8 +2051,8 @@
 
         if (draft.answers) {
           Object.keys(draft.answers).forEach(idx => {
-            const ta = document.getElementById(`standalone_q_${idx}`);
-            if (ta) ta.value = draft.answers[idx];
+            const el = document.getElementById(`standalone_q_${idx}`);
+            if (el) el.value = draft.answers[idx];
           });
         }
       } catch (e) {}
@@ -2029,7 +2079,7 @@
         <div class="p-3 bg-[#0b0f17] card-border rounded-lg space-y-3 text-xs">
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-300 font-mono">Question #${idx + 1}</span>
-            <button onclick="removeQuestionFromBuilder(${idx})" class="text-slate-500 hover:text-red-400 text-xs transition-colors" title="Delete Question">
+            <button type="button" onclick="removeQuestionFromBuilder(${idx})" class="text-slate-500 hover:text-red-400 text-xs transition-colors" title="Delete Question">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -2037,7 +2087,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
             <div class="sm:col-span-8 space-y-1">
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Question Prompt</label>
-              <input type="text" value="${q.text || ''}" oninput="appBuilderQuestions[${idx}].text = this.value" placeholder="Enter question text..." class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />
+              <input type="text" value="${q.text || q.label || ''}" oninput="appBuilderQuestions[${idx}].text = this.value; appBuilderQuestions[${idx}].label = this.value;" placeholder="Enter question text..." class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs" />
             </div>
 
             <div class="sm:col-span-4 space-y-1">
@@ -2055,7 +2105,7 @@
           ${q.type === 'select' ? `
             <div class="space-y-1 pt-1">
               <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Dropdown Options (Comma Separated)</label>
-              <input type="text" value="${q.options || ''}" oninput="appBuilderQuestions[${idx}].options = this.value" placeholder="e.g. Option 1, Option 2, Option 3" class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />
+              <input type="text" value="${Array.isArray(q.options) ? q.options.join(', ') : (q.options || '')}" oninput="appBuilderQuestions[${idx}].options = this.value" placeholder="e.g. Option 1, Option 2, Option 3" class="w-full px-3 py-1.5 bg-[#121722] card-border rounded text-slate-100 focus:outline-none focus:border-indigo-500 text-xs font-mono" />
             </div>
           ` : ''}
 
@@ -2079,6 +2129,36 @@
       renderAppBuilderQuestions();
     }
 
+    function editForm(appId) {
+      const appItem = activeApplications.find(a => a.id === appId);
+      if (!appItem) return;
+
+      document.getElementById('editingFormId').value = appItem.id;
+      document.getElementById('appBuilderTitle').value = appItem.title || '';
+      document.getElementById('appBuilderDesc').value = appItem.guidelines || appItem.description || '';
+
+      appBuilderQuestions = Array.isArray(appItem.questions) ? JSON.parse(JSON.stringify(appItem.questions)) : [];
+      renderAppBuilderQuestions();
+
+      document.getElementById('editingFormTitleLabel').innerText = appItem.title;
+      document.getElementById('editingModeBadge').classList.remove('hidden');
+      document.getElementById('saveFormBtnLabel').innerText = 'Save Changes to Form';
+
+      switchTab('applications');
+      switchDesignerTab('questions');
+    }
+
+    function cancelEditingForm() {
+      document.getElementById('editingFormId').value = '';
+      document.getElementById('appBuilderTitle').value = '';
+      document.getElementById('appBuilderDesc').value = '';
+      appBuilderQuestions = [];
+      renderAppBuilderQuestions();
+
+      document.getElementById('editingModeBadge').classList.add('hidden');
+      document.getElementById('saveFormBtnLabel').innerText = 'Publish Application Form';
+    }
+
     function insertPresetQuestion(type) {
       const presets = {
         catch_rule: { text: 'What is Rule #7 in our server rules, and what does it mean to you?', type: 'textarea' },
@@ -2093,6 +2173,7 @@
     }
 
     async function createApplicationForm() {
+      const formId = document.getElementById('editingFormId').value;
       const title = document.getElementById('appBuilderTitle').value.trim();
       const description = document.getElementById('appBuilderDesc').value.trim();
 
@@ -2113,19 +2194,16 @@
         const res = await fetch('/api/applications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description, questions: appBuilderQuestions, settings })
+          body: JSON.stringify({ id: formId || undefined, title, description, guidelines: description, questions: appBuilderQuestions, settings })
         });
         const data = await res.json();
 
         if (res.ok && data.success) {
-          showToast('Application form published cleanly!', 'success');
-          appBuilderQuestions = [];
-          document.getElementById('appBuilderTitle').value = '';
-          document.getElementById('appBuilderDesc').value = '';
-          renderAppBuilderQuestions();
+          showToast(data.message || 'Application form saved cleanly!', 'success');
+          cancelEditingForm();
           fetchApplications();
         } else {
-          showToast(data.error || 'Failed to create form.', 'emergency');
+          showToast(data.error || 'Failed to save form.', 'emergency');
         }
       } catch (err) {
         showToast('Network error while publishing application.', 'emergency');
@@ -2173,6 +2251,9 @@
             </div>
 
             <div class="flex items-center gap-2">
+              <button onclick="editForm('${app.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-pen text-xs"></i> Edit
+              </button>
               <button onclick="openShareLinkModal('${app.id}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
                 <i class="fa-solid fa-link text-xs"></i> Links
               </button>
@@ -2226,7 +2307,7 @@
               <img src="/api/avatar-by-username/${encodeURIComponent(sub.applicantUsername)}" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700/80 object-cover" onerror="this.src='/api/avatar/1'" />
               <div>
                 <span class="font-bold text-slate-100 text-xs">${sub.applicantUsername}</span>
-                <span class="text-[10px] text-slate-400 font-mono block">Discord: ${sub.discordTag || 'None'} • Sig: ${sub.deviceSignature || 'Untracked'}</span>
+                <span class="text-[10px] text-slate-400 font-mono block">Discord: ${sub.discordTag || 'None'} • Email: ${sub.googleProfile ? sub.googleProfile.email : 'N/A'} • Sig: ${sub.deviceSignature || 'Untracked'}</span>
               </div>
             </div>
 
