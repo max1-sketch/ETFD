@@ -1,113 +1,143 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0b0e14] text-slate-200">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Escape Tsunami - Member Portal</title>
   
-  <!-- CDNs for Tailwind, FontAwesome & Fonts -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- CDNs for Fonts & FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- BUILT-IN INDUSTRIAL GLASS & SLATE DESIGN SYSTEM -->
+  <!-- STANDALONE INDUSTRIAL SLATE & GLASS DESIGN SYSTEM (FAIL-SAFE VANILLA CSS) -->
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
-      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #0b0e14 !important;
+      color: #f8fafc;
+      overflow-x: hidden;
+      user-select: none;
     }
 
     .font-mono {
       font-family: 'JetBrains Mono', monospace !important;
     }
 
-    body {
-      background-color: #0b0e14 !important;
-      color: #f8fafc;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Subdued Industrial Grid Pattern */
+    /* Subdued Grid Background Pattern */
     .bg-grid-pattern {
       background-size: 32px 32px;
       background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     }
 
-    /* High-End Frosted Glass Surface (5-8% Opacity + 28px Blur) */
+    /* Utility Classes */
+    .hidden { display: none !important; }
+    .flex { display: flex !important; }
+    .flex-col { flex-direction: column !important; }
+    .flex-row { flex-direction: row !important; }
+    .items-center { align-items: center !important; }
+    .items-start { align-items: flex-start !important; }
+    .justify-between { justify-content: space-between !important; }
+    .justify-center { justify-content: center !important; }
+    .justify-end { justify-content: flex-end !important; }
+    .flex-1 { flex: 1 1 0% !important; }
+    .shrink-0 { flex-shrink: 0 !important; }
+    .w-full { width: 100% !important; }
+    .h-full { height: 100% !important; }
+    .min-h-screen { min-height: 100vh !important; }
+
+    /* Frosted Glass Panels (5-8% Opacity + Backdrop Blur) */
     .glass-card {
-      background: rgba(255, 255, 255, 0.035);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.18);
-      border-left: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.75);
-      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      background: rgba(255, 255, 255, 0.035) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7) !important;
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
     }
 
     .glass-card:hover {
-      border-color: rgba(0, 229, 153, 0.35);
-      box-shadow: 0 35px 70px rgba(0, 0, 0, 0.85);
+      border-color: rgba(0, 229, 153, 0.3) !important;
+      box-shadow: 0 35px 70px rgba(0, 0, 0, 0.85) !important;
     }
 
-    /* Glass Buttons with Light-Catching Top Edges */
+    /* Light-Catching Glass Buttons */
     .glass-btn-discord {
-      background: rgba(88, 101, 242, 0.14);
-      border: 1px solid rgba(88, 101, 242, 0.3);
-      border-top: 1px solid rgba(147, 197, 253, 0.45);
-      border-left: 1px solid rgba(147, 197, 253, 0.25);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(88, 101, 242, 0.14) !important;
+      border: 1px solid rgba(88, 101, 242, 0.3) !important;
+      border-top: 1px solid rgba(147, 197, 253, 0.45) !important;
+      border-left: 1px solid rgba(147, 197, 253, 0.25) !important;
+      color: #ffffff !important;
+      transition: all 0.2s ease !important;
     }
 
     .glass-btn-discord:hover {
-      background: rgba(88, 101, 242, 0.28);
-      border-color: rgba(88, 101, 242, 0.6);
-      box-shadow: 0 0 28px rgba(88, 101, 242, 0.25);
+      background: rgba(88, 101, 242, 0.28) !important;
+      border-color: rgba(88, 101, 242, 0.6) !important;
+      box-shadow: 0 0 24px rgba(88, 101, 242, 0.25) !important;
     }
 
     .glass-btn-google {
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.22);
-      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.025) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+      color: #e2e8f0 !important;
+      transition: all 0.2s ease !important;
     }
 
     .glass-btn-google:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
     }
 
     .glass-btn-mint {
-      background: rgba(0, 229, 153, 0.1);
-      border: 1px solid rgba(0, 229, 153, 0.28);
-      border-top: 1px solid rgba(0, 229, 153, 0.55);
-      transition: all 0.2s ease;
+      background: rgba(0, 229, 153, 0.1) !important;
+      border: 1px solid rgba(0, 229, 153, 0.28) !important;
+      border-top: 1px solid rgba(0, 229, 153, 0.55) !important;
+      color: #00E599 !important;
+      transition: all 0.2s ease !important;
     }
 
     .glass-btn-mint:hover {
-      background: rgba(0, 229, 153, 0.22);
-      border-color: rgba(0, 229, 153, 0.6);
-      box-shadow: 0 0 28px rgba(0, 229, 153, 0.22);
+      background: rgba(0, 229, 153, 0.22) !important;
+      border-color: rgba(0, 229, 153, 0.6) !important;
+      box-shadow: 0 0 28px rgba(0, 229, 153, 0.22) !important;
+    }
+
+    .glass-btn-ghost {
+      background: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #cbd5e1 !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .glass-btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+      color: #ffffff !important;
     }
 
     /* Modal Overlay Backdrop */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(11, 14, 20, 0.92);
-      backdrop-filter: blur(32px);
-      -webkit-backdrop-filter: blur(32px);
+      background: rgba(11, 14, 20, 0.92) !important;
+      backdrop-filter: blur(32px) !important;
+      -webkit-backdrop-filter: blur(32px) !important;
       z-index: 999;
       display: flex;
       align-items: center;
@@ -115,29 +145,97 @@
       padding: 1rem;
     }
 
-    /* Fail-Safe Layout Utilities */
-    .hidden { display: none !important; }
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    .gap-3 { gap: 0.75rem; }
-    .gap-4 { gap: 1rem; }
-    .w-full { width: 100%; }
-    .max-w-md { max-width: 28rem; }
-    .max-w-6xl { max-width: 72rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
+    /* Navigation Bar */
+    .portal-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(11, 14, 20, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Layout Containers & Bento Grid */
+    .portal-container {
+      max-width: 1120px;
+      width: 94%;
+      margin: 0 auto;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem 0;
+    }
+
+    @media (min-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: 8fr 4fr;
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Blurred Security Shield Container */
+    .record-table-blur {
+      filter: blur(6px);
+      pointer-events: none;
+      opacity: 0.25;
+      user-select: none;
+    }
+
+    /* Terminal Code Input & Slot */
+    .terminal-slot {
+      background: #05070a !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-family: 'JetBrains Mono', monospace !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .slot-input {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+      color: #f8fafc !important;
+      font-size: 0.8rem;
+      outline: none !important;
+      transition: border-color 0.2s ease;
+    }
+
+    .slot-input:focus {
+      border-bottom-color: #00E599 !important;
+    }
   </style>
 </head>
 <body class="h-full flex flex-col min-h-screen select-none bg-grid-pattern overflow-x-hidden">
 
   <!-- SIGN-IN GATE OVERLAY (FROSTED GLASS & FLOATING MINT LOCK) -->
   <div id="memberAuthGateOverlay" class="modal-overlay">
-    <div class="max-w-md w-full glass-card p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden text-center border border-white/10">
+    <div class="glass-card p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden text-center border border-white/10" style="max-width: 440px; width: 100%;">
       
-      <!-- FLOATING MINT LOCK ICON (SOFT, WIDE RADIAL GLOW) -->
+      <!-- FLOATING MINT LOCK ICON -->
       <div class="relative py-2 flex justify-center items-center">
         <div class="absolute w-36 h-36 bg-[#00E599]/12 rounded-full blur-3xl pointer-events-none"></div>
         <i class="fa-solid fa-lock text-4xl text-[#00E599] drop-shadow-[0_0_24px_rgba(0,229,153,0.45)]"></i>
@@ -152,25 +250,21 @@
       </div>
 
       <div class="space-y-3 pt-1">
-        <!-- DISCORD + BLOXLINK LOGIN BUTTON (MUTED ICON OPACITY) -->
-        <a id="discordLoginBtn" href="/auth/discord" class="group w-full py-3 glass-btn-discord text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2.5 shadow-lg">
+        <a id="discordLoginBtn" href="/auth/discord" class="group w-full py-3 glass-btn-discord text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2.5 shadow-lg cursor-pointer">
           <i class="fa-brands fa-discord text-base text-[#7289da] opacity-80 group-hover:opacity-100 transition-opacity"></i>
           <span>Sign In with Discord (Bloxlink)</span>
         </a>
 
-        <!-- GOOGLE LOGIN BUTTON (MUTED ICON OPACITY) -->
-        <a id="googleLoginBtn" href="/auth/google" class="group w-full py-2.5 glass-btn-google text-xs font-bold text-slate-200 rounded-xl flex items-center justify-center gap-3 shadow-md">
+        <a id="googleLoginBtn" href="/auth/google" class="group w-full py-2.5 glass-btn-google text-xs font-bold text-slate-200 rounded-xl flex items-center justify-center gap-3 shadow-md cursor-pointer">
           <svg class="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           <span>Sign In with Google</span>
         </a>
 
-        <!-- ULTRA-SUBTLE WHISPER DIVIDER -->
         <div class="relative my-2.5 flex items-center justify-center">
           <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/[0.04]"></div></div>
           <span class="relative bg-[#0b0e14]/80 px-2.5 text-[8px] font-mono text-slate-500 uppercase tracking-widest">or</span>
         </div>
 
-        <!-- ROBLOX BIO CODE VERIFICATION GLASS BUTTON -->
         <button onclick="openVerificationModal()" class="w-full py-3 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer">
           <i class="fa-solid fa-link text-xs opacity-90"></i>
           <span>Link Account (Roblox Bio Code)</span>
@@ -180,7 +274,7 @@
   </div>
 
   <!-- TOP NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-[#0b0e14]/85 backdrop-blur-md border-b border-white/5 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+  <header class="portal-header">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00E599] to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-[#00E599]/20">
         <i class="fa-solid fa-water text-base"></i>
@@ -208,121 +302,207 @@
   </header>
 
   <!-- EVENT ANNOUNCEMENT BANNER -->
-  <div class="max-w-6xl w-[94%] mx-auto mt-4 px-4 py-2.5 rounded-2xl bg-[#00E599]/5 border border-[#00E599]/20 text-[#00E599] text-xs flex items-center justify-between shadow-lg backdrop-blur-md">
-    <div class="flex items-center gap-3 truncate">
-      <div class="w-6 h-6 rounded-full bg-[#00E599]/15 border border-[#00E599]/30 flex items-center justify-center text-[#00E599] shrink-0">
-        <i class="fa-solid fa-bullhorn text-xs animate-pulse"></i>
+  <div class="portal-container mt-4">
+    <div class="px-4 py-2.5 rounded-2xl bg-[#00E599]/5 border border-[#00E599]/20 text-[#00E599] text-xs flex items-center justify-between shadow-lg backdrop-blur-md">
+      <div class="flex items-center gap-3 truncate">
+        <div class="w-6 h-6 rounded-full bg-[#00E599]/15 border border-[#00E599]/30 flex items-center justify-center text-[#00E599] shrink-0">
+          <i class="fa-solid fa-bullhorn text-xs animate-pulse"></i>
+        </div>
+        <span class="truncate font-medium text-slate-200">📢 <strong>Group Event:</strong> Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
       </div>
-      <span class="truncate font-medium text-slate-200">📢 <strong>Group Event:</strong> Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
+      <span class="text-[10px] font-mono bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20 text-[#00E599] shrink-0 hidden sm:inline">EVENT READY</span>
     </div>
-    <span class="text-[10px] font-mono bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20 text-[#00E599] shrink-0 hidden sm:inline">EVENT READY</span>
   </div>
 
-  <!-- MAIN DASHBOARD CONTENT -->
-  <main class="max-w-6xl w-[94%] mx-auto py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <!-- MAIN DASHBOARD CONTENT (BENTO GRID) -->
+  <main class="portal-container flex-1">
+    <div class="bento-grid">
 
-    <!-- LEFT COLUMN: MEMBER PROFILE & STATS -->
-    <div class="lg:col-span-8 space-y-6">
+      <!-- LEFT COLUMN: MEMBER PROFILE & STATS -->
+      <div class="space-y-6">
 
-      <!-- PROFILE & IDENTITY BENTO CARD -->
-      <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
-        <div class="absolute -top-12 -right-12 w-40 h-40 bg-[#00E599]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- PROFILE & IDENTITY BENTO CARD -->
+        <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
+          <div class="absolute -top-12 -right-12 w-40 h-40 bg-[#00E599]/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
-          <div class="flex items-center gap-4">
-            <div class="relative">
-              <img id="memberCardAvatar" src="/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/10 object-cover shadow-lg" />
-              <span id="memberCardOnlineDot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00E599] border-2 border-[#0b0e14] rounded-full" title="Portal Connected"></span>
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <img id="memberCardAvatar" src="/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/10 object-cover shadow-lg" />
+                <span id="memberCardOnlineDot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00E599] border-2 border-[#0b0e14] rounded-full" title="Portal Connected"></span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 id="memberCardUsername" class="text-base font-bold text-slate-100">Roblox User</h2>
+                  <span id="memberCardRankBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
+                    Community Member
+                  </span>
+                </div>
+                <p id="memberCardDisplay" class="text-xs text-slate-400 font-mono mt-0.5">@UnverifiedUser</p>
+                <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400 font-mono">
+                  <span id="memberCardAccountAge"><i class="fa-solid fa-calendar-day text-[#00E599] mr-1"></i> Account Age: -- days</span>
+                  <span>•</span>
+                  <span id="memberCardDiscord"><i class="fa-brands fa-discord text-[#00E599] mr-1"></i> Discord: Unlinked</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 id="memberCardUsername" class="text-base font-bold text-slate-100">Roblox User</h2>
-                <span id="memberCardRankBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
-                  Community Member
-                </span>
-              </div>
-              <p id="memberCardDisplay" class="text-xs text-slate-400 font-mono mt-0.5">@UnverifiedUser</p>
-              <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400 font-mono">
-                <span id="memberCardAccountAge"><i class="fa-solid fa-calendar-day text-[#00E599] mr-1"></i> Account Age: -- days</span>
-                <span>•</span>
-                <span id="memberCardDiscord"><i class="fa-brands fa-discord text-[#00E599] mr-1"></i> Discord: Unlinked</span>
-              </div>
+          </div>
+
+          <!-- RANK UP PROGRESS BAR -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-300">Rank Up Progress</span>
+              <span class="font-mono text-[#00E599] font-bold text-[11px]" id="rankProgressPct">60% Complete</span>
+            </div>
+            <div class="w-full bg-[#05070a] h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
+              <div id="rankProgressBar" class="bg-gradient-to-r from-[#00E599] to-teal-400 h-full rounded-full transition-all duration-500" style="width: 60%"></div>
             </div>
           </div>
         </div>
 
-        <!-- RANK UP PROGRESS BAR -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-semibold text-slate-300">Rank Up Progress</span>
-            <span class="font-mono text-[#00E599] font-bold text-[11px]" id="rankProgressPct">60% Complete</span>
+        <!-- IN-GAME PLAYER STATS BENTO CARD -->
+        <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
+          <div class="border-b border-white/5 pb-3 flex items-center justify-between">
+            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-[#00E599]"></i>
+              <span>My Game Stats</span>
+            </h2>
+            <span class="text-[10px] font-mono text-[#00E599] font-bold bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20">LIVE DATA</span>
+          </div>
+
+          <div class="stats-grid font-mono">
+            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Tsunamis Escaped</span>
+              <span class="text-xl font-black text-slate-100 block">142</span>
+              <span class="text-[9px] text-[#00E599] font-bold block">+12 this week</span>
+            </div>
+
+            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Survival Coins</span>
+              <span class="text-xl font-black text-amber-400 block">3,850</span>
+              <span class="text-[9px] text-slate-400 block">In-game balance</span>
+            </div>
+
+            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Playtime</span>
+              <span class="text-xl font-black text-cyan-400 block">18h 45m</span>
+              <span class="text-[9px] text-slate-400 block">Experienced Cadet</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: GAME TELEMETRY & SERVER JOIN -->
+      <div class="space-y-6">
+
+        <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl">
+          <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-signal text-[#00E599]"></i>
+              <span>Game Status</span>
+            </h3>
+            <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
+          </div>
+
+          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 border-2 border-[#00E599] text-[#00E599] hover:bg-[#00E599] hover:text-black font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-gamepad text-sm"></i> Join Game Server
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- WIDE BENTO CARD: OFFICIAL SECURITY RECORD ("MY RECORD") -->
+    <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-6">
+      
+      <!-- HEADER WITH ACCOUNT STANDING BADGE -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2 font-mono">
+              <i class="fa-solid fa-shield-halved text-[#00E599]"></i> My Record
+            </h2>
+            <span id="accountStandingBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
+              Good Standing
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-mono mt-1">Official security log and infraction history</p>
+        </div>
+
+        <!-- RISK LEVEL TELEMETRY BAR -->
+        <div class="w-full sm:w-64 space-y-1.5 font-mono">
+          <div class="flex items-center justify-between text-[10px]">
+            <span class="text-slate-400 uppercase tracking-wider">Account Risk Level</span>
+            <span id="riskLevelPctText" class="text-[#00E599] font-bold">0% (Safe)</span>
           </div>
           <div class="w-full bg-[#05070a] h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
-            <div id="rankProgressBar" class="bg-gradient-to-r from-[#00E599] to-teal-400 h-full rounded-full transition-all duration-500" style="width: 60%"></div>
+            <div id="riskLevelBar" class="bg-[#00E599] h-full rounded-full transition-all duration-500" style="width: 5%"></div>
           </div>
         </div>
       </div>
 
-      <!-- IN-GAME PLAYER STATS BENTO CARD -->
-      <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
-        <div class="border-b border-white/5 pb-3 flex items-center justify-between">
-          <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-gamepad text-[#00E599]"></i>
-            <span>My Game Stats</span>
-          </h2>
-          <span class="text-[10px] font-mono text-[#00E599] font-bold bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20">LIVE DATA</span>
+      <!-- TABLE & OVERLAY WRAPPER -->
+      <div class="relative min-h-[200px]">
+        
+        <!-- LOCKED OVERLAY FOR UNLINKED ACCOUNTS -->
+        <div id="modHistoryLockedOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#0b0e14]/60 backdrop-blur-md rounded-xl space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#00E599] text-xl shadow-lg">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div class="max-w-md space-y-1">
+            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest font-mono">Identity Verification Required</h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Link your Roblox account to view your official record and file appeals.
+            </p>
+          </div>
+          <button onclick="openVerificationModal()" class="px-4 py-2 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg">
+            <i class="fa-solid fa-link text-xs"></i> Verify Profile
+          </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
-          <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Tsunamis Escaped</span>
-            <span class="text-xl font-black text-slate-100 block">142</span>
-            <span class="text-[9px] text-[#00E599] font-bold block">+12 this week</span>
-          </div>
-
-          <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Survival Coins</span>
-            <span class="text-xl font-black text-amber-400 block">3,850</span>
-            <span class="text-[9px] text-slate-400 block">In-game balance</span>
-          </div>
-
-          <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Playtime</span>
-            <span class="text-xl font-black text-cyan-400 block">18h 45m</span>
-            <span class="text-[9px] text-slate-400 block">Experienced Cadet</span>
-          </div>
+        <!-- MODERATION HISTORY DATA TABLE -->
+        <div id="modHistoryTableWrapper" class="w-full overflow-x-auto record-table-blur">
+          <table class="w-full text-left text-xs min-w-[600px] font-mono">
+            <thead>
+              <tr class="border-b border-white/5 text-[10px] text-slate-400 uppercase tracking-wider">
+                <th class="pb-2.5 font-bold">Date</th>
+                <th class="pb-2.5 font-bold">Action</th>
+                <th class="pb-2.5 font-bold">Reason</th>
+                <th class="pb-2.5 font-bold">Status</th>
+                <th class="pb-2.5 font-bold text-right">Appeal</th>
+              </tr>
+            </thead>
+            <tbody id="modHistoryTableBody" class="divide-y divide-white/[0.04] text-[11px]">
+              <!-- DEFAULT SAMPLE RECORD (LOCKED STATE) -->
+              <tr class="hover:bg-white/[0.02]">
+                <td class="py-3 text-slate-400">08/20/26</td>
+                <td class="py-3"><span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold rounded uppercase">[ WARNING ]</span></td>
+                <td class="py-3 text-slate-300">Spamming in server chat channel</td>
+                <td class="py-3 text-slate-400">Expired</td>
+                <td class="py-3 text-right"><span class="text-slate-600 text-[10px]">N/A</span></td>
+              </tr>
+              <tr class="hover:bg-white/[0.02]">
+                <td class="py-3 text-slate-400">08/18/26</td>
+                <td class="py-3"><span class="px-2 py-0.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-bold rounded uppercase">[ KICK ]</span></td>
+                <td class="py-3 text-slate-300">Inappropriate chatter in lobby</td>
+                <td class="py-3 text-slate-400">Expired</td>
+                <td class="py-3 text-right"><span class="text-slate-600 text-[10px]">N/A</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+
       </div>
 
     </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="lg:col-span-4 space-y-6">
-
-      <!-- LIVE COMMUNITY TELEMETRY -->
-      <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl">
-        <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-signal text-[#00E599]"></i>
-            <span>Game Status</span>
-          </h3>
-          <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
-        </div>
-
-        <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 border-2 border-[#00E599] text-[#00E599] hover:bg-[#00E599] hover:text-black font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-gamepad text-sm"></i> Join Game Server
-        </a>
-      </div>
-
-    </div>
-
   </main>
 
   <!-- ROBLOX VERIFICATION MODAL -->
   <div id="verificationModal" class="modal-overlay hidden">
-    <div class="glass-card rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10">
+    <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
       
-      <!-- TOP HEADER WITH ROTATED + CLOSE BUTTON -->
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
         <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.15em] flex items-center gap-2 font-mono">
           <i class="fa-solid fa-shield-cat text-[#00E599]"></i> Link Roblox Account
@@ -333,31 +513,26 @@
       </div>
 
       <div class="space-y-4 text-xs">
-        <!-- DIRECT HUMAN INSTRUCTION -->
         <p class="text-slate-300 leading-relaxed">
           Add this code to your Roblox <strong>"About"</strong> section to verify your account.
         </p>
 
-        <!-- DEEP CHARCOAL TERMINAL CODE SLOT -->
-        <div class="p-3.5 bg-[#05070a] border border-white/10 rounded-xl flex items-center justify-between font-mono shadow-inner">
+        <div class="terminal-slot">
           <div class="flex items-center gap-2">
             <span class="text-slate-600 text-xs">$</span>
             <span id="bioVerificationCode" class="text-sm font-bold text-[#00E599] tracking-widest">TSUNAMI-8492</span>
           </div>
-          <!-- SMALL GLASS ICON-ONLY COPY BUTTON -->
           <button onclick="copyBioCode()" class="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-[#00E599] border border-white/10 rounded-lg transition-all text-xs flex items-center gap-1 cursor-pointer" title="Copy Verification Code">
             <i class="fa-regular fa-copy text-xs"></i>
           </button>
         </div>
 
-        <!-- BOTTOM-BORDER ONLY USERNAME INPUT SLOT -->
         <div class="space-y-1.5 pt-1">
           <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Roblox Username</label>
-          <input type="text" id="verifyRobloxUser" placeholder="Enter exact Roblox username..." class="w-full px-3.5 py-2.5 bg-transparent border-b-2 border-white/10 focus:border-[#00E599] text-slate-100 text-xs focus:outline-none font-medium transition-all" />
+          <input type="text" id="verifyRobloxUser" placeholder="Enter exact Roblox username..." class="slot-input" />
         </div>
       </div>
 
-      <!-- ACTION BUTTONS: GHOST CANCEL & SOLID MINT VERIFY -->
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
         <button onclick="closeVerificationModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded-xl transition-all cursor-pointer">
           Cancel
@@ -369,10 +544,56 @@
     </div>
   </div>
 
+  <!-- FILE APPEAL MODAL -->
+  <div id="appealModal" class="modal-overlay hidden">
+    <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
+      
+      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.15em] flex items-center gap-2 font-mono">
+          <i class="fa-solid fa-gavel text-[#00E599]"></i> File Appeal
+        </h3>
+        <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer" title="Close">
+          <i class="fa-solid fa-plus rotate-45 text-base"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div id="appealRecordSummary" class="p-3 bg-[#05070a] border border-white/10 rounded-xl space-y-1 font-mono text-[11px]">
+          <div class="text-slate-400">Case ID: <span id="appealCaseId" class="text-slate-200 font-bold">#CASE-9482</span></div>
+          <div class="text-slate-400">Action: <span id="appealCaseAction" class="text-amber-400 font-bold">[ WARNING ]</span></div>
+          <div class="text-slate-400">Reason: <span id="appealCaseReason" class="text-slate-200">Excessive speed violation</span></div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Appeal Explanation</label>
+          <textarea id="appealTextInput" rows="4" placeholder="Provide clear context or details explaining why this action should be reviewed..." class="w-full p-3 bg-[#05070a] border border-white/10 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
+        <button onclick="closeAppealModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded-xl transition-all cursor-pointer">
+          Cancel
+        </button>
+        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded-xl shadow-lg shadow-[#00E599]/20 transition-all cursor-pointer">
+          File Appeal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
   <div id="portalToastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
+  <!-- CLIENT SCRIPTS WITH DEFENSIVE DOM EXECUTION -->
   <script>
     let activeVerificationCode = 'TSUNAMI-' + Math.floor(1000 + Math.random() * 9000);
+    let activeAppealCase = null;
+
+    // Sample moderation records for verified state
+    let sampleUserRecords = [
+      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', reason: 'Spamming in server chat', status: 'Expired', canAppeal: false },
+      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
+    ];
 
     document.addEventListener('DOMContentLoaded', () => {
       const bioEl = document.getElementById('bioVerificationCode');
@@ -427,6 +648,116 @@
       if (cAv) cAv.src = `${backendUrl}/api/avatar/${user.userId}`;
       if (cUser) cUser.innerText = user.exactName;
       if (cDisp) cDisp.innerText = `@${user.exactName} (${user.displayName})`;
+
+      // Unlock Mod History & Render Table
+      unlockModHistory(sampleUserRecords);
+    }
+
+    function unlockModHistory(records) {
+      const lockedOverlay = document.getElementById('modHistoryLockedOverlay');
+      const tableWrapper = document.getElementById('modHistoryTableWrapper');
+      const tbody = document.getElementById('modHistoryTableBody');
+      const badge = document.getElementById('accountStandingBadge');
+      const riskBar = document.getElementById('riskLevelBar');
+      const riskText = document.getElementById('riskLevelPctText');
+
+      if (lockedOverlay) lockedOverlay.classList.add('hidden');
+      if (tableWrapper) tableWrapper.classList.remove('record-table-blur');
+
+      const activeCount = records.filter(r => r.status === 'Active').length;
+
+      if (badge) {
+        if (activeCount === 0) {
+          badge.innerText = 'Good Standing';
+          badge.className = 'px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase';
+        } else {
+          badge.innerText = 'Flagged Account';
+          badge.className = 'px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] font-bold rounded-md uppercase';
+        }
+      }
+
+      if (riskBar && riskText) {
+        const riskPct = Math.min(100, activeCount * 30 + 10);
+        riskBar.style.width = `${riskPct}%`;
+        if (riskPct > 50) {
+          riskBar.className = 'bg-red-500 h-full rounded-full transition-all duration-500';
+          riskText.innerText = `${riskPct}% (High Risk)`;
+          riskText.className = 'text-red-400 font-bold';
+        } else if (riskPct > 20) {
+          riskBar.className = 'bg-amber-400 h-full rounded-full transition-all duration-500';
+          riskText.innerText = `${riskPct}% (Notice)`;
+          riskText.className = 'text-amber-400 font-bold';
+        } else {
+          riskBar.className = 'bg-[#00E599] h-full rounded-full transition-all duration-500';
+          riskText.innerText = `${riskPct}% (Safe)`;
+          riskText.className = 'text-[#00E599] font-bold';
+        }
+      }
+
+      if (tbody) {
+        if (!records || !records.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500">No infraction history recorded. Account is clean!</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = records.map(r => `
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 text-slate-400">${r.date}</td>
+            <td class="py-3"><span class="px-2 py-0.5 ${r.actionBadge} text-[10px] font-bold rounded uppercase">[ ${r.action} ]</span></td>
+            <td class="py-3 text-slate-300">${r.reason}</td>
+            <td class="py-3 ${r.status === 'Active' ? 'text-amber-400 font-bold' : r.status === 'Appealed' ? 'text-cyan-400 font-bold' : 'text-slate-500'}">${r.status}</td>
+            <td class="py-3 text-right">
+              ${r.canAppeal && r.status === 'Active' ? `
+                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 glass-btn-ghost text-xs font-bold rounded-lg cursor-pointer">
+                  File Appeal
+                </button>
+              ` : `
+                <span class="text-slate-600 text-[10px]">N/A</span>
+              `}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function openAppealModal(caseId, action, reason) {
+      activeAppealCase = caseId;
+      const modal = document.getElementById('appealModal');
+      const caseEl = document.getElementById('appealCaseId');
+      const actionEl = document.getElementById('appealCaseAction');
+      const reasonEl = document.getElementById('appealCaseReason');
+
+      if (caseEl) caseEl.innerText = caseId;
+      if (actionEl) actionEl.innerText = `[ ${action} ]`;
+      if (reasonEl) reasonEl.innerText = reason;
+
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAppealModal() {
+      const modal = document.getElementById('appealModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function submitAppealForm() {
+      const input = document.getElementById('appealTextInput');
+      const text = input ? input.value.trim() : '';
+
+      if (!text) {
+        showPortalToast('Please enter an explanation for your appeal.', 'warning');
+        return;
+      }
+
+      const rec = sampleUserRecords.find(r => r.id === activeAppealCase);
+      if (rec) {
+        rec.status = 'Appealed';
+        rec.canAppeal = false;
+      }
+
+      unlockModHistory(sampleUserRecords);
+      closeAppealModal();
+      showPortalToast(`Appeal for ${activeAppealCase} filed cleanly! Staff will review shortly.`, 'success');
+      if (input) input.value = '';
     }
 
     function showPortalToast(msg, type = 'info') {
@@ -434,10 +765,10 @@
       if (!container) return;
 
       const colors = {
-        success: 'bg-[#0b0e14]/90 border-[#00E599]/40 text-[#00E599] shadow-[#00E599]/10',
-        warning: 'bg-amber-950/80 border-amber-500/40 text-amber-200 shadow-amber-950/40',
-        emergency: 'bg-red-950/80 border-red-500/40 text-red-200 shadow-red-950/40',
-        info: 'bg-[#0b0e14]/90 border-white/10 text-slate-200 shadow-slate-950/40'
+        success: 'bg-[#0b0e14]/90 border-[#00E599]/40 text-[#00E599]',
+        warning: 'bg-amber-950/80 border-amber-500/40 text-amber-200',
+        emergency: 'bg-red-950/80 border-red-500/40 text-red-200',
+        info: 'bg-[#0b0e14]/90 border-white/10 text-slate-200'
       };
 
       const toast = document.createElement('div');
