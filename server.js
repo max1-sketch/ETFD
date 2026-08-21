@@ -1191,6 +1191,13 @@ app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
+app.get(['/member', '/members', '/portal'], (req, res) => {
+  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'member.html'))
+    ? path.join(__dirname, 'views', 'member.html')
+    : path.join(__dirname, 'views', 'members.html');
+  res.sendFile(memberFilePath);
+});
+
 io.on('connection', (socket) => {
   socket.emit('systemNoticeUpdate', systemNotice);
 });
