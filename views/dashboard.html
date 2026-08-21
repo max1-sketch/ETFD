@@ -699,7 +699,7 @@
               <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
                 <div>
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Live In-Game Players</span>
-                  <span id="statLivePlayers" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
+                  <span id="statLivePlayers" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 relative">
                   <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
@@ -710,7 +710,7 @@
               <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
                 <div>
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Global Bans</span>
-                  <span id="statActiveBans" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
+                  <span id="statActiveBans" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
                   <i class="fa-solid fa-ban text-lg"></i>
@@ -720,7 +720,7 @@
               <div class="bg-[#121722] card-border rounded-xl p-4 flex items-center justify-between">
                 <div>
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">24h Recent Actions</span>
-                  <span id="statTotalLogs" class="text-2xl font-black text-slate-500 font-mono mt-1 block">0</span>
+                  <span id="statTotalLogs" class="text-2xl font-black text-slate-100 font-mono mt-1 block">0</span>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                   <i class="fa-solid fa-shield-halved text-lg"></i>
@@ -1481,6 +1481,31 @@
       }
     });
 
+    function validateNumericInput(input) {
+      if (input) {
+        input.value = input.value.replace(/[^0-9]/g, '');
+      }
+    }
+
+    function updateBanBtnState() {
+      const uVal = document.getElementById('userId')?.value.trim();
+      const rVal = document.getElementById('reason')?.value.trim();
+      const banBtn = document.getElementById('globalBanBtn');
+      const lockIcon = document.getElementById('globalBanLockIcon');
+
+      if (!banBtn) return;
+
+      if (uVal && rVal) {
+        banBtn.disabled = false;
+        banBtn.className = "w-full sm:w-auto h-9 px-4 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-600/20 cursor-pointer opacity-100";
+        if (lockIcon) lockIcon.className = "fa-solid fa-lock-open text-[10px]";
+      } else {
+        banBtn.disabled = true;
+        banBtn.className = "w-full sm:w-auto h-9 px-4 bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2";
+        if (lockIcon) lockIcon.className = "fa-solid fa-lock text-[10px]";
+      }
+    }
+
     async function executeSecurityGateCheck() {
       const spinner = document.getElementById('gateSpinner');
       const checkmark = document.getElementById('gateCheckmark');
@@ -1689,7 +1714,6 @@
       return labels[st] || st || 'Pending Review';
     }
 
-    /* AUTOMATIC MY_APPS STATUS LOADER WITH ENHANCED STEPPER & RESPONSES */
     async function fetchPortalMyApps() {
       const container = document.getElementById('myAppsStatusContainer');
       const appId = document.getElementById('standaloneAppId')?.value || 'APP-DEFAULT';
@@ -1721,7 +1745,6 @@
             </div>
           `;
 
-          // Ensure form views are visible if they haven't submitted yet
           document.getElementById('alreadySubmittedNotice')?.classList.add('hidden');
           document.getElementById('standaloneFormFieldsContainer')?.classList.remove('hidden');
           return;
@@ -1729,7 +1752,6 @@
 
         const sub = data.submission;
 
-        // Trigger "Application Already Filled Out" on form tab
         const alreadyNotice = document.getElementById('alreadySubmittedNotice');
         const formContainer = document.getElementById('standaloneFormFieldsContainer');
         const caseTag = document.getElementById('alreadySubmittedCaseTag');
@@ -1745,7 +1767,6 @@
 
         const stageLabels = ['Submitted', 'Under Review', 'Interview', 'Decision'];
 
-        // Determine pulse color for status badge
         let dotColor = 'bg-amber-400 animate-pulse';
         if (sub.status === 'ACCEPTED') dotColor = 'bg-emerald-400 animate-pulse';
         if (sub.status === 'DENIED') dotColor = 'bg-red-400';
@@ -1754,7 +1775,6 @@
         container.innerHTML = `
           <div class="p-5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-6">
             
-            <!-- CASE FILE HEADER -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
               <div class="flex items-center gap-3">
                 <img src="/api/avatar-by-username/${encodeURIComponent(sub.applicantUsername)}" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 object-cover" onerror="this.src='/api/avatar/1'" />
@@ -1777,7 +1797,6 @@
               </div>
             </div>
 
-            <!-- ENHANCED STEPPER TIMELINE WITH THICK CONNECTOR LINE & CHECKMARKS -->
             <div class="relative py-3 px-2">
               <div class="absolute top-1/2 left-6 right-6 h-1 bg-slate-800/90 -translate-y-1/2 z-0 rounded-full"></div>
               <div class="relative z-10 flex items-center justify-between">
@@ -1803,7 +1822,6 @@
               </div>
             </div>
 
-            <!-- SUBMITTED RESPONSES SECTION (QUESTION ABOVE ANSWER FORMATTING) -->
             ${sub.answers && Object.keys(sub.answers).length ? `
               <div class="p-4 bg-[#121722] rounded-xl border border-white/5 space-y-3 text-xs">
                 <div class="font-bold text-slate-300 border-b border-slate-800/80 pb-2 flex items-center justify-between">
@@ -1821,7 +1839,6 @@
               </div>
             ` : ''}
 
-            <!-- REVIEWER FEEDBACK NOTES -->
             ${sub.notes && sub.notes.length ? `
               <div class="p-4 bg-[#121722] rounded-xl border border-indigo-500/20 space-y-2 text-xs">
                 <div class="font-bold text-slate-200 flex items-center gap-2">
@@ -1835,7 +1852,6 @@
               </div>
             ` : ''}
 
-            <!-- BOTTOM FOOTER WITH RELOCATED WITHDRAW BUTTON (BOTTOM-LEFT) -->
             <div class="pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px]">
               <div>
                 ${sub.status !== 'WITHDRAWN' && sub.status !== 'DENIED' ? `
@@ -2043,7 +2059,6 @@
 
           const questionsList = document.getElementById('standaloneQuestionsList');
           if (questionsList && Array.isArray(app.questions)) {
-            // Filter out duplicate prompt questions asking for Roblox Username / Discord Handle again
             const filteredQuestions = app.questions.filter(q => {
               const text = (q.text || '').toLowerCase();
               return !text.includes('roblox username') && !text.includes('discord handle');
@@ -2511,7 +2526,6 @@
     }
 
     async function updateSubmissionStatus(subId, status) {
-      // Optimistically update memory object
       const sub = applicationSubmissions.find(s => s.id === subId);
       if (sub) {
         sub.status = status;
@@ -3100,7 +3114,6 @@
       }
     }
 
-    /* GLASSMORPHISM TOAST NOTIFICATION HANDLER WITH AUTHORITATIVE SECURITY WORDING */
     function showToast(msg, type = 'info') {
       const container = document.getElementById('toastContainer');
       if (!container) return;

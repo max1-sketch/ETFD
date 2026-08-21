@@ -5,11 +5,7 @@ const http = require('http');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
-const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
-
-// DISCORD BOT DEPENDENCIES
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 let mongoose;
 try {
@@ -128,6 +124,10 @@ let blockedSignatures = new Set();
 let securityLogs = [];
 let actionLogs = [];
 let lastActionTimestamp = 0;
+let activeLivePlayers = [
+  { userId: 261, username: 'Builderman', tools: ['SuperFly', 'SpeedBoost'], ping: 14 },
+  { userId: 156, username: 'Roblox', tools: ['AdminGiver'], ping: 9 }
+];
 
 let systemNotice = {
   active: true,
@@ -251,7 +251,6 @@ app.get('/auth/google', (req, res) => {
   }
 
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
-  // Capture returnTo query param or Referer so candidate returns to exact form URL (/apply/:id)
   const returnTo = req.query.returnTo || req.headers.referer || '/';
   req.session.googleReturnTo = returnTo;
 
@@ -401,6 +400,33 @@ app.get('/login', (req, res) => {
     return res.redirect('/dashboard');
   }
   res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+// BANNED USERS, LIVE PLAYERS, AND LOGS API ENDPOINTS
+app.get('/api/banned', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    bannedUsers: Array.from(bannedUsersMap.values())
+  });
+});
+
+app.get('/api/live-players', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    players: activeLivePlayers
+  });
+});
+
+app.get('/api/logs', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    logs: actionLogs
+  });
+});
+
+app.delete('/api/logs', requireAuth, requireOwner, (req, res) => {
+  actionLogs = [];
+  res.json({ success: true, message: 'Action logs cleared successfully.' });
 });
 
 app.post('/api/gate/verify', (req, res) => {
@@ -591,17 +617,19 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
   const cleanUser = username ? String(username).trim().toLowerCase() : '';
   const cleanSig = deviceSignature ? String(deviceSignature).trim() : '';
 
-  if (!cleanUser && !cleanSig) {
+  if (!cleanUser && !cleanSig && (!req.session || !req.session.applicantGoogle)) {
     return res.json({ success: true, alreadySubmitted: false, submission: null });
   }
 
   let existing = null;
+  const googleEmail = req.session?.applicantGoogle?.email;
 
   if (isMongoConnected) {
     try {
       const orConditions = [];
       if (cleanUser) orConditions.push({ applicantUsername: new RegExp(`^${cleanUser}$`, 'i') });
       if (cleanSig && cleanSig !== 'SIG-UNTRACKED') orConditions.push({ deviceSignature: cleanSig });
+      if (googleEmail) orConditions.push({ 'googleProfile.email': googleEmail });
 
       const query = { $or: orConditions };
       if (id && id !== 'APP-DEFAULT' && id !== 'any') {
@@ -616,7 +644,8 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
     existing = applicationSubmissions.find(s => 
       (id === 'APP-DEFAULT' || id === 'any' || s.appId === id) && (
         (cleanUser && s.applicantUsername.toLowerCase() === cleanUser) ||
-        (cleanSig && cleanSig !== 'SIG-UNTRACKED' && s.deviceSignature === cleanSig)
+        (cleanSig && cleanSig !== 'SIG-UNTRACKED' && s.deviceSignature === cleanSig) ||
+        (googleEmail && s.googleProfile && s.googleProfile.email === googleEmail)
       )
     );
   }
@@ -647,7 +676,6 @@ app.get('/api/public/applications/:id/roster', async (req, res) => {
 app.post('/api/applications/submit', async (req, res) => {
   const { appId, applicantUsername, discordTag, answers, deviceSignature, proofUrl } = req.body;
 
-  // STRICT SERVER-SIDE CHECK: Require Google Authentication
   if (!req.session || !req.session.applicantGoogle) {
     return res.status(401).json({ success: false, error: 'Google Sign-In is REQUIRED to submit an application. Please sign in with Google first.' });
   }
@@ -695,11 +723,12 @@ app.post('/api/applications/submit', async (req, res) => {
   }
 
   if (blockedSignatures.has(cleanSignature)) {
-    return res.status(403).json({ success: false, error: 'Device Authorization Failed: Access Restricted.' });
+    return res.status(403).json({ success: false, error: 'Security Restriction: A submission is already associated with this Device Signature.' });
   }
 
   if (appItem.settings && appItem.settings.limitOneResponse) {
     let existing = null;
+    const googleEmail = req.session.applicantGoogle.email;
 
     if (isMongoConnected) {
       try {
@@ -707,7 +736,8 @@ app.post('/api/applications/submit', async (req, res) => {
           appId,
           $or: [
             { applicantUsername: new RegExp(`^${cleanUser}$`, 'i') },
-            { deviceSignature: cleanSignature }
+            { deviceSignature: cleanSignature },
+            { 'googleProfile.email': googleEmail }
           ]
         });
       } catch (e) {}
@@ -717,13 +747,14 @@ app.post('/api/applications/submit', async (req, res) => {
       existing = applicationSubmissions.find(s => 
         s.appId === appId && (
           s.applicantUsername.toLowerCase() === cleanUser.toLowerCase() ||
-          (s.deviceSignature && s.deviceSignature === cleanSignature && cleanSignature !== 'SIG-UNTRACKED')
+          (s.deviceSignature && s.deviceSignature === cleanSignature && cleanSignature !== 'SIG-UNTRACKED') ||
+          (s.googleProfile && s.googleProfile.email === googleEmail)
         )
       );
     }
 
     if (existing) {
-      return res.status(400).json({ success: false, error: 'You or this device has already submitted an application for this form.' });
+      return res.status(400).json({ success: false, error: 'Security Restriction: A submission is already associated with this Device Signature.' });
     }
   }
 
@@ -780,7 +811,6 @@ app.post('/api/applications/submissions/:id/status', requireAuth, async (req, re
   sub.reviewedBy = req.session.adminName || 'roblox';
   sub.reviewedAt = new Date();
 
-  // Ensure live array in memory is updated directly
   const memIdx = applicationSubmissions.findIndex(s => s.id === id);
   if (memIdx !== -1) {
     applicationSubmissions[memIdx].status = sub.status;
@@ -1040,7 +1070,6 @@ app.post('/api/action', requireAuth, async (req, res) => {
   res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
 });
 
-// UNBAN ALL ENDPOINT
 app.post('/api/unban-all', requireAuth, requireOwner, async (req, res) => {
   bannedUsersMap.clear();
   saveBansToFile();
