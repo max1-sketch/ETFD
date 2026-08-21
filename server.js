@@ -44,6 +44,25 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Dynamic Domain Middleware: Ensure etfd-members.onrender.com ALWAYS serves the Member Portal
+app.use((req, res, next) => {
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  
+  if (host.includes('etfd-members') || host.includes('members')) {
+    // Pass API and Auth requests through to handlers below
+    if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+      return next();
+    }
+    // Serve Member Portal index.html for all page routes on etfd-members domain
+    const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+      ? path.join(__dirname, 'views', 'index.html')
+      : path.join(__dirname, 'views', 'member.html');
+    return res.sendFile(memberFilePath);
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 
@@ -1401,8 +1420,9 @@ app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
 
 // Dynamic Root Router
 app.get('/', (req, res) => {
-  const host = req.get('host') || '';
-  if (host.includes('etfd-members')) {
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  
+  if (host.includes('etfd-members') || host.includes('members')) {
     const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
       ? path.join(__dirname, 'views', 'index.html')
       : path.join(__dirname, 'views', 'member.html');
@@ -1412,17 +1432,28 @@ app.get('/', (req, res) => {
   if (req.session && req.session.authenticated) {
     return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
   }
-  res.redirect('/login');
+  
+  // Default root for non-authenticated users on main domain: show Member Portal
+  const defaultPortalPath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : path.join(__dirname, 'views', 'member.html');
+  res.sendFile(defaultPortalPath);
 });
 
+// Protected Staff Routes
 app.get(['/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
+// Candidate Application Direct Routes
 app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : path.join(__dirname, 'views', 'member.html');
+  res.sendFile(memberFilePath);
 });
 
+// Member Portal Direct Routes
 app.get(['/member', '/members', '/portal'], (req, res) => {
   const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
     ? path.join(__dirname, 'views', 'index.html')
