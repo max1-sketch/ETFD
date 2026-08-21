@@ -538,38 +538,6 @@
       }
     }
 
-    function openVerificationModal() {
-      document.getElementById('verificationModal').classList.remove('hidden');
-    }
-
-    function closeVerificationModal() {
-      document.getElementById('verificationModal').classList.add('hidden');
-    }
-
-    function copyBioCode() {
-      const code = document.getElementById('bioVerificationCode').innerText;
-      navigator.clipboard.writeText(code);
-      showPortalToast('Verification code copied to clipboard!', 'success');
-    }
-
-    function submitBioVerification() {
-      const user = document.getElementById('verifyRobloxUser').value.trim();
-      if (!user) {
-        showPortalToast('Please enter your Roblox username!', 'warning');
-        return;
-      }
-
-      showPortalToast(`Verifying bio for ${user}...`, 'info');
-      setTimeout(() => {
-        closeVerificationModal();
-        showPortalToast(`Profile verified cleanly for ${user}!`, 'success');
-        document.getElementById('memberHeaderName').innerText = user;
-        document.getElementById('memberHeaderRank').innerText = 'CADET';
-        document.getElementById('memberCardUsername').innerText = user;
-        document.getElementById('memberCardDisplay').innerText = `@${user}`;
-      }, 1200);
-    }
-
     function claimDailyReward() {
       const btn = document.getElementById('claimStreakBtn');
       btn.disabled = true;
