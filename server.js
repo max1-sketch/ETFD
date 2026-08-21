@@ -23,7 +23,6 @@ const server = http.createServer(app);
 // Enable Trust Proxy for Render / reverse proxies so secure cookies & HTTPS protocols work correctly
 app.set('trust proxy', 1);
 
-// Configure CORS to allow cross-domain requests (e.g. from separate member portal site) with credentials
 const allowedOrigins = [
   'https://etfd.onrender.com',
   'https://etfd-members.onrender.com',
@@ -54,6 +53,9 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
       return next();
     }
+    // Prevent browser caching on domain route checks
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
     // Serve Member Portal index.html for all page routes on etfd-members domain
     const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
       ? path.join(__dirname, 'views', 'index.html')
@@ -63,16 +65,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'views'), { index: false }));
+// Serve public static assets ONLY (Do NOT serve views statically to prevent automatic index.html matching)
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 
-// Validate MongoDB URI before configuring MongoStore or connecting
 const mongoUri = (process.env.MONGODB_URI || '').trim();
 const hasValidMongoUri = mongoUri.startsWith('mongodb') && !mongoUri.includes('<') && !mongoUri.includes('>');
 
-// Configure session middleware with MongoStore when valid URI is provided
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'ETFD23_SUPER_SECRET_KEY',
   resave: false,
@@ -1418,22 +1418,36 @@ app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
   res.json({ success: true, message: 'Notice banner updated cleanly!', notice: systemNotice });
 });
 
+// Root Domain Route Handler
 app.get('/', (req, res) => {
   const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
   
+  // Member Domain Check
   if (host.includes('etfd-members') || host.includes('members')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
       ? path.join(__dirname, 'views', 'index.html')
       : path.join(__dirname, 'views', 'member.html');
     return res.sendFile(memberFilePath);
   }
 
-  // On Main Staff Domain (etfd.onrender.com): Redirect unauthenticated users to staff login
+  // Main Staff Domain (etfd.onrender.com)
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   if (req.session && req.session.authenticated) {
     return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
   }
   
+  // Unauthenticated Staff Users MUST redirect to /login
   res.redirect('/login');
+});
+
+// Redirect any explicit index.html request on main staff domain to login/dashboard
+app.get('/index.html', (req, res) => {
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  if (host.includes('etfd-members') || host.includes('members')) {
+    return res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  }
+  res.redirect('/');
 });
 
 // Protected Staff Routes
