@@ -5,28 +5,80 @@ const http = require('http');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
+const cors = require('cors');
 const { Server } = require('socket.io');
 
 let mongoose;
+let MongoStore;
 try {
   mongoose = require('mongoose');
+  MongoStore = require('connect-mongo');
 } catch (e) {
-  console.warn('⚠️ Mongoose package not installed or missing in node_modules.');
+  console.warn('⚠️ Mongoose or connect-mongo package missing in node_modules.');
 }
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+
+// Enable Trust Proxy for Render / reverse proxies so secure cookies & HTTPS protocols work correctly
+app.set('trust proxy', 1);
+
+// Configure CORS to allow cross-domain requests (e.g. from a separate member portal site) with credentials
+const allowedOrigins = [
+  'https://etfd.onrender.com',
+  'https://etfd-members.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:5000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permissive fallback for dynamic Render instances
+    }
+  },
+  credentials: true
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'ETFD23',
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
+// Validate MongoDB URI before configuring MongoStore or connecting
+const mongoUri = (process.env.MONGODB_URI || '').trim();
+const hasValidMongoUri = mongoUri.startsWith('mongodb') && !mongoUri.includes('<') && !mongoUri.includes('>');
+
+// Configure session middleware with MongoStore when valid URI is provided
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'ETFD23_SUPER_SECRET_KEY',
   resave: false,
-  saveUninitialized: false
-}));
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+};
+
+if (MongoStore && hasValidMongoUri) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: mongoUri,
+    ttl: 7 * 24 * 60 * 60
+  });
+}
+
+app.use(session(sessionConfig));
+
+const io = new Server(server, { 
+  cors: { 
+    origin: "*",
+    credentials: true 
+  } 
+});
 
 function requireAuth(req, res, next) {
   if (req.session && req.session.authenticated) {
@@ -201,8 +253,8 @@ if (fs.existsSync(USERS_FILE)) {
   } catch (err) { console.error('Error reading users.json:', err.message); }
 }
 
-if (mongoose && process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI)
+if (mongoose && hasValidMongoUri) {
+  mongoose.connect(mongoUri)
     .then(async () => {
       console.log('🍃 Connected to MongoDB Atlas Cloud Database!');
       isMongoConnected = true;
@@ -239,11 +291,10 @@ if (mongoose && process.env.MONGODB_URI) {
     .catch(err => {
       console.error('❌ MongoDB Atlas Connection Failed:', err.message);
     });
+} else if (process.env.MONGODB_URI) {
+  console.warn('⚠️ MONGODB_URI contains unformatted placeholders (e.g. <username> or <password>). Fallback to local JSON storage.');
 }
 
-// ==========================================
-// DISCORD OAUTH 2.0 & BLOXLINK ENDPOINTS
-// ==========================================
 app.get('/auth/discord', (req, res) => {
   const clientId = process.env.DISCORD_CLIENT_ID || '1539850101793497160';
   const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/discord/callback`;
@@ -287,7 +338,6 @@ app.get('/auth/discord/callback', async (req, res) => {
       });
       discordUser = userRes.data;
     } else {
-      // Graceful fallback for initial testing before DISCORD_CLIENT_SECRET is provided
       discordUser = {
         id: '28471928401',
         username: 'DiscordMember',
@@ -348,9 +398,6 @@ app.get('/auth/discord/logout', (req, res) => {
   res.redirect(returnTo);
 });
 
-// ==========================================
-// GOOGLE OAUTH 2.0 APPLICANT AUTHENTICATION
-// ==========================================
 app.get('/auth/google', (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
@@ -420,7 +467,6 @@ app.get('/api/public/auth/me', (req, res) => {
   });
 });
 
-// MEMBER PORTAL REAL BIO VERIFICATION ENDPOINTS
 app.post('/api/member/verify-bio', async (req, res) => {
   const { username, code } = req.body;
   if (!username || !code) {
@@ -511,7 +557,6 @@ app.post('/auth/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Invalid credentials! Check your access key.' });
 });
 
-// CREATE STAFF MEMBER / MODERATOR ACCOUNT
 app.post('/api/users/create', requireAuth, requireOwner, async (req, res) => {
   const { username, email, password, role } = req.body;
 
@@ -578,7 +623,6 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-// BANNED USERS, LIVE PLAYERS, AND LOGS API ENDPOINTS
 app.get('/api/banned', requireAuth, (req, res) => {
   res.json({
     success: true,
@@ -645,7 +689,6 @@ app.post('/api/gate/verify', (req, res) => {
   res.json({ success: true, blocked: false, signature: cleanSig });
 });
 
-// EMERGENCY PUBLIC DEVICE SIGNATURE RESET ENDPOINT
 app.post('/api/public/gate/reset-signature', (req, res) => {
   const { signature } = req.body;
   if (signature) {
@@ -698,9 +741,6 @@ app.post('/api/gate/block', requireAuth, requireOwner, async (req, res) => {
   res.json({ success: true, message: `Device signature ${cleanSig} ${action === 'unblock' ? 'unblocked' : 'restricted'}.` });
 });
 
-// ==========================================
-// RECRUITMENT APPLICATIONS & EDITING API
-// ==========================================
 app.get('/api/applications', requireAuth, (req, res) => {
   res.json({
     success: true,
@@ -709,7 +749,6 @@ app.get('/api/applications', requireAuth, (req, res) => {
   });
 });
 
-// CREATE OR UPDATE APPLICATION FORM
 app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
   const { id, title, description, guidelines, questions, settings } = req.body;
   if (!title) return res.status(400).json({ success: false, error: 'Application title is required.' });
@@ -1302,6 +1341,48 @@ app.post('/api/ai/generate', requireAuth, async (req, res) => {
 
 app.get('/api/system/notice', (req, res) => {
   res.json({ success: true, notice: systemNotice });
+});
+
+app.get('/ttestt', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="en" class="h-full bg-black text-white">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Inspection</title>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+    iframe { width: 100vw; height: 100vh; border: none; }
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'dQw4w9WgXcQ',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1,
+          'enablejsapi': 1,
+          'playsinline': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': (e) => {
+            e.target.setVolume(100);
+            e.target.playVideo();
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>`);
 });
 
 app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
