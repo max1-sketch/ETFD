@@ -1463,14 +1463,16 @@ app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
   res.sendFile(memberFilePath);
 });
 
-// Member Portal Direct Routes
+// Member Portal Direct Routes - Redirect staff domain requests to root / login
 app.get(['/member', '/members', '/portal'], (req, res) => {
-  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
-    ? path.join(__dirname, 'views', 'index.html')
-    : (fs.existsSync(path.join(__dirname, 'views', 'member.html'))
-        ? path.join(__dirname, 'views', 'member.html')
-        : path.join(__dirname, 'views', 'members.html'));
-  res.sendFile(memberFilePath);
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  if (host.includes('etfd-members') || host.includes('members')) {
+    const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+      ? path.join(__dirname, 'views', 'index.html')
+      : path.join(__dirname, 'views', 'member.html');
+    return res.sendFile(memberFilePath);
+  }
+  res.redirect('/');
 });
 
 io.on('connection', (socket) => {
