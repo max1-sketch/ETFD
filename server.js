@@ -64,7 +64,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(path.join(__dirname, 'views'), { index: false }));
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 
