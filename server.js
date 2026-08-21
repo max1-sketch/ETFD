@@ -311,6 +311,71 @@ app.get('/api/public/auth/me', (req, res) => {
   });
 });
 
+// MEMBER PORTAL REAL BIO VERIFICATION ENDPOINTS
+app.post('/api/member/verify-bio', async (req, res) => {
+  const { username, code } = req.body;
+  if (!username || !code) {
+    return res.status(400).json({ success: false, error: 'Username and verification code are required.' });
+  }
+
+  const cleanUser = username.trim();
+  const cleanCode = code.trim().toLowerCase();
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [cleanUser],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (!userRes.data?.data?.[0]) {
+      return res.status(404).json({ success: false, error: `Roblox user "${cleanUser}" not found. Please check spelling!` });
+    }
+
+    const rbxUser = userRes.data.data[0];
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxUser.id}`, { timeout: 5000 });
+    const description = (detailsRes.data.description || '').toLowerCase();
+
+    if (!description.includes(cleanCode)) {
+      return res.status(400).json({
+        success: false,
+        error: `Verification code "${code}" was not found in ${rbxUser.name}'s Roblox profile "About" section. Please paste the code into your profile and try again!`
+      });
+    }
+
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    const verifiedUser = {
+      userId: rbxUser.id,
+      exactName: rbxUser.name,
+      displayName: rbxUser.displayName || rbxUser.name,
+      accountAgeDays,
+      verifiedAt: new Date()
+    };
+
+    req.session.memberUser = verifiedUser;
+
+    res.json({
+      success: true,
+      user: verifiedUser,
+      message: `Profile verified cleanly for ${rbxUser.name}!`
+    });
+  } catch (err) {
+    console.error('Bio verification error:', err.message);
+    res.status(500).json({ success: false, error: 'Roblox verification service temporarily unavailable.' });
+  }
+});
+
+app.get('/api/member/me', (req, res) => {
+  const member = req.session ? req.session.memberUser || null : null;
+  const google = req.session ? req.session.applicantGoogle || null : null;
+  res.json({
+    authenticated: Boolean(member || google),
+    member,
+    google
+  });
+});
+
 app.post('/auth/login', (req, res) => {
   const { username, password } = req.body;
   const adminPass = process.env.ADMIN_PASSWORD || 'ETFD23';
