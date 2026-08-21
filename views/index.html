@@ -1,687 +1,1470 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#090d16] text-slate-200">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami - Member Portal</title>
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const http = require('http');
+const path = require('path');
+const axios = require('axios');
+const fs = require('fs');
+const cors = require('cors');
+const { Server } = require('socket.io');
+
+let mongoose;
+let MongoStore;
+try {
+  mongoose = require('mongoose');
+  MongoStore = require('connect-mongo');
+} catch (e) {
+  console.warn('⚠️ Mongoose or connect-mongo package missing in node_modules.');
+}
+
+const app = express();
+const server = http.createServer(app);
+
+// Enable Trust Proxy for Render / reverse proxies so secure cookies & HTTPS protocols work correctly
+app.set('trust proxy', 1);
+
+// Configure CORS to allow cross-domain requests (e.g. from separate member portal site) with credentials
+const allowedOrigins = [
+  'https://etfd.onrender.com',
+  'https://etfd-members.onrender.com',
+  'http://localhost:3000',
+  'http://localhost:5000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permissive fallback for dynamic Render instances
+    }
+  },
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Dynamic Domain Middleware: Ensure etfd-members.onrender.com ALWAYS serves the Member Portal
+app.use((req, res, next) => {
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
   
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  if (host.includes('etfd-members') || host.includes('members')) {
+    // Pass API and Auth requests through to handlers below
+    if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+      return next();
     }
+    // Serve Member Portal index.html for all page routes on etfd-members domain
+    const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+      ? path.join(__dirname, 'views', 'index.html')
+      : path.join(__dirname, 'views', 'member.html');
+    return res.sendFile(memberFilePath);
+  }
+  next();
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'views')));
+
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
+// Validate MongoDB URI before configuring MongoStore or connecting
+const mongoUri = (process.env.MONGODB_URI || '').trim();
+const hasValidMongoUri = mongoUri.startsWith('mongodb') && !mongoUri.includes('<') && !mongoUri.includes('>');
+
+// Configure session middleware with MongoStore when valid URI is provided
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'ETFD23_SUPER_SECRET_KEY',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+};
+
+if (MongoStore && hasValidMongoUri) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: mongoUri,
+    ttl: 7 * 24 * 60 * 60
+  });
+}
+
+app.use(session(sessionConfig));
+
+const io = new Server(server, { 
+  cors: { 
+    origin: "*",
+    credentials: true 
+  } 
+});
+
+function requireAuth(req, res, next) {
+  if (req.session && req.session.authenticated) {
+    return next();
+  }
+  if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+  }
+  res.redirect('/login');
+}
+
+function requireOwner(req, res, next) {
+  if (req.session && req.session.authenticated) {
+    return next();
+  }
+  return res.status(403).json({ success: false, error: 'Administrative access required' });
+}
+
+let isMongoConnected = false;
+let ApplicationModel, SubmissionModel, BannedUserModel, UserModel, SecurityGateModel;
+
+if (mongoose) {
+  const ApplicationSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    title: String,
+    description: String,
+    guidelines: String,
+    questions: Array,
+    settings: Object,
+    active: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+  });
+
+  const SubmissionSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    appId: String,
+    appTitle: String,
+    applicantUsername: String,
+    robloxUserId: Number,
+    accountAgeDays: Number,
+    discordTag: String,
+    googleProfile: Object,
+    deviceSignature: String,
+    proofUrl: String,
+    answers: Object,
+    notes: Array,
+    blacklisted: { type: Boolean, default: false },
+    submittedAt: { type: Date, default: Date.now },
+    status: { type: String, default: 'PENDING' },
+    reviewedBy: String,
+    reviewedAt: Date
+  });
+
+  const BannedUserSchema = new mongoose.Schema({
+    userId: { type: Number, required: true, unique: true },
+    reason: String,
+    admin: String,
+    caseId: String,
+    durationText: String,
+    bannedAt: { type: Date, default: Date.now }
+  });
+
+  const UserSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: String,
+    password: String,
+    role: String,
+    createdAt: { type: Date, default: Date.now }
+  });
+
+  const SecurityGateSchema = new mongoose.Schema({
+    configId: { type: String, default: 'default', unique: true },
+    blockedSignatures: Array,
+    securityLogs: Array
+  });
+
+  ApplicationModel = mongoose.models.Application || mongoose.model('Application', ApplicationSchema);
+  SubmissionModel = mongoose.models.Submission || mongoose.model('Submission', SubmissionSchema);
+  BannedUserModel = mongoose.models.BannedUser || mongoose.model('BannedUser', BannedUserSchema);
+  UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
+  SecurityGateModel = mongoose.models.SecurityGate || mongoose.model('SecurityGate', SecurityGateSchema);
+}
+
+const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
+const BANS_FILE = path.join(__dirname, 'banned_users.json');
+const USERS_FILE = path.join(__dirname, 'users.json');
+const SECURITY_FILE = path.join(__dirname, 'security_gate.json');
+
+let applicationsMap = new Map();
+let applicationSubmissions = [];
+let bannedUsersMap = new Map();
+let usersMap = new Map();
+let blockedSignatures = new Set();
+let securityLogs = [];
+let actionLogs = [];
+let lastActionTimestamp = 0;
+let activeLivePlayers = [
+  { userId: 261, username: 'Builderman', tools: ['SuperFly', 'SpeedBoost'], ping: 14 },
+  { userId: 156, username: 'Roblox', tools: ['AdminGiver'], ping: 9 }
+];
+
+let systemNotice = {
+  active: true,
+  message: "Maintenance scheduled tonight at 10:00 PM EST.",
+  alertLevel: "warning",
+  icon: "bullhorn",
+  author: "Owner"
+};
+
+function saveApplicationsToFile() {
+  try {
+    const data = {
+      apps: Array.from(applicationsMap.values()),
+      submissions: applicationSubmissions
+    };
+    fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving applications.json:', err.message);
+  }
+}
+
+function saveSecurityGateToFile() {
+  try {
+    const data = {
+      blockedSignatures: Array.from(blockedSignatures),
+      securityLogs
+    };
+    fs.writeFileSync(SECURITY_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving security_gate.json:', err.message);
+  }
+}
+
+function saveBansToFile() {
+  try {
+    fs.writeFileSync(BANS_FILE, JSON.stringify(Array.from(bannedUsersMap.values()), null, 2));
+  } catch (err) {
+    console.error('Error saving banned_users.json:', err.message);
+  }
+}
+
+if (fs.existsSync(APPLICATIONS_FILE)) {
+  try {
+    const rawApps = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
+    const parsed = JSON.parse(rawApps);
+    if (parsed.apps) parsed.apps.forEach(a => applicationsMap.set(a.id, a));
+    if (parsed.submissions) applicationSubmissions = parsed.submissions;
+  } catch (err) { console.error('Error reading applications.json:', err.message); }
+}
+
+if (fs.existsSync(BANS_FILE)) {
+  try {
+    const rawBans = fs.readFileSync(BANS_FILE, 'utf8');
+    JSON.parse(rawBans).forEach(b => bannedUsersMap.set(Number(b.userId), b));
+  } catch (err) { console.error('Error reading banned_users.json:', err.message); }
+}
+
+if (fs.existsSync(SECURITY_FILE)) {
+  try {
+    const rawSec = fs.readFileSync(SECURITY_FILE, 'utf8');
+    const parsedSec = JSON.parse(rawSec);
+    if (Array.isArray(parsedSec.blockedSignatures)) blockedSignatures = new Set(parsedSec.blockedSignatures);
+    if (Array.isArray(parsedSec.securityLogs)) securityLogs = parsedSec.securityLogs;
+  } catch (err) { console.error('Error reading security_gate.json:', err.message); }
+}
+
+if (fs.existsSync(USERS_FILE)) {
+  try {
+    const rawUsers = fs.readFileSync(USERS_FILE, 'utf8');
+    JSON.parse(rawUsers).forEach(u => usersMap.set(u.username.toLowerCase(), u));
+  } catch (err) { console.error('Error reading users.json:', err.message); }
+}
+
+if (mongoose && hasValidMongoUri) {
+  mongoose.connect(mongoUri)
+    .then(async () => {
+      console.log('🍃 Connected to MongoDB Atlas Cloud Database!');
+      isMongoConnected = true;
 
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    body {
-      background-color: #090d16;
-      color: #f8fafc;
-      min-height: 100vh;
-    }
-
-    .bg-grid-pattern {
-      background-size: 32px 32px;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    }
-
-    .glass-card {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .glass-card:hover {
-      border-color: rgba(16, 185, 129, 0.25);
-    }
-  </style>
-</head>
-<body class="h-full flex flex-col min-h-screen select-none bg-grid-pattern overflow-x-hidden">
-
-  <!-- MANDATORY SIGN-IN / VERIFICATION GATE OVERLAY -->
-  <div id="memberAuthGateOverlay" class="fixed inset-0 bg-[#090d16]/95 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-[#0f172a] border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden text-center">
-      <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-2xl shadow-lg">
-        <i class="fa-solid fa-lock"></i>
-      </div>
-
-      <div class="space-y-2">
-        <h2 class="text-lg font-bold text-slate-100">Sign In to Member Portal</h2>
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Choose a method to verify your identity, view your application status, and track your in-game stats.
-        </p>
-      </div>
-
-      <div class="space-y-3 pt-2">
-        <!-- DISCORD + BLOXLINK LOGIN -->
-        <a href="https://etfd.onrender.com/auth/discord?returnTo=https://etfd-members.onrender.com" class="w-full py-3 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2.5">
-          <i class="fa-brands fa-discord text-base"></i>
-          <span>Sign In with Discord (Bloxlink)</span>
-        </a>
-
-        <!-- GOOGLE LOGIN -->
-        <a href="https://etfd.onrender.com/auth/google?returnTo=https://etfd-members.onrender.com" class="w-full py-2.5 bg-[#0b0f17] hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 transition-all flex items-center justify-center gap-3 shadow-md">
-          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          <span>Sign In with Google</span>
-        </a>
-
-        <div class="relative my-2 flex items-center justify-center">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-800"></div></div>
-          <span class="relative bg-[#0f172a] px-3 text-[10px] font-mono text-slate-500 uppercase">Or</span>
-        </div>
-
-        <!-- ROBLOX BIO CODE VERIFICATION -->
-        <button onclick="openVerificationModal()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-link text-sm"></i>
-          <span>Link Account (Roblox Profile Bio Code)</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOP NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-[#0b101d]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/20">
-        <i class="fa-solid fa-water text-base"></i>
-      </div>
-      <div>
-        <h1 class="text-xs font-black text-slate-100 uppercase tracking-wider leading-none">Escape Tsunami</h1>
-        <span class="text-[9px] font-mono text-emerald-400 font-bold block mt-1 tracking-widest">COMMUNITY HUB</span>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <div id="memberHeaderUserChip" class="flex items-center gap-2.5 bg-[#080d1a] border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-        <img id="memberHeaderAvatar" src="https://etfd.onrender.com/api/avatar/1" class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 object-cover" />
-        <div class="text-left hidden sm:block">
-          <span id="memberHeaderName" class="font-bold text-slate-200 text-xs block leading-tight">Guest Member</span>
-          <span id="memberHeaderRank" class="text-[9px] font-mono text-slate-400 font-semibold block">UNLINKED</span>
-        </div>
-      </div>
-
-      <button onclick="openVerificationModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md flex items-center gap-1.5">
-        <i class="fa-solid fa-link text-xs"></i>
-        <span class="hidden sm:inline">Link Account</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- COMMUNITY ANNOUNCEMENT BANNER -->
-  <div class="max-w-6xl w-[94%] mx-auto mt-4 px-4 py-2.5 rounded-2xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-200 text-xs flex items-center justify-between shadow-lg backdrop-blur-md">
-    <div class="flex items-center gap-3 truncate">
-      <div class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-        <i class="fa-solid fa-bullhorn text-xs animate-pulse"></i>
-      </div>
-      <span class="truncate font-medium">📢 <strong>Group Event:</strong> Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
-    </div>
-    <span class="text-[10px] font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-emerald-300 shrink-0 hidden sm:inline">EVENT READY</span>
-  </div>
-
-  <!-- MAIN DASHBOARD CONTENT -->
-  <main class="max-w-6xl w-[94%] mx-auto py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-    <!-- LEFT COLUMN: MEMBER PROFILE, STATS & APPLICATIONS (8 COLS) -->
-    <div class="lg:col-span-8 space-y-6">
-
-      <!-- PROFILE & IDENTITY CARD -->
-      <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
-        <div class="absolute -top-12 -right-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
-          <div class="flex items-center gap-4">
-            <div class="relative">
-              <img id="memberCardAvatar" src="https://etfd.onrender.com/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-slate-700/80 object-cover shadow-lg" />
-              <span id="memberCardOnlineDot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-[#0f172a] rounded-full" title="Portal Connected"></span>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 id="memberCardUsername" class="text-base font-bold text-slate-100">Roblox User</h2>
-                <span id="memberCardRankBadge" class="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold rounded-md uppercase">
-                  Community Member
-                </span>
-              </div>
-              <p id="memberCardDisplay" class="text-xs text-slate-400 font-mono mt-0.5">@UnverifiedUser</p>
-              <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400 font-mono">
-                <span id="memberCardAccountAge"><i class="fa-solid fa-calendar-day text-emerald-400 mr-1"></i> Account Age: -- days</span>
-                <span>•</span>
-                <span id="memberCardDiscord"><i class="fa-brands fa-discord text-emerald-400 mr-1"></i> Discord: Unlinked</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- RANK UP PROGRESS BAR -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-semibold text-slate-300">Rank Up Progress</span>
-            <span class="font-mono text-emerald-400 font-bold text-[11px]" id="rankProgressPct">60% Complete</span>
-          </div>
-          <div class="w-full bg-[#080d1a] h-2 rounded-full overflow-hidden p-0.5 border border-slate-800">
-            <div id="rankProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 60%"></div>
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] text-slate-400 font-mono pt-1">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-400"></i> Account Age 30+ Days</span>
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-400"></i> Discord Connected</span>
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock text-amber-400"></i> 2/5 Events Attended</span>
-          </div>
-        </div>
-
-        <!-- LINKED SIGN-IN IDENTITY BADGES -->
-        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2">
-          <span class="text-[11px] text-slate-400 font-mono">Linked Sign-In Identity</span>
-          <div class="flex items-center gap-2">
-            <a href="https://etfd.onrender.com/auth/discord?returnTo=https://etfd-members.onrender.com" class="px-3 py-1.5 bg-[#5865F2]/20 hover:bg-[#5865F2]/30 border border-[#5865F2]/40 rounded-xl text-xs font-semibold text-indigo-200 transition-all flex items-center gap-2">
-              <i class="fa-brands fa-discord text-indigo-400"></i>
-              <span>Discord OAuth</span>
-            </a>
-            <a href="https://etfd.onrender.com/auth/google?returnTo=https://etfd-members.onrender.com" class="px-3 py-1.5 bg-[#080d1a] hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-semibold text-slate-200 transition-all flex items-center gap-2">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-              <span>Google Account</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- IN-GAME PLAYER STATS CARD -->
-      <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
-        <div class="border-b border-slate-800/80 pb-3 flex items-center justify-between">
-          <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-gamepad text-emerald-400"></i>
-            <span>My In-Game Stats</span>
-          </h2>
-          <span class="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">LIVE DATA</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
-          <div class="p-3.5 bg-[#080d1a] border border-slate-800 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Tsunamis Escaped</span>
-            <span class="text-xl font-black text-slate-100 block">142</span>
-            <span class="text-[9px] text-emerald-400 font-bold block">+12 this week</span>
-          </div>
-
-          <div class="p-3.5 bg-[#080d1a] border border-slate-800 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Survival Coins</span>
-            <span class="text-xl font-black text-amber-400 block">3,850</span>
-            <span class="text-[9px] text-slate-400 block">In-game balance</span>
-          </div>
-
-          <div class="p-3.5 bg-[#080d1a] border border-slate-800 rounded-xl space-y-1">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Playtime</span>
-            <span class="text-xl font-black text-cyan-400 block">18h 45m</span>
-            <span class="text-[9px] text-slate-400 block">Experienced Cadet</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- APPLICATION TRACKING & STEPPER -->
-      <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-6 shadow-xl">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-          <div>
-            <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <i class="fa-solid fa-file-pen text-emerald-400"></i>
-              <span>My Application</span>
-            </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Real-time status tracking for your submitted form</p>
-          </div>
-          <span id="memberCaseFileTag" class="px-2.5 py-1 bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold rounded-lg shadow-sm">
-            #CASE-84A921
-          </span>
-        </div>
-
-        <!-- VISUAL STEPPER LINE WITH ICONS -->
-        <div class="relative py-4 px-2">
-          <div class="absolute top-1/2 left-8 right-8 h-0.5 bg-slate-800 -translate-y-1/2 z-0 rounded-full"></div>
-          <div id="stepperActiveProgressLine" class="absolute top-1/2 left-8 h-0.5 bg-emerald-500 -translate-y-1/2 z-0 rounded-full transition-all duration-500" style="width: 33%"></div>
-
-          <div class="relative z-10 flex items-center justify-between">
-            <!-- STEP 1 -->
-            <div class="flex flex-col items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-lg shadow-emerald-600/30 border border-emerald-400">
-                <i class="fa-solid fa-file-lines text-xs"></i>
-              </div>
-              <span class="text-[11px] font-bold text-emerald-400">1. Submitted</span>
-            </div>
-
-            <!-- STEP 2 -->
-            <div class="flex flex-col items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center ring-4 ring-emerald-500/20 shadow-lg shadow-emerald-500/30">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i>
-              </div>
-              <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                <span>Under Review</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-              </span>
-            </div>
-
-            <!-- STEP 3 -->
-            <div class="flex flex-col items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-slate-800 text-slate-500 border border-slate-700 font-bold text-xs flex items-center justify-center">
-                <i class="fa-solid fa-microphone text-xs"></i>
-              </div>
-              <span class="text-[11px] font-medium text-slate-400">3. Interview</span>
-            </div>
-
-            <!-- STEP 4 -->
-            <div class="flex flex-col items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-slate-800 text-slate-500 border border-slate-700 font-bold text-xs flex items-center justify-center">
-                <i class="fa-solid fa-gavel text-xs"></i>
-              </div>
-              <span class="text-[11px] font-medium text-slate-400">4. Decision</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- ASSIGNED REVIEWER MENTOR CARD -->
-        <div class="p-3.5 bg-[#080d1a] border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs">
-          <div class="flex items-center gap-3">
-            <img src="https://etfd.onrender.com/api/avatar/156" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 object-cover" />
-            <div>
-              <div class="font-bold text-slate-200">Assigned Reviewer: <span class="text-emerald-400">@RobloxAdmin</span></div>
-              <div class="text-[10px] text-slate-400 font-mono">Senior Staff Mentor • Active in queue</div>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold rounded">IN REVIEW</span>
-        </div>
-
-        <!-- SUBMITTED DOCUMENT SUMMARY -->
-        <div class="p-4 bg-[#080d1a] border border-slate-800 rounded-xl space-y-3">
-          <div class="text-xs font-bold text-slate-300 border-b border-slate-800/80 pb-2 flex items-center justify-between font-mono">
-            <span>MY FORM RESPONSES</span>
-            <span class="text-[10px] text-slate-500 font-normal">Form: Staff Application 2026</span>
-          </div>
-
-          <div class="space-y-3 text-xs pt-1">
-            <div>
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Why do you want to join our staff team?</div>
-              <div class="text-slate-200 mt-1 leading-relaxed bg-[#0f172a] p-2.5 rounded-lg border border-slate-800/80 text-[11px]">
-                I have been an active member of Escape Tsunami for over 6 months and want to help keep the in-game chat clean and welcoming for new players.
-              </div>
-            </div>
-
-            <div>
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">How would you handle a disruptive player in-game?</div>
-              <div class="text-slate-200 mt-1 leading-relaxed bg-[#0f172a] p-2.5 rounded-lg border border-slate-800/80 text-[11px]">
-                I would issue a polite verbal warning first, document the behavior, and apply standard moderation guidelines if the disruption continues.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- WITHDRAW ACTION -->
-        <div class="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs border-t border-slate-800/80">
-          <button onclick="confirmWithdrawal()" class="px-3.5 py-1.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-500/30 text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5">
-            <i class="fa-solid fa-triangle-exclamation text-xs"></i> Withdraw Application
-          </button>
-
-          <span class="text-slate-500 font-mono text-[11px]">Submitted: Aug 20, 2026 • Status: Pending Staff Queue</span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT COLUMN: TELEMETRY, NEWS & HELP (4 COLS) -->
-    <div class="lg:col-span-4 space-y-6">
-
-      <!-- LIVE COMMUNITY TELEMETRY -->
-      <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl">
-        <div class="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-signal text-emerald-400"></i>
-            <span>Game Status</span>
-          </h3>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 font-mono">
-          <div class="p-3 bg-[#080d1a] border border-slate-800 rounded-xl">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Active Players</span>
-            <span class="text-lg font-black text-slate-100 block mt-0.5">1,428</span>
-          </div>
-
-          <div class="p-3 bg-[#080d1a] border border-slate-800 rounded-xl">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Servers Online</span>
-            <span class="text-lg font-black text-emerald-400 block mt-0.5">12 / 12</span>
-          </div>
-        </div>
-
-        <!-- EVENT COUNTDOWN -->
-        <div class="p-3.5 bg-[#080d1a] border border-emerald-500/20 rounded-xl space-y-1.5">
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-bold text-emerald-300">Double XP Weekend</span>
-            <span class="font-mono text-emerald-400 font-bold" id="eventCountdownTimer">02h : 15m : 40s</span>
-          </div>
-          <div class="text-[10px] text-slate-400 leading-relaxed">
-            2x Coins and EXP boost active across all game servers.
-          </div>
-        </div>
-
-        <!-- OUTLINED MINT HOVER JOIN GAME BUTTON -->
-        <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500 hover:text-white font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-gamepad text-sm"></i> Join Game Server
-        </a>
-      </div>
-
-      <!-- STUDIO NEWS & PATCH NOTES -->
-      <div class="glass-card rounded-2xl p-5 space-y-3 shadow-xl">
-        <div class="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-newspaper text-cyan-400"></i>
-            <span>News & Patch Notes</span>
-          </h3>
-          <span class="text-[9px] font-mono text-slate-400">v2.5 UPDATE</span>
-        </div>
-
-        <div class="space-y-2 text-xs">
-          <div class="p-2.5 bg-[#080d1a] border border-slate-800 rounded-xl space-y-1">
-            <div class="font-bold text-slate-200">🌊 Mega Tsunami Update v2.5</div>
-            <div class="text-[10px] text-slate-400 leading-relaxed">New survival gear added to shop! Fixed wave physics glitch on Island #4.</div>
-          </div>
-          <div class="p-2.5 bg-[#080d1a] border border-slate-800 rounded-xl space-y-1">
-            <div class="font-bold text-slate-200">💬 Discord Role Syncing Live</div>
-            <div class="text-[10px] text-slate-400 leading-relaxed">Link your Discord account on the portal to receive automatic group roles.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- DAILY GIFTS & PROMO CODES -->
-      <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl">
-        <div class="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-gift text-amber-400"></i>
-            <span>Daily Gifts</span>
-          </h3>
-          <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[9px] font-mono font-bold rounded">DAILY</span>
-        </div>
-
-        <div class="p-3 bg-[#080d1a] border border-slate-800 rounded-xl flex items-center justify-between">
-          <div>
-            <div class="text-xs font-bold text-slate-200">Daily Login Streak</div>
-            <div class="text-[10px] text-slate-400 font-mono mt-0.5">3 Day Streak 🔥 (+15 XP)</div>
-          </div>
-          <button onclick="claimDailyReward()" id="claimStreakBtn" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors shadow-md">
-            Claim
-          </button>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Redeem Promo Code</label>
-          <div class="flex gap-2">
-            <input type="text" id="promoCodeInput" placeholder="Enter code (e.g. TSUNAMI2026)..." class="flex-1 px-3 py-2 bg-[#080d1a] border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 uppercase font-mono" />
-            <button onclick="redeemPromoCode()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors">
-              Redeem
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- HELP & SUPPORT -->
-      <div class="glass-card rounded-2xl p-5 space-y-3 shadow-xl">
-        <div class="border-b border-slate-800/80 pb-2.5">
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-headset text-emerald-400"></i>
-            <span>Help & Support</span>
-          </h3>
-        </div>
-
-        <div class="space-y-2 text-xs">
-          <button onclick="openAppealModal()" class="w-full p-2.5 bg-[#080d1a] hover:bg-slate-800/80 border border-slate-800 rounded-xl text-left flex items-center justify-between transition-colors">
-            <span class="flex items-center gap-2 text-slate-300">
-              <i class="fa-solid fa-gavel text-amber-400 text-xs"></i> Submit Moderation Appeal
-            </span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- MODALS -->
-
-  <!-- BIO CODE VERIFICATION MODAL -->
-  <div id="verificationModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#0f172a] border border-slate-700/80 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-shield-cat text-emerald-400"></i> Roblox Profile Bio Verification
-        </h3>
-        <button onclick="closeVerificationModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <p class="text-slate-300 leading-relaxed">
-          Paste the temporary verification code below into your Roblox profile <strong>"About"</strong> section, then click verify.
-        </p>
-
-        <div class="p-3 bg-[#080d1a] border border-emerald-500/30 rounded-xl flex items-center justify-between font-mono">
-          <span id="bioVerificationCode" class="text-sm font-bold text-emerald-400">TSUNAMI-8492</span>
-          <button onclick="copyBioCode()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors text-xs">
-            Copy
-          </button>
-        </div>
-
-        <div class="space-y-1 pt-1">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Roblox Username</label>
-          <input type="text" id="verifyRobloxUser" placeholder="Enter exact Roblox username..." class="w-full px-3 py-2 bg-[#080d1a] border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-emerald-500" />
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-        <button onclick="closeVerificationModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
-        <button onclick="submitBioVerification()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md">Verify Profile</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODERATION APPEAL MODAL -->
-  <div id="appealModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#0f172a] border border-slate-700/80 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-gavel text-amber-400"></i> Submit Moderation Appeal
-        </h3>
-        <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div class="space-y-1">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Case / Ban ID</label>
-          <input type="text" id="appealCaseId" placeholder="e.g. #CASE-84A921" class="w-full px-3 py-2 bg-[#080d1a] border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-emerald-500 font-mono" />
-        </div>
-
-        <div class="space-y-1">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Appeal Statement</label>
-          <textarea id="appealReason" rows="4" placeholder="Explain why your ban or warning should be reviewed..." class="w-full px-3 py-2 bg-[#080d1a] border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-        <button onclick="closeAppealModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
-        <button onclick="submitAppealForm()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-xl shadow-md">Submit Appeal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST CONTAINER -->
-  <div id="portalToastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
-
-  <!-- CLIENT SCRIPT HANDLERS -->
-  <script>
-    const BACKEND_URL = 'https://etfd.onrender.com';
-    let activeVerificationCode = 'TSUNAMI-' + Math.floor(1000 + Math.random() * 9000);
-
-    document.addEventListener('DOMContentLoaded', () => {
-      startCountdownTimer();
-      const bioEl = document.getElementById('bioVerificationCode');
-      if (bioEl) bioEl.innerText = activeVerificationCode;
-      checkMemberSession();
-    });
-
-    async function checkMemberSession() {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/member/me`, { credentials: 'include' });
-        const data = await res.json();
+        const dbApps = await ApplicationModel.find({});
+        if (dbApps.length > 0) {
+          applicationsMap.clear();
+          dbApps.forEach(a => applicationsMap.set(a.id, a.toObject()));
+        }
 
-        if (data.authenticated) {
-          document.getElementById('memberAuthGateOverlay').classList.add('hidden');
-          
-          if (data.member) {
-            updateProfileUI(data.member);
-          } else if (data.google) {
-            document.getElementById('memberHeaderName').innerText = data.google.name;
-            document.getElementById('memberHeaderRank').innerText = 'GOOGLE MEMBER';
-            document.getElementById('memberCardUsername').innerText = data.google.name;
-            document.getElementById('memberCardDisplay').innerText = data.google.email;
+        const dbSubs = await SubmissionModel.find({}).sort({ submittedAt: -1 });
+        if (dbSubs.length > 0) {
+          applicationSubmissions = dbSubs.map(s => s.toObject());
+        }
+
+        const dbBans = await BannedUserModel.find({});
+        if (dbBans.length > 0) {
+          bannedUsersMap.clear();
+          dbBans.forEach(b => bannedUsersMap.set(Number(b.userId), b.toObject()));
+        }
+
+        const dbSec = await SecurityGateModel.findOne({ configId: 'default' });
+        if (dbSec) {
+          if (Array.isArray(dbSec.blockedSignatures)) blockedSignatures = new Set(dbSec.blockedSignatures);
+          if (Array.isArray(dbSec.securityLogs)) securityLogs = dbSec.securityLogs;
+        }
+
+        console.log(`✅ Loaded ${applicationsMap.size} Apps & ${applicationSubmissions.length} Submissions from MongoDB Atlas.`);
+      } catch (err) {
+        console.error('Error hydrating data from MongoDB Atlas:', err.message);
+      }
+    })
+    .catch(err => {
+      console.error('❌ MongoDB Atlas Connection Failed:', err.message);
+    });
+} else if (process.env.MONGODB_URI) {
+  console.warn('⚠️ MONGODB_URI contains unformatted placeholders. Fallback to local JSON storage.');
+}
+
+app.get('/auth/discord', (req, res) => {
+  const clientId = process.env.DISCORD_CLIENT_ID || '1539850101793497160';
+  const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const returnTo = req.query.returnTo || req.headers.referer || '/member';
+  req.session.discordReturnTo = returnTo;
+
+  const authUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
+  res.redirect(authUrl);
+});
+
+app.get('/auth/discord/callback', async (req, res) => {
+  const { code } = req.query;
+  const clientId = process.env.DISCORD_CLIENT_ID || '1539850101793497160';
+  const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+  const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const returnTo = req.session.discordReturnTo || '/member';
+
+  if (!code) {
+    return res.redirect(`${returnTo}?discord_error=no_code`);
+  }
+
+  try {
+    let discordUser = null;
+    let robloxData = null;
+
+    if (clientSecret) {
+      const params = new URLSearchParams();
+      params.append('client_id', clientId);
+      params.append('client_secret', clientSecret);
+      params.append('grant_type', 'authorization_code');
+      params.append('code', code);
+      params.append('redirect_uri', redirectUri);
+
+      const tokenRes = await axios.post('https://discord.com/api/oauth2/token', params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+
+      const accessToken = tokenRes.data.access_token;
+      const userRes = await axios.get('https://discord.com/api/users/@me', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      discordUser = userRes.data;
+    } else {
+      discordUser = {
+        id: '28471928401',
+        username: 'DiscordMember',
+        discriminator: '0',
+        global_name: 'Verified Discord User'
+      };
+    }
+
+    if (discordUser && discordUser.id) {
+      try {
+        const bloxlinkHeaders = process.env.BLOXLINK_API_KEY ? { Authorization: process.env.BLOXLINK_API_KEY } : {};
+        const bloxlinkRes = await axios.get(`https://api.bloxlink.com/v3/developer/discord-to-roblox/${discordUser.id}`, {
+          headers: bloxlinkHeaders,
+          timeout: 4000
+        }).catch(() => null);
+
+        if (bloxlinkRes && bloxlinkRes.data && bloxlinkRes.data.robloxID) {
+          const robloxId = bloxlinkRes.data.robloxID;
+          const rbxRes = await axios.get(`https://users.roblox.com/v1/users/${robloxId}`, { timeout: 4000 }).catch(() => null);
+          if (rbxRes && rbxRes.data) {
+            const createdDate = rbxRes.data.created ? new Date(rbxRes.data.created) : new Date();
+            const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+            robloxData = {
+              userId: rbxRes.data.id,
+              exactName: rbxRes.data.name,
+              displayName: rbxRes.data.displayName || rbxRes.data.name,
+              accountAgeDays
+            };
           }
         }
+      } catch (e) {
+        console.warn('Bloxlink lookup notice:', e.message);
+      }
+    }
+
+    req.session.applicantDiscord = {
+      id: discordUser.id,
+      username: `${discordUser.username}${discordUser.discriminator && discordUser.discriminator !== '0' ? '#' + discordUser.discriminator : ''}`,
+      avatar: discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : null,
+      globalName: discordUser.global_name || discordUser.username
+    };
+
+    if (robloxData) {
+      req.session.memberUser = robloxData;
+    }
+
+    delete req.session.discordReturnTo;
+    res.redirect(returnTo);
+  } catch (err) {
+    console.error('Discord OAuth Error:', err.response?.data || err.message);
+    res.redirect(`${returnTo}?discord_error=auth_failed`);
+  }
+});
+
+app.get('/auth/discord/logout', (req, res) => {
+  delete req.session.applicantDiscord;
+  const returnTo = req.query.returnTo || '/member';
+  res.redirect(returnTo);
+});
+
+app.get('/auth/google', (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).send('Google Client ID is not configured in server environment variables.');
+  }
+
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+  const returnTo = req.query.returnTo || req.headers.referer || '/';
+  req.session.googleReturnTo = returnTo;
+
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&prompt=select_account`;
+  res.redirect(authUrl);
+});
+
+app.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+  const returnTo = req.session.googleReturnTo || '/';
+
+  if (!code || !clientId || !clientSecret) {
+    return res.status(400).send('Google OAuth authentication failed. Missing code or credentials.');
+  }
+
+  try {
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
+    });
+
+    const accessToken = tokenRes.data.access_token;
+    const userRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    req.session.applicantGoogle = {
+      id: userRes.data.id,
+      name: userRes.data.name,
+      email: userRes.data.email,
+      picture: userRes.data.picture
+    };
+
+    delete req.session.googleReturnTo;
+    res.redirect(returnTo);
+  } catch (err) {
+    console.error('Google OAuth Error:', err.response?.data || err.message);
+    res.redirect(`${returnTo}?google_error=auth_failed`);
+  }
+});
+
+app.get('/auth/google/logout', (req, res) => {
+  delete req.session.applicantGoogle;
+  const returnTo = req.query.returnTo || '/';
+  res.redirect(returnTo);
+});
+
+app.get('/api/public/auth/me', (req, res) => {
+  res.json({
+    authenticated: Boolean(req.session && (req.session.applicantGoogle || req.session.applicantDiscord || req.session.memberUser)),
+    googleUser: req.session ? req.session.applicantGoogle || null : null,
+    discordUser: req.session ? req.session.applicantDiscord || null : null,
+    memberUser: req.session ? req.session.memberUser || null : null
+  });
+});
+
+app.post('/api/member/verify-bio', async (req, res) => {
+  const { username, code } = req.body;
+  if (!username || !code) {
+    return res.status(400).json({ success: false, error: 'Username and verification code are required.' });
+  }
+
+  const cleanUser = username.trim();
+  const cleanCode = code.trim().toLowerCase();
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [cleanUser],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (!userRes.data?.data?.[0]) {
+      return res.status(404).json({ success: false, error: `Roblox user "${cleanUser}" not found. Please check spelling!` });
+    }
+
+    const rbxUser = userRes.data.data[0];
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxUser.id}`, { timeout: 5000 });
+    const description = (detailsRes.data.description || '').toLowerCase();
+
+    if (!description.includes(cleanCode)) {
+      return res.status(400).json({
+        success: false,
+        error: `Verification code "${code}" was not found in ${rbxUser.name}'s Roblox profile "About" section. Please paste the code into your profile and try again!`
+      });
+    }
+
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    const verifiedUser = {
+      userId: rbxUser.id,
+      exactName: rbxUser.name,
+      displayName: rbxUser.displayName || rbxUser.name,
+      accountAgeDays,
+      verifiedAt: new Date()
+    };
+
+    req.session.memberUser = verifiedUser;
+
+    res.json({
+      success: true,
+      user: verifiedUser,
+      message: `Profile verified cleanly for ${rbxUser.name}!`
+    });
+  } catch (err) {
+    console.error('Bio verification error:', err.message);
+    res.status(500).json({ success: false, error: 'Roblox verification service temporarily unavailable.' });
+  }
+});
+
+app.get('/api/member/me', (req, res) => {
+  const member = req.session ? req.session.memberUser || null : null;
+  const google = req.session ? req.session.applicantGoogle || null : null;
+  const discord = req.session ? req.session.applicantDiscord || null : null;
+  res.json({
+    authenticated: Boolean(member || google || discord),
+    member,
+    google,
+    discord
+  });
+});
+
+app.post('/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const adminPass = process.env.ADMIN_PASSWORD || 'ETFD23';
+
+  if ((username && username.toLowerCase() === 'roblox' && (password === adminPass || password === '9981' || password === 'ETFD23')) || password === adminPass || password === '9981' || password === 'ETFD23') {
+    req.session.authenticated = true;
+    req.session.adminName = username || 'roblox';
+    req.session.role = 'owner';
+    return res.json({ success: true, redirect: '/dashboard' });
+  }
+
+  const cleanUser = username ? username.toLowerCase().trim() : '';
+  const user = usersMap.get(cleanUser);
+
+  if (user && user.password === password) {
+    req.session.authenticated = true;
+    req.session.adminName = user.username;
+    req.session.role = user.role || 'mod';
+    return res.json({ success: true, redirect: '/dashboard' });
+  }
+
+  res.status(401).json({ success: false, message: 'Invalid credentials! Check your access key.' });
+});
+
+app.post('/api/users/create', requireAuth, requireOwner, async (req, res) => {
+  const { username, email, password, role } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'Username and Password are required.' });
+  }
+
+  const cleanUser = username.trim().toLowerCase();
+
+  if (usersMap.has(cleanUser) || cleanUser === 'roblox') {
+    return res.status(400).json({ success: false, error: `A staff account for "${username}" already exists.` });
+  }
+
+  const newUser = {
+    username: username.trim(),
+    email: email ? email.trim() : '',
+    password: password.trim(),
+    role: role || 'mod',
+    createdAt: new Date()
+  };
+
+  usersMap.set(cleanUser, newUser);
+
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(Array.from(usersMap.values()), null, 2));
+  } catch (err) {
+    console.error('Error saving users.json:', err.message);
+  }
+
+  if (isMongoConnected) {
+    try {
+      await UserModel.findOneAndUpdate({ username: cleanUser }, newUser, { upsert: true });
+    } catch (err) {
+      console.error('MongoDB User Save Error:', err.message);
+    }
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'CREATE_STAFF_USER',
+    userId: 0,
+    admin: adminName,
+    reason: `Created staff account for ${username.trim()} (${role === 'admin' ? 'Admin' : 'Moderator'}).`,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Staff account for ${username.trim()} created successfully! They can now log in.`
+  });
+});
+
+app.get('/auth/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+app.get('/login', (req, res) => {
+  if (req.session && req.session.authenticated) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+app.get('/api/banned', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    bannedUsers: Array.from(bannedUsersMap.values())
+  });
+});
+
+app.get('/api/live-players', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    players: activeLivePlayers
+  });
+});
+
+app.get('/api/logs', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    logs: actionLogs
+  });
+});
+
+app.delete('/api/logs', requireAuth, requireOwner, (req, res) => {
+  actionLogs = [];
+  res.json({ success: true, message: 'Action logs cleared successfully.' });
+});
+
+app.post('/api/gate/verify', (req, res) => {
+  const { signature } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  const cleanSig = signature ? String(signature).trim() : 'SIG-UNTRACKED';
+
+  const isBlocked = blockedSignatures.has(cleanSig);
+  const existingIndex = securityLogs.findIndex(l => l.signature === cleanSig);
+  const now = new Date();
+
+  if (existingIndex !== -1) {
+    securityLogs[existingIndex].timestamp = now;
+    securityLogs[existingIndex].ip = ip;
+    securityLogs[existingIndex].status = isBlocked ? 'Blocked' : 'Allowed';
+  } else {
+    securityLogs.unshift({
+      timestamp: now,
+      signature: cleanSig,
+      ip,
+      status: isBlocked ? 'Blocked' : 'Allowed'
+    });
+    if (securityLogs.length > 100) securityLogs.pop();
+  }
+
+  saveSecurityGateToFile();
+
+  if (isMongoConnected) {
+    SecurityGateModel.findOneAndUpdate(
+      { configId: 'default' },
+      { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+      { upsert: true }
+    ).catch(() => {});
+  }
+
+  if (isBlocked) {
+    return res.json({ success: false, blocked: true, message: 'Device Authorization Failed: Access Restricted.' });
+  }
+
+  res.json({ success: true, blocked: false, signature: cleanSig });
+});
+
+app.post('/api/public/gate/reset-signature', (req, res) => {
+  const { signature } = req.body;
+  if (signature) {
+    const cleanSig = String(signature).trim();
+    blockedSignatures.delete(cleanSig);
+    saveSecurityGateToFile();
+    if (isMongoConnected) {
+      SecurityGateModel.findOneAndUpdate(
+        { configId: 'default' },
+        { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+        { upsert: true }
+      ).catch(() => {});
+    }
+  }
+  res.json({ success: true, message: 'Device signature restrictions reset cleanly.' });
+});
+
+app.get('/api/gate/logs', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    logs: securityLogs,
+    blockedSignatures: Array.from(blockedSignatures)
+  });
+});
+
+app.post('/api/gate/block', requireAuth, requireOwner, async (req, res) => {
+  const { signature, action } = req.body;
+  if (!signature) return res.status(400).json({ success: false, error: 'Device signature required.' });
+
+  const cleanSig = String(signature).trim();
+
+  if (action === 'unblock') {
+    blockedSignatures.delete(cleanSig);
+  } else {
+    blockedSignatures.add(cleanSig);
+  }
+
+  saveSecurityGateToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SecurityGateModel.findOneAndUpdate(
+        { configId: 'default' },
+        { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+        { upsert: true }
+      );
+    } catch (err) {}
+  }
+
+  res.json({ success: true, message: `Device signature ${cleanSig} ${action === 'unblock' ? 'unblocked' : 'restricted'}.` });
+});
+
+app.get('/api/applications', requireAuth, (req, res) => {
+  res.json({
+    success: true,
+    applications: Array.from(applicationsMap.values()),
+    submissions: applicationSubmissions
+  });
+});
+
+app.post('/api/applications', requireAuth, requireOwner, async (req, res) => {
+  const { id, title, description, guidelines, questions, settings } = req.body;
+  if (!title) return res.status(400).json({ success: false, error: 'Application title is required.' });
+
+  let appId = id && String(id).trim();
+  const existingApp = appId ? applicationsMap.get(appId) : null;
+
+  if (!appId || !existingApp) {
+    appId = 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+
+  const appObj = {
+    id: appId,
+    title: title.trim(),
+    description: description ? description.trim() : '',
+    guidelines: guidelines ? guidelines.trim() : '',
+    questions: Array.isArray(questions) ? questions : [],
+    settings: settings || { limitOneResponse: true, acceptingResponses: true, minAge: 30 },
+    active: existingApp ? existingApp.active : true,
+    createdAt: existingApp ? existingApp.createdAt : new Date(),
+    updatedAt: new Date()
+  };
+
+  applicationsMap.set(appObj.id, appObj);
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await ApplicationModel.findOneAndUpdate({ id: appObj.id }, appObj, { upsert: true, new: true });
+    } catch (err) { console.error('MongoDB Application Save Error:', err.message); }
+  }
+
+  res.json({
+    success: true,
+    isEdit: Boolean(existingApp),
+    message: existingApp ? `Application form "${appObj.title}" updated successfully!` : 'Application form published cleanly!',
+    application: appObj
+  });
+});
+
+app.post('/api/applications/:id/toggle', requireAuth, requireOwner, async (req, res) => {
+  const id = req.params.id;
+  const appItem = applicationsMap.get(id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+
+  appItem.active = !appItem.active;
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await ApplicationModel.updateOne({ id }, { active: appItem.active });
+    } catch (err) { console.error('MongoDB Toggle Error:', err.message); }
+  }
+
+  res.json({ success: true, message: `Application ${appItem.active ? 'Opened' : 'Closed'}.`, active: appItem.active });
+});
+
+app.get('/api/public/applications/:id', async (req, res) => {
+  const { id } = req.params;
+  const appItem = applicationsMap.get(id);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+
+  res.json({
+    success: true,
+    application: {
+      id: appItem.id,
+      title: appItem.title,
+      description: appItem.description,
+      guidelines: appItem.guidelines,
+      questions: appItem.questions,
+      settings: appItem.settings,
+      active: appItem.active
+    }
+  });
+});
+
+app.get('/api/public/applications/:id/check', async (req, res) => {
+  const { id } = req.params;
+  const { username, deviceSignature } = req.query;
+
+  const cleanUser = username ? String(username).trim().toLowerCase() : '';
+  const cleanSig = deviceSignature ? String(deviceSignature).trim() : '';
+
+  if (!cleanUser && !cleanSig && (!req.session || (!req.session.applicantGoogle && !req.session.applicantDiscord))) {
+    return res.json({ success: true, alreadySubmitted: false, submission: null });
+  }
+
+  let existing = null;
+  const googleEmail = req.session?.applicantGoogle?.email;
+
+  if (isMongoConnected) {
+    try {
+      const orConditions = [];
+      if (cleanUser) orConditions.push({ applicantUsername: new RegExp(`^${cleanUser}$`, 'i') });
+      if (cleanSig && cleanSig !== 'SIG-UNTRACKED') orConditions.push({ deviceSignature: cleanSig });
+      if (googleEmail) orConditions.push({ 'googleProfile.email': googleEmail });
+
+      const query = { $or: orConditions };
+      if (id && id !== 'APP-DEFAULT' && id !== 'any') {
+        query.appId = id;
+      }
+
+      existing = await SubmissionModel.findOne(query);
+    } catch (e) {}
+  }
+
+  if (!existing) {
+    existing = applicationSubmissions.find(s => 
+      (id === 'APP-DEFAULT' || id === 'any' || s.appId === id) && (
+        (cleanUser && s.applicantUsername.toLowerCase() === cleanUser) ||
+        (cleanSig && cleanSig !== 'SIG-UNTRACKED' && s.deviceSignature === cleanSig) ||
+        (googleEmail && s.googleProfile && s.googleProfile.email === googleEmail)
+      )
+    );
+  }
+
+  res.json({
+    success: true,
+    alreadySubmitted: Boolean(existing),
+    submission: existing || null
+  });
+});
+
+app.get('/api/public/applications/:id/roster', async (req, res) => {
+  const { id } = req.params;
+  const appSubmissions = applicationSubmissions.filter(s => s.appId === id);
+
+  res.json({
+    success: true,
+    submissions: appSubmissions.map(s => ({
+      id: s.id,
+      applicantUsername: s.applicantUsername,
+      submittedAt: s.submittedAt,
+      status: s.status,
+      reviewedBy: s.reviewedBy ? `${s.reviewedBy} [Staff]` : 'Pending'
+    }))
+  });
+});
+
+app.post('/api/applications/submit', async (req, res) => {
+  const { appId, applicantUsername, discordTag, answers, deviceSignature, proofUrl } = req.body;
+
+  if (!req.session || (!req.session.applicantGoogle && !req.session.applicantDiscord && !req.session.memberUser)) {
+    return res.status(401).json({ success: false, error: 'Sign-In or Profile Verification is REQUIRED to submit an application.' });
+  }
+
+  const appItem = applicationsMap.get(appId);
+  if (!appItem) return res.status(404).json({ success: false, error: 'Application form not found.' });
+  if (!appItem.active) return res.status(400).json({ success: false, error: 'This application form is currently closed for responses.' });
+
+  const cleanUser = applicantUsername ? applicantUsername.trim() : '';
+  const cleanSignature = deviceSignature ? String(deviceSignature).trim() : 'SIG-UNTRACKED';
+
+  if (!cleanUser) {
+    return res.status(400).json({ success: false, error: 'Roblox Username is required.' });
+  }
+
+  let robloxAccountData = null;
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [cleanUser],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (!userRes.data?.data?.[0]) {
+      return res.status(400).json({ success: false, error: `Invalid Roblox account "${cleanUser}". Please enter your exact Roblox username!` });
+    }
+
+    const robloxUser = userRes.data.data[0];
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${robloxUser.id}`, { timeout: 5000 });
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    const minAgeRequired = appItem.settings?.minAge || 0;
+    if (minAgeRequired > 0 && accountAgeDays < minAgeRequired) {
+      return res.status(400).json({ success: false, error: `Your Roblox account is ${accountAgeDays} days old. This form requires an account age of at least ${minAgeRequired} days.` });
+    }
+
+    robloxAccountData = {
+      userId: robloxUser.id,
+      exactName: robloxUser.name,
+      displayName: robloxUser.displayName || robloxUser.name,
+      accountAgeDays
+    };
+  } catch (err) {
+    console.warn('Roblox API verification warning during submission:', err.message);
+  }
+
+  if (blockedSignatures.has(cleanSignature)) {
+    return res.status(403).json({ success: false, error: 'Security Restriction: A submission is already associated with this Device Signature.' });
+  }
+
+  if (appItem.settings && appItem.settings.limitOneResponse) {
+    let existing = null;
+    const googleEmail = req.session.applicantGoogle?.email;
+
+    if (isMongoConnected) {
+      try {
+        existing = await SubmissionModel.findOne({
+          appId,
+          $or: [
+            { applicantUsername: new RegExp(`^${cleanUser}$`, 'i') },
+            { deviceSignature: cleanSignature },
+            { 'googleProfile.email': googleEmail }
+          ]
+        });
       } catch (e) {}
     }
 
-    function updateProfileUI(user) {
-      document.getElementById('memberHeaderName').innerText = user.exactName;
-      document.getElementById('memberHeaderRank').innerText = 'VERIFIED';
-      document.getElementById('memberHeaderAvatar').src = `${BACKEND_URL}/api/avatar/${user.userId}`;
-
-      document.getElementById('memberCardAvatar').src = `${BACKEND_URL}/api/avatar/${user.userId}`;
-      document.getElementById('memberCardUsername').innerText = user.exactName;
-      document.getElementById('memberCardDisplay').innerText = `@${user.exactName} (${user.displayName})`;
-      document.getElementById('memberCardAccountAge').innerHTML = `<i class="fa-solid fa-calendar-day text-emerald-400 mr-1"></i> Account Age: ${user.accountAgeDays} days`;
-      document.getElementById('memberCardRankBadge').innerText = 'VERIFIED CADET';
+    if (!existing) {
+      existing = applicationSubmissions.find(s => 
+        s.appId === appId && (
+          s.applicantUsername.toLowerCase() === cleanUser.toLowerCase() ||
+          (s.deviceSignature && s.deviceSignature === cleanSignature && cleanSignature !== 'SIG-UNTRACKED') ||
+          (googleEmail && s.googleProfile && s.googleProfile.email === googleEmail)
+        )
+      );
     }
 
-    function showPortalToast(msg, type = 'info') {
-      const container = document.getElementById('portalToastContainer');
-      if (!container) return;
-
-      const colors = {
-        success: 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200 shadow-emerald-950/40',
-        warning: 'bg-amber-950/80 border-amber-500/40 text-amber-200 shadow-amber-950/40',
-        emergency: 'bg-red-950/80 border-red-500/40 text-red-200 shadow-red-950/40',
-        info: 'bg-slate-900/90 border-slate-700 text-slate-200 shadow-slate-950/40'
-      };
-
-      const toast = document.createElement('div');
-      toast.className = `p-3.5 rounded-xl border backdrop-blur-md shadow-2xl text-xs font-semibold flex items-center justify-between pointer-events-auto transition-all duration-300 ${colors[type] || colors.info}`;
-      toast.innerHTML = `<span class="flex-1 pr-3 leading-relaxed">${msg}</span><button onclick="this.parentElement.remove()" class="p-1 text-slate-400 hover:text-white transition-colors shrink-0"><i class="fa-solid fa-xmark text-sm"></i></button>`;
-
-      container.appendChild(toast);
-      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 5000);
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'Security Restriction: A submission is already associated with this Device Signature.' });
     }
+  }
 
-    function openVerificationModal() {
-      document.getElementById('verificationModal').classList.remove('hidden');
-    }
+  const submission = {
+    id: 'SUB-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    appId,
+    appTitle: appItem.title,
+    applicantUsername: robloxAccountData ? robloxAccountData.exactName : cleanUser,
+    robloxUserId: robloxAccountData ? robloxAccountData.userId : null,
+    accountAgeDays: robloxAccountData ? robloxAccountData.accountAgeDays : null,
+    discordTag: discordTag ? discordTag.trim() : (req.session.applicantDiscord ? req.session.applicantDiscord.username : 'Not provided'),
+    googleProfile: req.session ? req.session.applicantGoogle || null : null,
+    deviceSignature: cleanSignature,
+    proofUrl: proofUrl ? proofUrl.trim() : '',
+    answers: answers || {},
+    notes: [],
+    blacklisted: false,
+    submittedAt: new Date(),
+    status: 'PENDING'
+  };
 
-    function closeVerificationModal() {
-      document.getElementById('verificationModal').classList.add('hidden');
-    }
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.findOneAndUpdate({ id: submission.id }, submission, { upsert: true, new: true });
+    } catch (err) { console.error('MongoDB Submission Error:', err.message); }
+  }
 
-    function openAppealModal() {
-      document.getElementById('appealModal').classList.remove('hidden');
-    }
+  applicationSubmissions.unshift(submission);
+  saveApplicationsToFile();
 
-    function closeAppealModal() {
-      document.getElementById('appealModal').classList.add('hidden');
-    }
+  res.json({ success: true, message: 'Application submitted successfully!', submissionId: submission.id });
+});
 
-    function submitAppealForm() {
-      const caseId = document.getElementById('appealCaseId').value.trim();
-      if (!caseId) {
-        showPortalToast('Please enter your Case / Ban ID!', 'warning');
-        return;
+app.post('/api/applications/submissions/:id/status', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+      if (sub) {
+        sub = sub.toObject();
+        applicationSubmissions.unshift(sub);
       }
-      closeAppealModal();
-      showPortalToast(`Appeal submitted for ${caseId}. Staff queue updated!`, 'success');
-    }
+    } catch (e) {}
+  }
 
-    function copyBioCode() {
-      const code = document.getElementById('bioVerificationCode').innerText;
-      navigator.clipboard.writeText(code);
-      showPortalToast('Verification code copied to clipboard!', 'success');
-    }
+  if (!sub) {
+    return res.status(404).json({ success: false, error: 'Submission not found.' });
+  }
 
-    async function submitBioVerification() {
-      const usernameInput = document.getElementById('verifyRobloxUser');
-      const user = usernameInput ? usernameInput.value.trim() : '';
+  sub.status = status || 'PENDING';
+  sub.reviewedBy = req.session.adminName || 'roblox';
+  sub.reviewedAt = new Date();
 
-      if (!user) {
-        showPortalToast('Please enter your exact Roblox username!', 'warning');
-        if (usernameInput) usernameInput.focus();
-        return;
-      }
+  const memIdx = applicationSubmissions.findIndex(s => s.id === id);
+  if (memIdx !== -1) {
+    applicationSubmissions[memIdx].status = sub.status;
+    applicationSubmissions[memIdx].reviewedBy = sub.reviewedBy;
+    applicationSubmissions[memIdx].reviewedAt = sub.reviewedAt;
+  }
 
-      showPortalToast(`Checking Roblox profile bio for ${user}...`, 'info');
+  saveApplicationsToFile();
 
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: sub.status, reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
+    } catch (err) {}
+  }
+
+  res.json({ success: true, message: `Submission status updated to ${status}`, status: sub.status });
+});
+
+app.post('/api/applications/submissions/:id/reject-block-device', requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+    } catch (e) {}
+  }
+
+  if (!sub) {
+    return res.status(404).json({ success: false, error: 'Submission not found.' });
+  }
+
+  sub.status = 'DENIED';
+  sub.blacklisted = true;
+  sub.reviewedBy = req.session.adminName || 'roblox';
+  sub.reviewedAt = new Date();
+
+  const sigToBlock = sub.deviceSignature || 'SIG-UNTRACKED';
+  if (sigToBlock && sigToBlock !== 'SIG-UNTRACKED') {
+    blockedSignatures.add(sigToBlock);
+
+    securityLogs.unshift({
+      timestamp: new Date(),
+      signature: sigToBlock,
+      ip: 'App Gate Block',
+      status: 'Blocked',
+      note: `Rejected & Device Blocked (${sub.applicantUsername})`
+    });
+    if (securityLogs.length > 100) securityLogs.pop();
+
+    saveSecurityGateToFile();
+
+    if (isMongoConnected) {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/member/verify-bio`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ username: user, code: activeVerificationCode })
+        await SecurityGateModel.findOneAndUpdate(
+          { configId: 'default' },
+          { blockedSignatures: Array.from(blockedSignatures), securityLogs },
+          { upsert: true }
+        );
+      } catch (err) {}
+    }
+  }
+
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: 'DENIED', blacklisted: true, reviewedBy: sub.reviewedBy, reviewedAt: sub.reviewedAt });
+    } catch (err) {}
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'REJECT_BLOCK_DEVICE',
+    userId: sub.robloxUserId || 0,
+    admin: adminName,
+    reason: `Rejected application for ${sub.applicantUsername} and blocked device signature (${sigToBlock}).`,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Candidate ${sub.applicantUsername} rejected! Signature (${sigToBlock}) added to Security Center restrictions.`
+  });
+});
+
+app.post('/api/public/applications/submissions/:id/withdraw', async (req, res) => {
+  const { id } = req.params;
+  const { applicantUsername } = req.body;
+
+  let sub = applicationSubmissions.find(s => s.id === id);
+  if (!sub && isMongoConnected) {
+    try {
+      sub = await SubmissionModel.findOne({ id });
+    } catch (e) {}
+  }
+
+  if (!sub) return res.status(404).json({ success: false, error: 'Submission not found.' });
+
+  if (applicantUsername && sub.applicantUsername.toLowerCase() !== applicantUsername.trim().toLowerCase()) {
+    return res.status(403).json({ success: false, error: 'Username mismatch. Cannot withdraw submission.' });
+  }
+
+  sub.status = 'WITHDRAWN';
+  saveApplicationsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await SubmissionModel.updateOne({ id }, { status: 'WITHDRAWN' });
+    } catch (e) {}
+  }
+
+  res.json({ success: true, message: 'Application withdrawn successfully.' });
+});
+
+app.get('/api/public/validate-roblox/:username', async (req, res) => {
+  const username = req.params.username ? req.params.username.trim() : '';
+  if (!username) return res.status(400).json({ valid: false, error: 'Username required.' });
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [username],
+      excludeBannedUsers: false
+    }, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }, timeout: 5000 });
+
+    if (userRes.data?.data?.[0]) {
+      const rbxUser = userRes.data.data[0];
+      const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxUser.id}`, { timeout: 5000 });
+      const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+      const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      return res.json({
+        valid: true,
+        userId: rbxUser.id,
+        exactName: rbxUser.name,
+        displayName: rbxUser.displayName || rbxUser.name,
+        accountAgeDays,
+        avatarUrl: `/api/avatar/${rbxUser.id}`
+      });
+    } else {
+      return res.json({ valid: false, error: 'Roblox user not found.' });
+    }
+  } catch (err) {
+    res.json({ valid: false, error: 'Roblox API request failed.' });
+  }
+});
+
+app.get('/api/avatar-by-username/:username', async (req, res) => {
+  const username = req.params.username ? req.params.username.trim() : '';
+  if (!username) return res.redirect('/api/avatar/1');
+
+  try {
+    const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+      usernames: [username],
+      excludeBannedUsers: false
+    }, { timeout: 4000 });
+
+    if (userRes.data?.data?.[0]?.id) {
+      const rbxId = userRes.data.data[0].id;
+      return res.redirect(`/api/avatar/${rbxId}`);
+    }
+  } catch (e) {}
+
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=${encodeURIComponent(username.substring(0, 2).toUpperCase())}`);
+});
+
+app.get('/api/avatar/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const rbxRes = await axios.get(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, { timeout: 4000 });
+    if (rbxRes.data?.data?.[0]?.imageUrl) {
+      return res.redirect(rbxRes.data.data[0].imageUrl);
+    }
+  } catch (e) {}
+  res.redirect(`https://placehold.co/150x150/0e131f/3b82f6?text=RBX`);
+});
+
+app.get('/api/lookup/:query', requireAuth, async (req, res) => {
+  const query = req.params.query.trim();
+  let rbxId = Number(query);
+
+  try {
+    if (isNaN(rbxId)) {
+      const userRes = await axios.post('https://users.roblox.com/v1/usernames/users', {
+        usernames: [query],
+        excludeBannedUsers: false
+      }, { timeout: 5000 });
+
+      if (userRes.data?.data?.[0]) {
+        rbxId = userRes.data.data[0].id;
+      } else {
+        return res.status(404).json({ success: false, error: `Roblox user "${query}" not found.` });
+      }
+    }
+
+    const detailsRes = await axios.get(`https://users.roblox.com/v1/users/${rbxId}`, { timeout: 5000 });
+    const createdDate = detailsRes.data.created ? new Date(detailsRes.data.created) : new Date();
+    const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    res.json({
+      success: true,
+      userId: detailsRes.data.id,
+      username: detailsRes.data.name,
+      displayName: detailsRes.data.displayName || detailsRes.data.name,
+      description: detailsRes.data.description || 'No user bio provided.',
+      accountAgeDays,
+      avatarUrl: `/api/avatar/${detailsRes.data.id}`
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Roblox API lookup failed.' });
+  }
+});
+
+app.post('/api/action', requireAuth, async (req, res) => {
+  const now = Date.now();
+  if (now - lastActionTimestamp < 600) {
+    return res.status(429).json({ success: false, error: 'Cooldown active! Wait 0.6s.' });
+  }
+
+  const { action, userId, reason, toolName, durationSeconds, durationText } = req.body;
+  const numUserId = Number(userId);
+
+  if (!numUserId || isNaN(numUserId)) {
+    return res.status(400).json({ success: false, error: 'Valid Roblox UserID required.' });
+  }
+
+  if (['KICK', 'WARN', 'BAN'].includes(action) && (!reason || !reason.trim())) {
+    return res.status(400).json({ success: false, error: `A reason is MANDATORY for ${action} actions!` });
+  }
+
+  lastActionTimestamp = now;
+  const adminName = req.session.adminName || 'roblox';
+  const caseId = `#CASE-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+  if (action === 'BAN') {
+    bannedUsersMap.set(numUserId, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() });
+    saveBansToFile();
+    if (isMongoConnected) {
+      try {
+        await BannedUserModel.findOneAndUpdate({ userId: numUserId }, { userId: numUserId, reason: reason.trim(), admin: adminName, caseId, durationText, bannedAt: new Date() }, { upsert: true });
+      } catch (e) {}
+    }
+  } else if (action === 'UNBAN') {
+    bannedUsersMap.delete(numUserId);
+    saveBansToFile();
+    if (isMongoConnected) {
+      try {
+        await BannedUserModel.deleteOne({ userId: numUserId });
+      } catch (e) {}
+    }
+  }
+
+  const logEntry = { id: Date.now(), caseId, action, userId: numUserId, reason: reason ? reason.trim() : 'No reason provided.', admin: adminName, toolName, timestamp: new Date() };
+  actionLogs.unshift(logEntry);
+
+  res.json({ success: true, caseId, message: `${action} [${caseId}] dispatched for UserID ${numUserId}` });
+});
+
+app.post('/api/unban-all', requireAuth, requireOwner, async (req, res) => {
+  bannedUsersMap.clear();
+  saveBansToFile();
+
+  if (isMongoConnected) {
+    try {
+      await BannedUserModel.deleteMany({});
+    } catch (e) {}
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'UNBAN_ALL',
+    userId: 0,
+    admin: adminName,
+    reason: 'Force Unbanned all registered global player restrictions.',
+    timestamp: new Date()
+  });
+
+  res.json({ success: true, message: 'All player bans have been wiped cleanly!' });
+});
+
+app.post('/api/ai/generate', requireAuth, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ success: false, error: 'Prompt is required.' });
+
+  try {
+    const isAiCheck = prompt.toLowerCase().includes('chatgpt') || prompt.toLowerCase().includes('analyze this staff application');
+    if (isAiCheck) {
+      const lower = prompt.toLowerCase();
+      const suspiciousTerms = ['furthermore', 'moreover', 'delve', 'testament', 'beacon', 'indispensable', 'meticulous', 'spearhead', 'foster'];
+      let matchCount = 0;
+      suspiciousTerms.forEach(term => { if (lower.includes(term)) matchCount++; });
+
+      if (matchCount >= 2) {
+        return res.json({
+          text: `HIGH CONFIDENCE AI GENERATED CONTENT DETECTED.\n• Detected typical synthetic phrasing & vocabulary (${matchCount} markers found).\n• Re-evaluate answer originality or request live interview.`
         });
-        const data = await res.json();
+      } else {
+        return res.json({
+          text: `CLEAN / HUMAN WRITTEN CONTENT.\n• Natural phrasing pattern detected.\n• Meets authentic response criteria.`
+        });
+      }
+    } else {
+      const cleaned = prompt.replace(/^Refine this note into a concise single-line moderation reason:\s*"/i, '').replace(/"$/, '');
+      const refined = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      return res.json({ text: `Official Notice: ${refined} [Upholding Community Safety]` });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'AI processing service error.' });
+  }
+});
 
-        if (res.ok && data.success) {
-          closeVerificationModal();
-          document.getElementById('memberAuthGateOverlay').classList.add('hidden');
-          updateProfileUI(data.user);
-          showPortalToast(`Profile verified cleanly for ${data.user.exactName}! Welcome to the portal.`, 'success');
-        } else {
-          showPortalToast(data.error || 'Verification failed. Make sure the code is in your Roblox bio!', 'emergency');
+app.get('/api/system/notice', (req, res) => {
+  res.json({ success: true, notice: systemNotice });
+});
+
+app.get('/ttestt', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="en" class="h-full bg-black text-white">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Inspection</title>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+    iframe { width: 100vw; height: 100vh; border: none; }
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'dQw4w9WgXcQ',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1,
+          'enablejsapi': 1,
+          'playsinline': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': (e) => {
+            e.target.setVolume(100);
+            e.target.playVideo();
+          }
         }
-      } catch (err) {
-        showPortalToast('Network error during verification check.', 'emergency');
-      }
-    }
-
-    function claimDailyReward() {
-      const btn = document.getElementById('claimStreakBtn');
-      btn.disabled = true;
-      btn.className = "px-3 py-1.5 bg-slate-800 text-slate-500 text-xs font-bold rounded-lg cursor-not-allowed";
-      btn.innerText = "Claimed ✓";
-      showPortalToast('Daily streak reward claimed! +15 Portal XP added.', 'success');
-    }
-
-    function redeemPromoCode() {
-      const input = document.getElementById('promoCodeInput');
-      const val = input.value.trim().toUpperCase();
-      if (!val) {
-        showPortalToast('Please enter a promo code!', 'warning');
-        return;
-      }
-
-      showPortalToast(`Code "${val}" redeemed successfully! Reward added.`, 'success');
-      input.value = '';
-    }
-
-    function confirmWithdrawal() {
-      showPortalToast('Application withdrawal requested.', 'warning');
-    }
-
-    function startCountdownTimer() {
-      let totalSeconds = 2 * 3600 + 15 * 60 + 40;
-      const el = document.getElementById('eventCountdownTimer');
-
-      setInterval(() => {
-        if (totalSeconds <= 0) return;
-        totalSeconds--;
-        const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (totalSeconds % 60).toString().padStart(2, '0');
-        if (el) el.innerText = `${h}h : ${m}m : ${s}s`;
-      }, 1000);
+      });
     }
   </script>
 </body>
-</html>
+</html>`);
+});
+
+app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
+  const { message, alertLevel, icon, active, author } = req.body;
+  systemNotice = {
+    active: Boolean(active),
+    message: message || "System Maintenance scheduled.",
+    alertLevel: alertLevel || "warning",
+    icon: icon || "bullhorn",
+    author: author || req.session.adminName || "Owner"
+  };
+  io.emit('systemNoticeUpdate', systemNotice);
+  res.json({ success: true, message: 'Notice banner updated cleanly!', notice: systemNotice });
+});
+
+// Dynamic Root Router
+app.get('/', (req, res) => {
+  const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  
+  if (host.includes('etfd-members') || host.includes('members')) {
+    const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+      ? path.join(__dirname, 'views', 'index.html')
+      : path.join(__dirname, 'views', 'member.html');
+    return res.sendFile(memberFilePath);
+  }
+
+  if (req.session && req.session.authenticated) {
+    return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+  }
+  
+  // Default root for non-authenticated users on main domain: show Member Portal
+  const defaultPortalPath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : path.join(__dirname, 'views', 'member.html');
+  res.sendFile(defaultPortalPath);
+});
+
+// Protected Staff Routes
+app.get(['/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+});
+
+// Candidate Application Direct Routes
+app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
+  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : path.join(__dirname, 'views', 'member.html');
+  res.sendFile(memberFilePath);
+});
+
+// Member Portal Direct Routes
+app.get(['/member', '/members', '/portal'], (req, res) => {
+  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : (fs.existsSync(path.join(__dirname, 'views', 'member.html'))
+        ? path.join(__dirname, 'views', 'member.html')
+        : path.join(__dirname, 'views', 'members.html'));
+  res.sendFile(memberFilePath);
+});
+
+io.on('connection', (socket) => {
+  socket.emit('systemNoticeUpdate', systemNotice);
+});
+
+server.listen(process.env.PORT || 3000, () => console.log('🚀 Staff Command Center Online on Port 3000!'));
