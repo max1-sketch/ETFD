@@ -1418,7 +1418,6 @@ app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
   res.json({ success: true, message: 'Notice banner updated cleanly!', notice: systemNotice });
 });
 
-// Dynamic Root Router
 app.get('/', (req, res) => {
   const host = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
   
@@ -1429,15 +1428,12 @@ app.get('/', (req, res) => {
     return res.sendFile(memberFilePath);
   }
 
+  // On Main Staff Domain (etfd.onrender.com): Redirect unauthenticated users to staff login
   if (req.session && req.session.authenticated) {
     return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
   }
   
-  // Default root for non-authenticated users on main domain: show Member Portal
-  const defaultPortalPath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
-    ? path.join(__dirname, 'views', 'index.html')
-    : path.join(__dirname, 'views', 'member.html');
-  res.sendFile(defaultPortalPath);
+  res.redirect('/login');
 });
 
 // Protected Staff Routes
