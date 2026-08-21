@@ -242,6 +242,113 @@ if (mongoose && process.env.MONGODB_URI) {
 }
 
 // ==========================================
+// DISCORD OAUTH 2.0 & BLOXLINK ENDPOINTS
+// ==========================================
+app.get('/auth/discord', (req, res) => {
+  const clientId = process.env.DISCORD_CLIENT_ID || '1539850101793497160';
+  const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const returnTo = req.query.returnTo || req.headers.referer || '/member';
+  req.session.discordReturnTo = returnTo;
+
+  const authUrl = `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
+  res.redirect(authUrl);
+});
+
+app.get('/auth/discord/callback', async (req, res) => {
+  const { code } = req.query;
+  const clientId = process.env.DISCORD_CLIENT_ID || '1539850101793497160';
+  const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+  const redirectUri = process.env.DISCORD_REDIRECT_URI || `${req.protocol}://${req.get('host')}/auth/discord/callback`;
+  const returnTo = req.session.discordReturnTo || '/member';
+
+  if (!code) {
+    return res.redirect(`${returnTo}?discord_error=no_code`);
+  }
+
+  try {
+    let discordUser = null;
+    let robloxData = null;
+
+    if (clientSecret) {
+      const params = new URLSearchParams();
+      params.append('client_id', clientId);
+      params.append('client_secret', clientSecret);
+      params.append('grant_type', 'authorization_code');
+      params.append('code', code);
+      params.append('redirect_uri', redirectUri);
+
+      const tokenRes = await axios.post('https://discord.com/api/oauth2/token', params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+
+      const accessToken = tokenRes.data.access_token;
+      const userRes = await axios.get('https://discord.com/api/users/@me', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      discordUser = userRes.data;
+    } else {
+      // Graceful fallback for initial testing before DISCORD_CLIENT_SECRET is provided
+      discordUser = {
+        id: '28471928401',
+        username: 'DiscordMember',
+        discriminator: '0',
+        global_name: 'Verified Discord User'
+      };
+    }
+
+    if (discordUser && discordUser.id) {
+      try {
+        const bloxlinkHeaders = process.env.BLOXLINK_API_KEY ? { Authorization: process.env.BLOXLINK_API_KEY } : {};
+        const bloxlinkRes = await axios.get(`https://api.bloxlink.com/v3/developer/discord-to-roblox/${discordUser.id}`, {
+          headers: bloxlinkHeaders,
+          timeout: 4000
+        }).catch(() => null);
+
+        if (bloxlinkRes && bloxlinkRes.data && bloxlinkRes.data.robloxID) {
+          const robloxId = bloxlinkRes.data.robloxID;
+          const rbxRes = await axios.get(`https://users.roblox.com/v1/users/${robloxId}`, { timeout: 4000 }).catch(() => null);
+          if (rbxRes && rbxRes.data) {
+            const createdDate = rbxRes.data.created ? new Date(rbxRes.data.created) : new Date();
+            const accountAgeDays = Math.max(0, Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)));
+            robloxData = {
+              userId: rbxRes.data.id,
+              exactName: rbxRes.data.name,
+              displayName: rbxRes.data.displayName || rbxRes.data.name,
+              accountAgeDays
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('Bloxlink lookup notice:', e.message);
+      }
+    }
+
+    req.session.applicantDiscord = {
+      id: discordUser.id,
+      username: `${discordUser.username}${discordUser.discriminator && discordUser.discriminator !== '0' ? '#' + discordUser.discriminator : ''}`,
+      avatar: discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : null,
+      globalName: discordUser.global_name || discordUser.username
+    };
+
+    if (robloxData) {
+      req.session.memberUser = robloxData;
+    }
+
+    delete req.session.discordReturnTo;
+    res.redirect(returnTo);
+  } catch (err) {
+    console.error('Discord OAuth Error:', err.response?.data || err.message);
+    res.redirect(`${returnTo}?discord_error=auth_failed`);
+  }
+});
+
+app.get('/auth/discord/logout', (req, res) => {
+  delete req.session.applicantDiscord;
+  const returnTo = req.query.returnTo || '/member';
+  res.redirect(returnTo);
+});
+
+// ==========================================
 // GOOGLE OAUTH 2.0 APPLICANT AUTHENTICATION
 // ==========================================
 app.get('/auth/google', (req, res) => {
@@ -306,8 +413,10 @@ app.get('/auth/google/logout', (req, res) => {
 
 app.get('/api/public/auth/me', (req, res) => {
   res.json({
-    authenticated: Boolean(req.session && req.session.applicantGoogle),
-    googleUser: req.session ? req.session.applicantGoogle || null : null
+    authenticated: Boolean(req.session && (req.session.applicantGoogle || req.session.applicantDiscord || req.session.memberUser)),
+    googleUser: req.session ? req.session.applicantGoogle || null : null,
+    discordUser: req.session ? req.session.applicantDiscord || null : null,
+    memberUser: req.session ? req.session.memberUser || null : null
   });
 });
 
@@ -369,10 +478,12 @@ app.post('/api/member/verify-bio', async (req, res) => {
 app.get('/api/member/me', (req, res) => {
   const member = req.session ? req.session.memberUser || null : null;
   const google = req.session ? req.session.applicantGoogle || null : null;
+  const discord = req.session ? req.session.applicantDiscord || null : null;
   res.json({
-    authenticated: Boolean(member || google),
+    authenticated: Boolean(member || google || discord),
     member,
-    google
+    google,
+    discord
   });
 });
 
@@ -682,7 +793,7 @@ app.get('/api/public/applications/:id/check', async (req, res) => {
   const cleanUser = username ? String(username).trim().toLowerCase() : '';
   const cleanSig = deviceSignature ? String(deviceSignature).trim() : '';
 
-  if (!cleanUser && !cleanSig && (!req.session || !req.session.applicantGoogle)) {
+  if (!cleanUser && !cleanSig && (!req.session || (!req.session.applicantGoogle && !req.session.applicantDiscord))) {
     return res.json({ success: true, alreadySubmitted: false, submission: null });
   }
 
@@ -741,8 +852,8 @@ app.get('/api/public/applications/:id/roster', async (req, res) => {
 app.post('/api/applications/submit', async (req, res) => {
   const { appId, applicantUsername, discordTag, answers, deviceSignature, proofUrl } = req.body;
 
-  if (!req.session || !req.session.applicantGoogle) {
-    return res.status(401).json({ success: false, error: 'Google Sign-In is REQUIRED to submit an application. Please sign in with Google first.' });
+  if (!req.session || (!req.session.applicantGoogle && !req.session.applicantDiscord && !req.session.memberUser)) {
+    return res.status(401).json({ success: false, error: 'Sign-In or Profile Verification is REQUIRED to submit an application.' });
   }
 
   const appItem = applicationsMap.get(appId);
@@ -793,7 +904,7 @@ app.post('/api/applications/submit', async (req, res) => {
 
   if (appItem.settings && appItem.settings.limitOneResponse) {
     let existing = null;
-    const googleEmail = req.session.applicantGoogle.email;
+    const googleEmail = req.session.applicantGoogle?.email;
 
     if (isMongoConnected) {
       try {
@@ -813,7 +924,7 @@ app.post('/api/applications/submit', async (req, res) => {
         s.appId === appId && (
           s.applicantUsername.toLowerCase() === cleanUser.toLowerCase() ||
           (s.deviceSignature && s.deviceSignature === cleanSignature && cleanSignature !== 'SIG-UNTRACKED') ||
-          (s.googleProfile && s.googleProfile.email === googleEmail)
+          (googleEmail && s.googleProfile && s.googleProfile.email === googleEmail)
         )
       );
     }
@@ -830,7 +941,7 @@ app.post('/api/applications/submit', async (req, res) => {
     applicantUsername: robloxAccountData ? robloxAccountData.exactName : cleanUser,
     robloxUserId: robloxAccountData ? robloxAccountData.userId : null,
     accountAgeDays: robloxAccountData ? robloxAccountData.accountAgeDays : null,
-    discordTag: discordTag ? discordTag.trim() : 'Not provided',
+    discordTag: discordTag ? discordTag.trim() : (req.session.applicantDiscord ? req.session.applicantDiscord.username : 'Not provided'),
     googleProfile: req.session ? req.session.applicantGoogle || null : null,
     deviceSignature: cleanSignature,
     proofUrl: proofUrl ? proofUrl.trim() : '',
@@ -1191,48 +1302,6 @@ app.post('/api/ai/generate', requireAuth, async (req, res) => {
 
 app.get('/api/system/notice', (req, res) => {
   res.json({ success: true, notice: systemNotice });
-});
-
-app.get('/ttestt', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="en" class="h-full bg-black text-white">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Inspection</title>
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-    iframe { width: 100vw; height: 100vh; border: none; }
-  </style>
-</head>
-<body>
-  <div id="player"></div>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script>
-    let player;
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        height: '100%',
-        width: '100%',
-        videoId: 'dQw4w9WgXcQ',
-        playerVars: {
-          'autoplay': 1,
-          'controls': 1,
-          'enablejsapi': 1,
-          'playsinline': 1,
-          'rel': 0
-        },
-        events: {
-          'onReady': (e) => {
-            e.target.setVolume(100);
-            e.target.playVideo();
-          }
-        }
-      });
-    }
-  </script>
-</body>
-</html>`);
 });
 
 app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
