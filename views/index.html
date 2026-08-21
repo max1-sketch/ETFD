@@ -10,9 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Lucide Icon Engine Fallback -->
-  <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- STANDALONE INDUSTRIAL SLATE & GLASS DESIGN SYSTEM -->
   <style>
@@ -43,21 +40,23 @@
         linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
 
-    /* Utility Classes */
+    /* Layout Utilities */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-row { flex-direction: row; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .justify-end { justify-content: flex-end; }
+    .flex-1 { flex: 1 1 0%; }
+    .shrink-0 { flex-shrink: 0; }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+    .min-h-screen { min-height: 100vh; }
+
+    /* STRICT HIDDEN OVERRIDE TO PREVENT CSS PRECEDENCE CONFLICTS */
     .hidden { display: none !important; }
-    .flex { display: flex !important; }
-    .flex-col { flex-direction: column !important; }
-    .flex-row { flex-direction: row !important; }
-    .items-center { align-items: center !important; }
-    .items-start { align-items: flex-start !important; }
-    .justify-between { justify-content: space-between !important; }
-    .justify-center { justify-content: center !important; }
-    .justify-end { justify-content: flex-end !important; }
-    .flex-1 { flex: 1 1 0% !important; }
-    .shrink-0 { flex-shrink: 0 !important; }
-    .w-full { width: 100% !important; }
-    .h-full { height: 100% !important; }
-    .min-h-screen { min-height: 100vh !important; }
 
     /* Tactile Beveled Glass Panels (Dual-Light Border + 28px Backdrop Blur) */
     .glass-card {
@@ -636,12 +635,14 @@
           const userObj = JSON.parse(savedUser);
           updateProfileUI(userObj);
           const overlay = document.getElementById('memberAuthGateOverlay');
-          if (overlay) overlay.classList.add('hidden');
+          if (overlay) {
+            overlay.style.setProperty('display', 'none', 'important');
+            overlay.classList.add('hidden');
+          }
         } catch (e) {}
       }
 
       checkMemberSession();
-      if (window.lucide) lucide.createIcons();
     });
 
     async function checkMemberSession() {
@@ -654,7 +655,10 @@
 
         if (data && data.authenticated) {
           const overlay = document.getElementById('memberAuthGateOverlay');
-          if (overlay) overlay.classList.add('hidden');
+          if (overlay) {
+            overlay.style.setProperty('display', 'none', 'important');
+            overlay.classList.add('hidden');
+          }
           
           if (data.member) {
             updateProfileUI(data.member, data.discord, data.google);
@@ -739,8 +743,9 @@
       const riskText = document.getElementById('riskLevelPctText');
 
       if (lockedOverlay) {
-        lockedOverlay.style.display = 'none';
+        lockedOverlay.style.setProperty('display', 'none', 'important');
         lockedOverlay.classList.add('hidden');
+        lockedOverlay.classList.remove('flex');
       }
       if (tableWrapper) tableWrapper.classList.remove('record-table-blur');
 
@@ -904,7 +909,10 @@
         if (res.ok && data.success) {
           closeVerificationModal();
           const overlay = document.getElementById('memberAuthGateOverlay');
-          if (overlay) overlay.classList.add('hidden');
+          if (overlay) {
+            overlay.style.setProperty('display', 'none', 'important');
+            overlay.classList.add('hidden');
+          }
           updateProfileUI(data.user);
           showPortalToast(`Profile verified cleanly for ${data.user.exactName}! Welcome to the portal.`, 'success');
         } else {
