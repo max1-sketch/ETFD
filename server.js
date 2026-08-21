@@ -23,7 +23,7 @@ const server = http.createServer(app);
 // Enable Trust Proxy for Render / reverse proxies so secure cookies & HTTPS protocols work correctly
 app.set('trust proxy', 1);
 
-// Configure CORS to allow cross-domain requests (e.g. from a separate member portal site) with credentials
+// Configure CORS to allow cross-domain requests (e.g. from separate member portal site) with credentials
 const allowedOrigins = [
   'https://etfd.onrender.com',
   'https://etfd-members.onrender.com',
@@ -45,6 +45,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'views')));
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 
@@ -292,7 +293,7 @@ if (mongoose && hasValidMongoUri) {
       console.error('❌ MongoDB Atlas Connection Failed:', err.message);
     });
 } else if (process.env.MONGODB_URI) {
-  console.warn('⚠️ MONGODB_URI contains unformatted placeholders (e.g. <username> or <password>). Fallback to local JSON storage.');
+  console.warn('⚠️ MONGODB_URI contains unformatted placeholders. Fallback to local JSON storage.');
 }
 
 app.get('/auth/discord', (req, res) => {
@@ -1398,7 +1399,23 @@ app.post('/api/system/notice', requireAuth, requireOwner, (req, res) => {
   res.json({ success: true, message: 'Notice banner updated cleanly!', notice: systemNotice });
 });
 
-app.get(['/', '/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
+// Dynamic Root Router
+app.get('/', (req, res) => {
+  const host = req.get('host') || '';
+  if (host.includes('etfd-members')) {
+    const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+      ? path.join(__dirname, 'views', 'index.html')
+      : path.join(__dirname, 'views', 'member.html');
+    return res.sendFile(memberFilePath);
+  }
+
+  if (req.session && req.session.authenticated) {
+    return res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+  }
+  res.redirect('/login');
+});
+
+app.get(['/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
@@ -1407,9 +1424,11 @@ app.get(['/apply/:id', '/apply/:id/roster'], (req, res) => {
 });
 
 app.get(['/member', '/members', '/portal'], (req, res) => {
-  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'member.html'))
-    ? path.join(__dirname, 'views', 'member.html')
-    : path.join(__dirname, 'views', 'members.html');
+  const memberFilePath = fs.existsSync(path.join(__dirname, 'views', 'index.html'))
+    ? path.join(__dirname, 'views', 'index.html')
+    : (fs.existsSync(path.join(__dirname, 'views', 'member.html'))
+        ? path.join(__dirname, 'views', 'member.html')
+        : path.join(__dirname, 'views', 'members.html'));
   res.sendFile(memberFilePath);
 });
 
