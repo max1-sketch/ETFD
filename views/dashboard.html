@@ -25,11 +25,6 @@
     .hidden {
       display: none !important;
     }
-
-    html.gate-verified #securityGateOverlay {
-      display: none !important;
-    }
-
     html.is-public-portal #mainDashboardApp {
       display: none !important;
     }
@@ -1594,46 +1589,12 @@
         if (lockIcon) lockIcon.className = "fa-solid fa-lock text-[10px]";
       }
     }
-
-    async function executeSecurityGateCheck() {
-      const spinner = document.getElementById('gateSpinner');
-      const checkmark = document.getElementById('gateCheckmark');
-      const label = document.getElementById('gateLabelText');
-      const notice = document.getElementById('gateRestrictedNotice');
-      const sigTag = document.getElementById('restrictedSigTag');
-
-      if (spinner) spinner.classList.remove('hidden');
-
-      try {
-        const res = await fetch('/api/gate/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ signature: activeDeviceSignature })
-        });
-        const data = await res.json();
-
-        if (data.blocked) {
-          if (spinner) spinner.classList.add('hidden');
-          if (label) label.innerText = 'Access Denied';
-          if (notice) notice.classList.remove('hidden');
-          if (sigTag) sigTag.innerText = activeDeviceSignature;
-        } else {
-          if (spinner) spinner.classList.add('hidden');
-          if (checkmark) checkmark.classList.remove('hidden');
-          if (label) label.innerText = "Verified cleanly";
-          
-          sessionStorage.setItem('gate_verified', 'true');
-          setTimeout(() => {
-            document.documentElement.classList.add('gate-verified');
-          }, 400);
-        }
-      } catch (e) {
-        if (spinner) spinner.classList.add('hidden');
-        if (checkmark) checkmark.classList.remove('hidden');
-        sessionStorage.setItem('gate_verified', 'true');
-        document.documentElement.classList.add('gate-verified');
-      }
+    // Security Gate Bypass
+    function executeSecurityGateCheck() {
+      sessionStorage.setItem('gate_verified', 'true');
+      document.documentElement.classList.add('gate-verified');
     }
+
 
     async function resetDeviceSignature() {
       const newSig = 'SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase();

@@ -66,7 +66,6 @@
       border-color: rgba(0, 229, 153, 0.3) !important;
     }
 
-    /* Faint diagonal caution-stripe for Under Construction / Rank Progress */
     .bg-stripes-pattern {
       background-image: repeating-linear-gradient(
         -45deg,
@@ -206,12 +205,10 @@
       border-bottom: none !important;
     }
 
-    /* CSS Specificity Rule: Ensure .hidden always wins over .flex */
     .hidden {
       display: none !important;
     }
 
-    /* Slow pulse animation for active infractions */
     @keyframes slowPulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
@@ -223,6 +220,7 @@
 </head>
 <body class="h-full flex flex-col min-h-screen select-none overflow-x-hidden">
 
+  <!-- ACCESS GATEWAY MODAL OVERLAY -->
   <div id="memberAuthGateOverlay" class="modal-overlay">
     <div class="relative">
       <div class="absolute -top-10 -left-10 w-48 h-48 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -275,6 +273,7 @@
     </div>
   </div>
 
+  <!-- PORTAL HEADER -->
   <header class="portal-header">
     <div class="flex items-center gap-3.5">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E599] to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-[#00E599]/10">
@@ -375,23 +374,23 @@
           </div>
         </div>
 
-        <!-- RANK PROGRESS BENTO CARD (UNDER CONSTRUCTION CAUTION STRIPES) -->
+        <!-- DISCORD ROLES BENTO CARD -->
         <div class="glass-card bg-stripes-pattern rounded-2xl p-5 space-y-3 shadow-xl font-mono relative overflow-hidden">
           <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
             <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              <span>[ RANK PROGRESS ]</span>
+              <span>[ DISCORD ROLES ]</span>
             </h3>
             <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[9px] font-bold rounded uppercase">
               COMING SOON
             </span>
           </div>
           <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
-            Rank tracking coming in the next update. Group promotion eligibility and automatic role sync metrics are undergoing final staging.
+            Discord Role progress coming in the next update. Automatic role syncing for roles like <strong>Trusted Member</strong>, <strong>Veteran</strong>, and <strong>VIP</strong> is undergoing final staging.
           </p>
         </div>
 
-        <!-- TELEMETRY BENTO GRID: SESSION FREQUENCY, HWID, LATENCY -->
+        <!-- TELEMETRY BENTO GRID -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
           <div class="inner-bento-card p-3.5 space-y-1">
             <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">SESSION FREQUENCY</div>
@@ -420,7 +419,7 @@
       <!-- RIGHT COLUMN -->
       <div class="space-y-5">
         
-        <!-- PLAY / ROBLOX EXPERIENCE CARD -->
+        <!-- PLAY / REAL ROBLOX EXPERIENCE CARD (PLACE 103398581793479) -->
         <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl font-mono">
           <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
             <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
@@ -430,37 +429,37 @@
             <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
           </div>
 
-          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2.5 cursor-pointer">
+          <a href="https://www.roblox.com/games/103398581793479/Escape-Tsunami-For-Developers" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2.5 cursor-pointer">
             <svg class="w-4 h-4 fill-[#00E599]" viewBox="0 0 24 24">
               <path d="M18.875 0l-6.14 18.291L0 12.15 6.14 0h12.735zM5.125 24l6.14-18.291L24 11.85 17.86 24H5.125z"/>
             </svg>
             <span>JOIN GAME</span>
           </a>
 
-          <!-- REAL GAME METRICS -->
+          <!-- LIVE ROBLOX API METRICS -->
           <div class="grid grid-cols-3 gap-2 text-center text-[10px] text-slate-400">
             <div class="inner-bento-card p-2">
               <span class="text-slate-500 block text-[8px]">RATING</span>
-              <span class="text-slate-200 font-bold">⭐ 88%</span>
+              <span id="gameRatingVal" class="text-slate-200 font-bold">⭐ 88%</span>
             </div>
             <div class="inner-bento-card p-2">
               <span class="text-slate-500 block text-[8px]">FAVORITES</span>
-              <span class="text-slate-200 font-bold">❤️ 12.5k</span>
+              <span id="gameFavsVal" class="text-slate-200 font-bold">❤️ 12.5k</span>
             </div>
             <div class="inner-bento-card p-2">
               <span class="text-slate-500 block text-[8px]">VISITS</span>
-              <span class="text-slate-200 font-bold">👥 1.2M</span>
+              <span id="gameVisitsVal" class="text-slate-200 font-bold">👥 1.2M</span>
             </div>
           </div>
         </div>
 
-        <!-- CHANGELOG BENTO CARD -->
+        <!-- DYNAMIC CHANGELOG BENTO CARD -->
         <div class="glass-card rounded-2xl p-4 space-y-2.5 shadow-xl font-mono text-xs">
           <div class="border-b border-white/5 pb-2 flex items-center justify-between">
             <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">[ CHANGELOG ]</span>
-            <span class="text-[9px] text-[#00E599] font-bold">v1.0.4 Patch</span>
+            <span id="changelogVersionBadge" class="text-[9px] text-[#00E599] font-bold">v1.0.4 Patch</span>
           </div>
-          <div class="space-y-1.5 text-[10px] text-slate-300">
+          <div id="changelogListContainer" class="space-y-1.5 text-[10px] text-slate-300">
             <div class="flex items-start gap-1.5">
               <span class="text-[#00E599] font-bold">+</span>
               <span>New Tsunami Type: "Acid Wave"</span>
@@ -502,7 +501,7 @@
 
     </div>
 
-    <!-- MOD LOGS / SECURITY AUDIT RECTANGLE CARD -->
+    <!-- MOD LOGS / SECURITY AUDIT -->
     <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-4">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
         <div>
@@ -569,6 +568,7 @@
     </div>
   </main>
 
+  <!-- APPEAL MODAL -->
   <div id="appealModal" class="modal-overlay hidden">
     <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
@@ -618,7 +618,7 @@
     </div>
   </div>
 
-  <!-- FEEDBACK / BUG REPORT MODAL -->
+  <!-- FEEDBACK MODAL -->
   <div id="feedbackModal" class="modal-overlay hidden">
     <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
       <div class="flex items-center justify-between border-b border-white/5 pb-3 font-mono">
@@ -651,7 +651,7 @@
     </div>
   </div>
 
-  <!-- ROBLOX VERIFICATION MODAL -->
+  <!-- VERIFICATION MODAL -->
   <div id="verificationModal" class="modal-overlay hidden">
     <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
@@ -703,7 +703,44 @@
       }
       checkMemberSession();
       fetchMyAppeals();
+      fetchGameStats();
+      fetchChangelog();
     });
+
+    async function fetchGameStats() {
+      try {
+        const res = await fetch('/api/public/game-stats');
+        const data = await res.json();
+        if (data.success) {
+          const rEl = document.getElementById('gameRatingVal');
+          const fEl = document.getElementById('gameFavsVal');
+          const vEl = document.getElementById('gameVisitsVal');
+          if (rEl) rEl.innerText = `⭐ ${data.ratingPct}%`;
+          if (fEl) fEl.innerText = `❤️ ${data.favorites > 1000 ? (data.favorites/1000).toFixed(1) + 'k' : data.favorites}`;
+          if (vEl) vEl.innerText = `👥 ${data.visits > 1000000 ? (data.visits/1000000).toFixed(1) + 'M' : data.visits}`;
+        }
+      } catch (e) {}
+    }
+
+    async function fetchChangelog() {
+      try {
+        const res = await fetch('/api/public/changelog');
+        const data = await res.json();
+        if (data.success && data.changelog) {
+          const vBadge = document.getElementById('changelogVersionBadge');
+          const cContainer = document.getElementById('changelogListContainer');
+          if (vBadge) vBadge.innerText = data.changelog.version || 'v1.0.4 Patch';
+          if (cContainer && Array.isArray(data.changelog.notes)) {
+            cContainer.innerHTML = data.changelog.notes.map(n => `
+              <div class="flex items-start gap-1.5">
+                <span class="${n.type === 'fix' ? 'text-amber-400' : 'text-[#00E599]'} font-bold">${n.type === 'fix' ? '-' : '+'}</span>
+                <span>${n.text}</span>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (e) {}
+    }
 
     async function checkMemberSession() {
       try {
