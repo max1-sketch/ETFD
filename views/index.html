@@ -8,10 +8,9 @@
   <!-- Fonts & Tailwind CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- STANDALONE INDUSTRIAL SLATE & GLASS DESIGN SYSTEM -->
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -22,7 +21,12 @@
 
     html, body {
       height: 100%;
-      background-color: #080b11 !important;
+      background-color: #05070a !important;
+      background-image: 
+        radial-gradient(circle at center, rgba(10, 14, 23, 0.6) 0%, rgba(5, 7, 10, 0.98) 100%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px) !important;
+      background-size: 100% 100%, 40px 40px, 40px 40px !important;
       color: #f8fafc;
       overflow-x: hidden;
       user-select: none;
@@ -30,14 +34,6 @@
 
     .font-mono {
       font-family: 'JetBrains Mono', monospace !important;
-    }
-
-    /* 40px Technical CAD/Blueprint Background Grid */
-    .bg-grid-pattern {
-      background-size: 40px 40px;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
 
     /* Layout Utilities */
@@ -55,37 +51,48 @@
     .h-full { height: 100%; }
     .min-h-screen { min-height: 100vh; }
 
-    /* STRICT HIDDEN OVERRIDE TO PREVENT CSS PRECEDENCE CONFLICTS */
+    /* Strict Hidden Rule for Precedence Control */
     .hidden { display: none !important; }
 
-    /* Tactile Beveled Glass Panels (Dual-Light Border + 28px Backdrop Blur) */
+    /* Tactile Beveled Glass Panels */
     .glass-card {
-      background: rgba(11, 14, 20, 0.72) !important;
+      background: rgba(11, 14, 20, 0.76) !important;
       backdrop-filter: blur(28px) !important;
       -webkit-backdrop-filter: blur(28px) !important;
       border: 1px solid rgba(255, 255, 255, 0.06) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
-      border-right: 1px solid rgba(0, 0, 0, 0.45) !important;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.55) !important;
-      border-radius: 20px !important;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.85) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-right: 1px solid rgba(0, 0, 0, 0.5) !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.6) !important;
+      border-radius: 18px !important;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9) !important;
       transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
     }
 
     .glass-card:hover {
-      border-color: rgba(0, 229, 153, 0.35) !important;
-      border-top-color: rgba(0, 229, 153, 0.5) !important;
+      border-color: rgba(0, 229, 153, 0.3) !important;
+      border-top-color: rgba(0, 229, 153, 0.45) !important;
       box-shadow: 0 35px 70px rgba(0, 0, 0, 0.95) !important;
     }
 
-    /* Slim & Technical Light-Catching Glass Buttons */
+    /* Inner Bento Double-Border Card */
+    .inner-bento-card {
+      background: rgba(5, 7, 10, 0.85) !important;
+      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+      border-radius: 14px !important;
+      transition: all 0.2s ease;
+    }
+
+    .inner-bento-card:hover {
+      border-color: rgba(0, 229, 153, 0.25) !important;
+    }
+
+    /* Tactile Buttons */
     .glass-btn-discord {
       background: rgba(88, 101, 242, 0.12) !important;
       border: 1px solid rgba(88, 101, 242, 0.28) !important;
       border-top: 1px solid rgba(147, 197, 253, 0.4) !important;
-      border-left: 1px solid rgba(147, 197, 253, 0.2) !important;
-      padding: 0.6rem 1.25rem !important;
+      padding: 0.55rem 1.25rem !important;
       color: #ffffff !important;
       transition: all 0.2s ease !important;
     }
@@ -114,7 +121,7 @@
       background: rgba(0, 229, 153, 0.08) !important;
       border: 1px solid rgba(0, 229, 153, 0.25) !important;
       border-top: 1px solid rgba(0, 229, 153, 0.5) !important;
-      padding: 0.6rem 1.25rem !important;
+      padding: 0.55rem 1.25rem !important;
       color: #00E599 !important;
       transition: all 0.2s ease !important;
     }
@@ -125,24 +132,26 @@
       box-shadow: 0 0 28px rgba(0, 229, 153, 0.22) !important;
     }
 
-    .glass-btn-ghost {
-      background: rgba(255, 255, 255, 0.03) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    /* Ghost Button for Initiate Review */
+    .ghost-btn-review {
+      background: transparent !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
       color: #cbd5e1 !important;
       transition: all 0.2s ease !important;
     }
 
-    .glass-btn-ghost:hover {
-      background: rgba(255, 255, 255, 0.08) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
-      color: #ffffff !important;
+    .ghost-btn-review:hover {
+      background: rgba(0, 229, 153, 0.12) !important;
+      border-color: rgba(0, 229, 153, 0.5) !important;
+      color: #00E599 !important;
+      box-shadow: 0 0 16px rgba(0, 229, 153, 0.18) !important;
     }
 
     /* Modal Overlay Backdrop */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(8, 11, 17, 0.92) !important;
+      background: rgba(5, 7, 10, 0.94) !important;
       backdrop-filter: blur(32px) !important;
       -webkit-backdrop-filter: blur(32px) !important;
       z-index: 999;
@@ -157,9 +166,9 @@
       position: sticky;
       top: 0;
       z-index: 40;
-      background: rgba(8, 11, 17, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(8, 11, 17, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       padding: 0.85rem 1.5rem;
       display: flex;
@@ -169,7 +178,7 @@
 
     /* Layout Containers & Bento Grid */
     .portal-container {
-      max-width: 1120px;
+      max-width: 1140px;
       width: 94%;
       margin: 0 auto;
     }
@@ -178,7 +187,7 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 1.5rem;
-      padding: 1.5rem 0;
+      padding: 1.25rem 0;
     }
 
     @media (min-width: 1024px) {
@@ -199,17 +208,17 @@
       }
     }
 
-    /* Blurred Security Shield Container */
+    /* Table Blur Overlay */
     .record-table-blur {
       filter: blur(6px);
       pointer-events: none;
-      opacity: 0.25;
+      opacity: 0.2;
       user-select: none;
     }
 
-    /* Terminal Code Input & Slot */
+    /* Terminal Slot Input */
     .terminal-slot {
-      background: #05070a !important;
+      background: #030508 !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       border-radius: 12px;
       padding: 0.75rem 1rem;
@@ -234,11 +243,15 @@
     .slot-input:focus {
       border-bottom-color: #00E599 !important;
     }
+
+    /* Custom Table Ledger Border */
+    .ledger-row {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
   </style>
 </head>
-<body class="h-full flex flex-col min-h-screen select-none bg-grid-pattern overflow-x-hidden">
+<body class="h-full flex flex-col min-h-screen select-none overflow-x-hidden">
 
-  <!-- SIGN-IN GATE OVERLAY (FROSTED GLASS, AMBIENT LIGHT LEAKS & PULSING LOCK) -->
   <div id="memberAuthGateOverlay" class="modal-overlay">
     <div class="glass-card p-6 sm:p-8 space-y-5 shadow-2xl relative overflow-hidden text-center" style="max-width: 440px; width: 100%;">
       
@@ -290,15 +303,17 @@
     </div>
   </div>
 
-  <!-- TOP NAVIGATION HEADER -->
   <header class="portal-header">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00E599] to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-[#00E599]/20">
-        <svg class="w-5 h-5 stroke-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M2 12h20M2 12c2.5-3 5.5-3 8 0s5.5 3 8 0M2 12c2.5 3 5.5 3 8 0s5.5-3 8 0"/></svg>
+    <div class="flex items-center gap-3.5">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#00E599] to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-[#00E599]/20">
+        <svg class="w-6 h-6 stroke-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M2 12h20M2 12c2.5-3 5.5-3 8 0s5.5 3 8 0M2 12c2.5 3 5.5 3 8 0s5.5-3 8 0"/></svg>
       </div>
       <div>
-        <h1 class="text-xs font-black text-slate-100 uppercase tracking-[0.2em] leading-none">Escape Tsunami</h1>
-        <span class="text-[9px] font-mono text-[#00E599] font-bold block mt-1 tracking-widest">NETWORK HUB</span>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xs font-black text-slate-100 uppercase tracking-[0.22em] leading-none font-mono">ESCAPE TSUNAMI</h1>
+          <span class="text-[8px] font-mono text-[#00E599] bg-[#00E599]/10 px-1.5 py-0.5 rounded border border-[#00E599]/30 font-bold tracking-widest">USER_HUB</span>
+        </div>
+        <span class="text-[9px] font-mono text-slate-400 font-bold block mt-1 tracking-widest">OPS_CONSOLE // SECURITY_TERMINAL</span>
       </div>
     </div>
 
@@ -318,27 +333,23 @@
     </div>
   </header>
 
-  <!-- EVENT ANNOUNCEMENT BANNER -->
-  <div class="portal-container mt-4">
-    <div class="px-4 py-2.5 rounded-2xl bg-[#00E599]/5 border border-[#00E599]/20 text-[#00E599] text-xs flex items-center justify-between shadow-lg backdrop-blur-md">
-      <div class="flex items-center gap-3 truncate">
-        <div class="w-6 h-6 rounded-full bg-[#00E599]/15 border border-[#00E599]/30 flex items-center justify-center text-[#00E599] shrink-0">
-          <svg class="w-3.5 h-3.5 stroke-[#00E599] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-        </div>
-        <span class="truncate font-medium text-slate-200">📢 <strong>Group Event:</strong> Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
+  <div class="portal-container mt-3">
+    <div class="px-3.5 py-1.5 rounded-xl bg-[#00E599]/5 border border-[#00E599]/20 text-[#00E599] text-xs flex items-center justify-between shadow-lg backdrop-blur-xl">
+      <div class="flex items-center gap-2.5 truncate font-mono">
+        <span class="w-2 h-2 rounded-full bg-[#00E599] animate-ping shrink-0"></span>
+        <span class="truncate text-[11px] text-slate-200">📢 <strong>BROADCAST:</strong> Mega Tsunami Survival Tryouts scheduled this Saturday at 18:00 EST.</span>
       </div>
-      <span class="text-[10px] font-mono bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20 text-[#00E599] shrink-0 hidden sm:inline">EVENT READY</span>
+      <span class="text-[9px] font-mono bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20 text-[#00E599] shrink-0 hidden sm:inline font-bold">NODE_ONLINE</span>
     </div>
   </div>
 
-  <!-- MAIN DASHBOARD CONTENT (BENTO GRID) -->
   <main class="portal-container flex-1">
     <div class="bento-grid">
 
-      <!-- LEFT COLUMN: MEMBER PROFILE & STATS -->
-      <div class="space-y-6">
+      <!-- LEFT COLUMN: MEMBER DOSSIER & TELEMETRY -->
+      <div class="space-y-5">
 
-        <!-- PROFILE & IDENTITY BENTO CARD -->
+        <!-- PROFILE & SECURITY CLEARANCE BENTO CARD -->
         <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
           <div class="absolute -top-12 -right-12 w-40 h-40 bg-[#00E599]/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -346,13 +357,13 @@
             <div class="flex items-center gap-4">
               <div class="relative">
                 <img id="memberCardAvatar" src="/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/10 object-cover shadow-lg" />
-                <span id="memberCardOnlineDot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00E599] border-2 border-[#0b0e14] rounded-full" title="Portal Connected"></span>
+                <span id="memberCardOnlineDot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#00E599] border-2 border-[#05070a] rounded-full" title="Terminal Connected"></span>
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 id="memberCardUsername" class="text-base font-bold text-slate-100">Roblox User</h2>
+                  <h2 id="memberCardUsername" class="text-base font-bold text-slate-100 font-mono">Roblox User</h2>
                   <span id="memberCardRankBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
-                    Community Member
+                    AUTHORIZED USER
                   </span>
                 </div>
                 <p id="memberCardDisplay" class="text-xs text-slate-400 font-mono mt-0.5">@UnverifiedUser</p>
@@ -371,98 +382,137 @@
             </div>
           </div>
 
-          <!-- RANK UP PROGRESS BAR -->
-          <div class="space-y-2">
+          <!-- 3-STAGE SEGMENTED TRUST AUTHORIZATION METER -->
+          <div class="space-y-2 font-mono">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-semibold text-slate-300">Rank Up Progress</span>
-              <span class="font-mono text-[#00E599] font-bold text-[11px]" id="rankProgressPct">60% Complete</span>
+              <span class="font-bold text-slate-300 uppercase tracking-widest text-[10px]">[ TRUST_AUTHORIZATION ]</span>
+              <span class="text-[#00E599] font-bold text-[10px]" id="clearanceStageLabel">STAGE 2 // TRUSTED MEMBER</span>
             </div>
-            <div class="w-full bg-[#05070a] h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
-              <div id="rankProgressBar" class="bg-gradient-to-r from-[#00E599] to-teal-400 h-full rounded-full transition-all duration-500" style="width: 60%"></div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center gap-2">
+                <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div class="text-[9px]">
+                  <span class="text-slate-400 block leading-none">STAGE 1</span>
+                  <span class="text-[#00E599] font-bold block mt-0.5">BASIC ACCESS</span>
+                </div>
+              </div>
+
+              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center gap-2">
+                <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <div class="text-[9px]">
+                  <span class="text-slate-400 block leading-none">STAGE 2</span>
+                  <span class="text-[#00E599] font-bold block mt-0.5">TRUSTED MEMBER</span>
+                </div>
+              </div>
+
+              <div class="p-2 bg-white/[0.02] border border-white/5 rounded-lg flex items-center gap-2 opacity-50">
+                <svg class="w-4 h-4 stroke-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2h-2"/><path d="M6 9V7a6 6 0 0 1 12 0v2"/></svg>
+                <div class="text-[9px]">
+                  <span class="text-slate-500 block leading-none">STAGE 3</span>
+                  <span class="text-slate-400 font-bold block mt-0.5">VETERAN</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- IN-GAME PLAYER STATS BENTO CARD -->
+        <!-- USER TELEMETRY BENTO CARD (DOUBLE BORDER INNER CARDS) -->
         <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
-          <div class="border-b border-white/5 pb-3 flex items-center justify-between">
-            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m9-3h.01m2.99 2h.01"/></svg>
-              <span>My Game Stats</span>
+          <div class="border-b border-white/5 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
+              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>[ USER_TELEMETRY ]</span>
             </h2>
-            <span class="text-[10px] font-mono text-[#00E599] font-bold bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20">LIVE DATA</span>
+            <div class="flex items-center gap-1.5 bg-[#00E599]/10 px-2 py-0.5 rounded border border-[#00E599]/20 text-[#00E599]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-ping"></span>
+              <span class="text-[9px] font-mono font-bold">LIVE DATA</span>
+            </div>
           </div>
 
           <div class="stats-grid font-mono">
-            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Tsunamis Escaped</span>
-              <span class="text-xl font-black text-slate-100 block">142</span>
-              <span class="text-[9px] text-[#00E599] font-bold block">+12 this week</span>
+            <div class="inner-bento-card p-3.5 space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Session Frequency</span>
+              <span class="text-xl font-black text-slate-100 block">48 Logs</span>
+              <span class="text-[9px] text-[#00E599] font-bold block">Last: 2h ago</span>
             </div>
 
-            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Survival Coins</span>
-              <span class="text-xl font-black text-amber-400 block">3,850</span>
-              <span class="text-[9px] text-slate-400 block">In-game balance</span>
+            <div class="inner-bento-card p-3.5 space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Hardware Signature</span>
+              <span class="text-sm font-black text-amber-400 block truncate" id="telemetryHwid">HWID: 882-XQ</span>
+              <span class="text-[9px] text-slate-400 block">Device Verified</span>
             </div>
 
-            <div class="p-3.5 bg-[#05070a] border border-white/5 rounded-xl space-y-1">
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Playtime</span>
-              <span class="text-xl font-black text-cyan-400 block">18h 45m</span>
-              <span class="text-[9px] text-slate-400 block">Experienced Cadet</span>
+            <div class="inner-bento-card p-3.5 space-y-1">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">System Latency</span>
+              <span class="text-xl font-black text-cyan-400 block">14ms</span>
+              <span class="text-[9px] text-[#00E599] font-bold block">Status: Stable</span>
             </div>
           </div>
         </div>
 
       </div>
 
-      <!-- RIGHT COLUMN: GAME TELEMETRY & SERVER JOIN -->
-      <div class="space-y-6">
+      <!-- RIGHT COLUMN: INSTANCE GATEWAY & METADATA -->
+      <div class="space-y-5">
 
-        <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl">
+        <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl font-mono">
           <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V4"/></svg>
-              <span>Game Status</span>
+              <span>[ INSTANCE_GATEWAY ]</span>
             </h3>
             <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
           </div>
 
-          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 border-2 border-[#00E599] text-[#00E599] hover:bg-[#00E599] hover:text-black font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m9-3h.01m2.99 2h.01"/></svg>
-            <span>Join Game Server</span>
+          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>INITIALIZE INSTANCE</span>
           </a>
+
+          <div class="inner-bento-card p-3 space-y-2 text-[10px] text-slate-400">
+            <div class="flex items-center justify-between">
+              <span>Current Region:</span>
+              <span class="text-slate-200 font-bold">North America (US-East)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Last Active:</span>
+              <span class="text-slate-200 font-bold">2 hours ago</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Protocol Version:</span>
+              <span class="text-[#00E599] font-bold">v1.0.4</span>
+            </div>
+          </div>
         </div>
 
       </div>
 
     </div>
 
-    <!-- WIDE BENTO CARD: OFFICIAL SECURITY RECORD ("MY RECORD") -->
-    <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-6">
+    <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-4">
       
       <!-- HEADER WITH ACCOUNT STANDING BADGE -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
         <div>
-          <div class="flex items-center gap-3">
-            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2 font-mono">
+          <div class="flex items-center gap-3 font-mono">
+            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>My Record</span>
+              <span>[ SECURITY_AUDIT ]</span>
             </h2>
-            <span id="accountStandingBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
+            <span id="accountStandingBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] text-[10px] font-bold rounded-md uppercase">
               Good Standing
             </span>
           </div>
-          <p class="text-[11px] text-slate-400 font-mono mt-1">Official security log and infraction history</p>
+          <p class="text-[11px] text-slate-400 font-mono mt-1">Official security log and historical infraction audit</p>
         </div>
 
-        <!-- RISK LEVEL TELEMETRY BAR -->
+        <!-- RISK LEVEL TELEMETRY BAR WITH PERCENTAGE RIGHT ABOVE END OF LINE -->
         <div class="w-full sm:w-64 space-y-1.5 font-mono">
           <div class="flex items-center justify-between text-[10px]">
             <span class="text-slate-400 uppercase tracking-wider">Account Risk Level</span>
             <span id="riskLevelPctText" class="text-[#00E599] font-bold">0% (Safe)</span>
           </div>
-          <div class="w-full bg-[#05070a] h-2 rounded-full overflow-hidden p-0.5 border border-white/5">
+          <div class="w-full bg-[#030508] h-1.5 rounded-full overflow-hidden p-0.5 border border-white/5">
             <div id="riskLevelBar" class="bg-[#00E599] h-full rounded-full transition-all duration-500" style="width: 5%"></div>
           </div>
         </div>
@@ -472,38 +522,38 @@
       <div class="relative min-h-[200px]">
         
         <!-- LOCKED OVERLAY FOR UNLINKED ACCOUNTS -->
-        <div id="modHistoryLockedOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#0b0e14]/80 backdrop-blur-md rounded-xl space-y-3">
+        <div id="modHistoryLockedOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#05070a]/85 backdrop-blur-md rounded-xl space-y-3">
           <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#00E599] text-xl shadow-lg">
             <svg class="w-6 h-6 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
-          <div class="max-w-md space-y-1">
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest font-mono">Identity Verification Required</h3>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
+          <div class="max-w-md space-y-1 font-mono">
+            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest">IDENTITY VERIFICATION REQUIRED</h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
               Link your Roblox account to view your official record and file appeals.
             </p>
           </div>
-          <button onclick="openVerificationModal()" class="px-4 py-2 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg">
+          <button onclick="openVerificationModal()" class="px-4 py-2 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg font-mono">
             <svg class="w-3.5 h-3.5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             <span>Verify Profile</span>
           </button>
         </div>
 
-        <!-- MODERATION HISTORY DATA TABLE -->
+        <!-- MODERATION HISTORY DATA TABLE (LEDGER ROWS) -->
         <div id="modHistoryTableWrapper" class="w-full overflow-x-auto record-table-blur">
           <table class="w-full text-left text-xs min-w-[600px] font-mono">
             <thead>
-              <tr class="border-b border-white/5 text-[10px] text-slate-400 uppercase tracking-wider">
+              <tr class="border-b border-white/10 text-[10px] text-slate-400 uppercase tracking-wider">
                 <th class="pb-2.5 font-bold">Date</th>
                 <th class="pb-2.5 font-bold">Action</th>
                 <th class="pb-2.5 font-bold">Reason</th>
                 <th class="pb-2.5 font-bold">Status</th>
-                <th class="pb-2.5 font-bold text-right">Appeal</th>
+                <th class="pb-2.5 font-bold text-right">Review</th>
               </tr>
             </thead>
             <tbody id="modHistoryTableBody" class="divide-y divide-white/[0.04] text-[11px]">
-              <tr class="hover:bg-white/[0.02]">
+              <tr class="ledger-row hover:bg-white/[0.02]">
                 <td class="py-3 text-slate-400">08/20/26</td>
-                <td class="py-3"><span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold rounded uppercase">[ WARNING ]</span></td>
+                <td class="py-3"><span class="px-2 py-0.5 border-l-2 border-amber-400 bg-amber-500/10 text-amber-400 text-[10px] font-bold rounded-r uppercase">[ WARN ]</span></td>
                 <td class="py-3 text-slate-300">Spamming in server chat channel</td>
                 <td class="py-3 text-slate-400">Expired</td>
                 <td class="py-3 text-right"><span class="text-slate-600 text-[10px]">N/A</span></td>
@@ -563,14 +613,14 @@
     </div>
   </div>
 
-  <!-- FILE APPEAL MODAL -->
+  <!-- FILE APPEAL / INITIATE REVIEW MODAL -->
   <div id="appealModal" class="modal-overlay hidden">
     <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
       
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
         <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.15em] flex items-center gap-2 font-mono">
           <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m14 13-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>
-          <span>File Appeal</span>
+          <span>Initiate Review</span>
         </h3>
         <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer" title="Close">
           <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -578,15 +628,15 @@
       </div>
 
       <div class="space-y-4 text-xs">
-        <div id="appealRecordSummary" class="p-3 bg-[#05070a] border border-white/10 rounded-xl space-y-1 font-mono text-[11px]">
+        <div id="appealRecordSummary" class="p-3 bg-[#030508] border border-white/10 rounded-xl space-y-1 font-mono text-[11px]">
           <div class="text-slate-400">Case ID: <span id="appealCaseId" class="text-slate-200 font-bold">#CASE-9482</span></div>
-          <div class="text-slate-400">Action: <span id="appealCaseAction" class="text-amber-400 font-bold">[ WARNING ]</span></div>
+          <div class="text-slate-400">Action: <span id="appealCaseAction" class="text-amber-400 font-bold">[ WARN ]</span></div>
           <div class="text-slate-400">Reason: <span id="appealCaseReason" class="text-slate-200">Excessive speed violation</span></div>
         </div>
 
         <div class="space-y-1.5">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Appeal Explanation</label>
-          <textarea id="appealTextInput" rows="4" placeholder="Provide clear context or details explaining why this action should be reviewed..." class="w-full p-3 bg-[#05070a] border border-white/10 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none"></textarea>
+          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Review Context & Justification</label>
+          <textarea id="appealTextInput" rows="4" placeholder="Provide clear context explaining why this action should be reviewed..." class="w-full p-3 bg-[#030508] border border-white/10 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none"></textarea>
         </div>
       </div>
 
@@ -594,8 +644,8 @@
         <button onclick="closeAppealModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded-xl transition-all cursor-pointer">
           Cancel
         </button>
-        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded-xl shadow-lg shadow-[#00E599]/20 transition-all cursor-pointer">
-          File Appeal
+        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded-xl shadow-lg shadow-[#00E599]/20 transition-all cursor-pointer font-mono">
+          Initiate Review
         </button>
       </div>
     </div>
@@ -604,15 +654,14 @@
   <!-- TOAST CONTAINER -->
   <div id="portalToastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
-  <!-- CLIENT SCRIPTS WITH DEFENSIVE DOM EXECUTION -->
   <script>
     let activeVerificationCode = 'TSUNAMI-' + Math.floor(1000 + Math.random() * 9000);
     let activeAppealCase = null;
 
     // Sample moderation records for verified state
     let sampleUserRecords = [
-      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', reason: 'Spamming in server chat', status: 'Expired', canAppeal: false },
-      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
+      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false },
+      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -627,6 +676,11 @@
 
       if (discordBtn) discordBtn.href = `${backendUrl}/auth/discord?returnTo=${encodeURIComponent(host + '/member')}`;
       if (googleBtn) googleBtn.href = `${backendUrl}/auth/google?returnTo=${encodeURIComponent(host + '/member')}`;
+
+      // Populate hardware signature ID
+      const hwidEl = document.getElementById('telemetryHwid');
+      const storedSig = localStorage.getItem('et_device_signature') || ('SIG-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+      if (hwidEl) hwidEl.innerText = `HWID: ${storedSig.substring(0, 10)}`;
 
       // Check for cached local verification
       const savedUser = localStorage.getItem('et_verified_roblox_user');
@@ -663,7 +717,6 @@
           if (data.member) {
             updateProfileUI(data.member, data.discord, data.google);
           } else {
-            // Check local cached roblox user
             const savedUser = localStorage.getItem('et_verified_roblox_user');
             if (savedUser) {
               updateProfileUI(JSON.parse(savedUser), data.discord, data.google);
@@ -730,7 +783,7 @@
         hLinkBtn.onclick = null;
       }
 
-      // Explicitly Unlock Mod History Data
+      // Explicitly Unlock Security Audit Log
       unlockModHistory(sampleUserRecords);
     }
 
@@ -786,15 +839,15 @@
         }
 
         tbody.innerHTML = records.map(r => `
-          <tr class="hover:bg-white/[0.02]">
+          <tr class="ledger-row hover:bg-white/[0.02]">
             <td class="py-3 text-slate-400">${r.date}</td>
-            <td class="py-3"><span class="px-2 py-0.5 ${r.actionBadge} text-[10px] font-bold rounded uppercase">[ ${r.action} ]</span></td>
+            <td class="py-3"><span class="px-2 py-0.5 ${r.actionBadge || 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400'} text-[10px] font-bold rounded-r uppercase">[ ${r.action} ]</span></td>
             <td class="py-3 text-slate-300">${r.reason}</td>
             <td class="py-3 ${r.status === 'Active' ? 'text-amber-400 font-bold' : r.status === 'Appealed' ? 'text-cyan-400 font-bold' : 'text-slate-500'}">${r.status}</td>
             <td class="py-3 text-right">
               ${r.canAppeal && r.status === 'Active' ? `
-                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 glass-btn-ghost text-xs font-bold rounded-lg cursor-pointer">
-                  File Appeal
+                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 ghost-btn-review text-[10px] font-bold rounded-md cursor-pointer">
+                  Initiate Review
                 </button>
               ` : `
                 <span class="text-slate-600 text-[10px]">N/A</span>
@@ -829,7 +882,7 @@
       const text = input ? input.value.trim() : '';
 
       if (!text) {
-        showPortalToast('Please enter an explanation for your appeal.', 'warning');
+        showPortalToast('Please enter an explanation for your review request.', 'warning');
         return;
       }
 
@@ -841,7 +894,7 @@
 
       unlockModHistory(sampleUserRecords);
       closeAppealModal();
-      showPortalToast(`Appeal for ${activeAppealCase} filed cleanly! Staff will review shortly.`, 'success');
+      showPortalToast(`Review request for ${activeAppealCase} registered cleanly! Staff will audit shortly.`, 'success');
       if (input) input.value = '';
     }
 
@@ -850,14 +903,14 @@
       if (!container) return;
 
       const colors = {
-        success: 'bg-[#0b0e14]/90 border-[#00E599]/40 text-[#00E599]',
+        success: 'bg-[#05070a]/95 border-[#00E599]/40 text-[#00E599]',
         warning: 'bg-amber-950/80 border-amber-500/40 text-amber-200',
         emergency: 'bg-red-950/80 border-red-500/40 text-red-200',
-        info: 'bg-[#0b0e14]/90 border-white/10 text-slate-200'
+        info: 'bg-[#05070a]/95 border-white/10 text-slate-200'
       };
 
       const toast = document.createElement('div');
-      toast.className = `p-3.5 rounded-xl border backdrop-blur-md shadow-2xl text-xs font-semibold flex items-center justify-between pointer-events-auto transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.className = `p-3.5 rounded-xl border backdrop-blur-md shadow-2xl text-xs font-semibold flex items-center justify-between pointer-events-auto transition-all duration-300 font-mono ${colors[type] || colors.info}`;
       toast.innerHTML = `<span class="flex-1 pr-3 leading-relaxed">${msg}</span><button onclick="this.parentElement.remove()" class="p-1 text-slate-400 hover:text-white transition-colors shrink-0"><svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`;
 
       container.appendChild(toast);
