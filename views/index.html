@@ -22,7 +22,7 @@
       height: 100%;
       background-color: #05070a !important;
       background-image: 
-        radial-gradient(circle at 50% 30%, rgba(10, 15, 26, 0.7) 0%, rgba(5, 7, 10, 0.98) 100%),
+        radial-gradient(circle at 50% 30%, rgba(10, 15, 26, 0.75) 0%, rgba(5, 7, 10, 0.98) 100%),
         linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px) !important;
       background-size: 100% 100%, 40px 40px, 40px 40px !important;
@@ -64,6 +64,17 @@
 
     .inner-bento-card:hover {
       border-color: rgba(0, 229, 153, 0.3) !important;
+    }
+
+    /* Faint diagonal caution-stripe for Under Construction / Rank Progress */
+    .bg-stripes-pattern {
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.015),
+        rgba(255, 255, 255, 0.015) 12px,
+        transparent 12px,
+        transparent 24px
+      ) !important;
     }
 
     .glass-btn-mint {
@@ -199,6 +210,15 @@
     .hidden {
       display: none !important;
     }
+
+    /* Slow pulse animation for active infractions */
+    @keyframes slowPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .status-pulse-active {
+      animation: slowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
   </style>
 </head>
 <body class="h-full flex flex-col min-h-screen select-none overflow-x-hidden">
@@ -263,12 +283,17 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-xs font-black text-slate-100 uppercase tracking-[0.22em] leading-none font-mono">ESCAPE TSUNAMI</h1>
-          <span class="text-[8px] font-mono text-[#00E599] bg-[#00E599]/10 px-1.5 py-0.5 rounded border border-[#00E599]/30 font-bold">USER_HUB</span>
+          <span class="text-[8px] font-mono text-[#00E599] bg-[#00E599]/10 px-1.5 py-0.5 rounded border border-[#00E599]/30 font-bold">OPS_CENTER</span>
         </div>
       </div>
     </div>
 
     <div class="flex items-center gap-3">
+      <button onclick="openFeedbackModal()" class="px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/10 rounded-xl text-xs font-mono font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="hidden sm:inline">Feedback / Bug</span>
+      </button>
+
       <div id="memberHeaderUserChip" class="flex items-center gap-2.5 bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-xl text-xs">
         <img id="memberHeaderAvatar" src="/api/avatar/1" class="w-6 h-6 rounded-full bg-slate-800 border border-white/10 object-cover" />
         <div class="text-left hidden sm:block">
@@ -286,12 +311,12 @@
 
   <main class="portal-container flex-1">
     
-    <!-- TOP SYSTEM ANNOUNCEMENT TICKER -->
-    <div class="my-4 p-3 glass-card rounded-xl flex items-center gap-3 text-xs font-mono border-l-4 border-l-[#00E599]">
+    <!-- TOP ANNOUNCEMENT TICKER BANNER -->
+    <div class="my-4 p-2.5 glass-card rounded-xl flex items-center gap-3 text-xs font-mono border-l-4 border-l-[#00E599]">
       <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse shrink-0"></span>
       <div class="flex items-center gap-2 overflow-hidden text-slate-300 text-[11px]">
-        <span class="text-[#00E599] font-bold uppercase tracking-wider shrink-0">[ SYSTEM_NOTICE ]</span>
-        <span id="systemNoticeText" class="truncate">Maintenance scheduled tonight at 10:00 PM EST. Server instances remain operational.</span>
+        <span class="text-[#00E599] font-bold uppercase tracking-wider shrink-0">[ ANNOUNCEMENTS ]</span>
+        <span id="systemNoticeText" class="truncate">Group Event: Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
       </div>
     </div>
 
@@ -300,6 +325,7 @@
       <!-- LEFT COLUMN -->
       <div class="space-y-5">
         
+        <!-- PROFILE CARD -->
         <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
           <div class="flex items-center gap-4 border-b border-white/5 pb-4">
             <img id="memberCardAvatar" src="/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/10 object-cover shadow-lg" />
@@ -317,89 +343,179 @@
             </div>
           </div>
 
-          <!-- 3-STAGE TRUST METER -->
+          <!-- 3-STAGE SEGMENTED ACCESS LEVEL METER -->
           <div class="space-y-2 font-mono">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-300 uppercase tracking-widest text-[10px]">[ TRUST_AUTHORIZATION ]</span>
+              <span class="font-bold text-slate-300 uppercase tracking-widest text-[10px]">[ ACCESS LEVEL ]</span>
               <span class="text-[#00E599] font-bold text-[10px]" id="clearanceStageLabel">STAGE 2 // TRUSTED MEMBER</span>
             </div>
             <div class="grid grid-cols-3 gap-2 text-[9px]">
-              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg">
-                <span class="text-slate-400 block">STAGE 1</span>
-                <span class="text-[#00E599] font-bold block">BASIC ACCESS</span>
+              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center justify-between">
+                <div>
+                  <span class="text-slate-400 block">STAGE 1</span>
+                  <span class="text-[#00E599] font-bold block">BASIC ACCESS</span>
+                </div>
+                <span class="text-[#00E599] font-bold">✓</span>
               </div>
-              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg">
-                <span class="text-slate-400 block">STAGE 2</span>
-                <span class="text-[#00E599] font-bold block">TRUSTED MEMBER</span>
+              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center justify-between">
+                <div>
+                  <span class="text-slate-400 block">STAGE 2</span>
+                  <span class="text-[#00E599] font-bold block">TRUSTED MEMBER</span>
+                </div>
+                <span class="text-[#00E599] font-bold">✓</span>
               </div>
-              <div class="p-2 bg-white/[0.02] border border-white/5 rounded-lg opacity-50">
-                <span class="text-slate-500 block">STAGE 3</span>
-                <span class="text-slate-400 font-bold block">VETERAN</span>
+              <div class="p-2 bg-white/[0.02] border border-white/5 rounded-lg opacity-50 flex items-center justify-between">
+                <div>
+                  <span class="text-slate-500 block">STAGE 3</span>
+                  <span class="text-slate-400 font-bold block">VETERAN</span>
+                </div>
+                <span class="text-slate-600">○</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="glass-card rounded-2xl p-5 space-y-3 shadow-xl font-mono">
+        <!-- RANK PROGRESS BENTO CARD (UNDER CONSTRUCTION CAUTION STRIPES) -->
+        <div class="glass-card bg-stripes-pattern rounded-2xl p-5 space-y-3 shadow-xl font-mono relative overflow-hidden">
           <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
             <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              <span>[ GROUP_RANKS // PROMOTION_TREE ]</span>
+              <span>[ RANK PROGRESS ]</span>
             </h3>
             <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[9px] font-bold rounded uppercase">
               COMING SOON
             </span>
           </div>
           <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
-            Automatic rank-up tracking and group promotion eligibility metrics are currently under development and will be deployed in the next hub update.
+            Rank tracking coming in the next update. Group promotion eligibility and automatic role sync metrics are undergoing final staging.
           </p>
         </div>
+
+        <!-- TELEMETRY BENTO GRID: SESSION FREQUENCY, HWID, LATENCY -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
+          <div class="inner-bento-card p-3.5 space-y-1">
+            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">SESSION FREQUENCY</div>
+            <div class="text-base font-extrabold text-slate-100">14 Checks</div>
+            <div class="text-[9px] text-[#00E599] font-semibold">Active Node Connection</div>
+          </div>
+
+          <div class="inner-bento-card p-3.5 space-y-1">
+            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">DEVICE ID</div>
+            <div class="text-xs font-bold text-slate-200 tracking-wider truncate" id="telemetryDeviceSigTag">HWID: 882-XQ</div>
+            <div class="text-[9px] text-slate-500">Security Gate Verified</div>
+          </div>
+
+          <div class="inner-bento-card p-3.5 space-y-1">
+            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold flex items-center justify-between">
+              <span>SYSTEM LATENCY</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span>
+            </div>
+            <div class="text-base font-extrabold text-[#00E599]">14ms</div>
+            <div class="text-[9px] text-slate-400">Status: Stable</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- RIGHT COLUMN -->
       <div class="space-y-5">
+        
+        <!-- PLAY / ROBLOX EXPERIENCE CARD -->
         <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl font-mono">
           <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
             <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
-              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              <span>[ INSTANCE_GATEWAY ]</span>
+              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>[ PLAY ]</span>
             </h3>
             <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
           </div>
 
-          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>INITIALIZE INSTANCE</span>
+          <a href="https://www.roblox.com/games/start" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2.5 cursor-pointer">
+            <svg class="w-4 h-4 fill-[#00E599]" viewBox="0 0 24 24">
+              <path d="M18.875 0l-6.14 18.291L0 12.15 6.14 0h12.735zM5.125 24l6.14-18.291L24 11.85 17.86 24H5.125z"/>
+            </svg>
+            <span>JOIN GAME</span>
           </a>
 
-          <div class="inner-bento-card p-3 space-y-2 text-[10px] text-slate-400">
-            <div class="flex items-center justify-between">
-              <span>Current Region:</span>
-              <span class="text-slate-200 font-bold">North America (US-East)</span>
+          <!-- REAL GAME METRICS -->
+          <div class="grid grid-cols-3 gap-2 text-center text-[10px] text-slate-400">
+            <div class="inner-bento-card p-2">
+              <span class="text-slate-500 block text-[8px]">RATING</span>
+              <span class="text-slate-200 font-bold">⭐ 88%</span>
             </div>
-            <div class="flex items-center justify-between">
-              <span>Protocol Version:</span>
-              <span class="text-[#00E599] font-bold">v1.0.4</span>
+            <div class="inner-bento-card p-2">
+              <span class="text-slate-500 block text-[8px]">FAVORITES</span>
+              <span class="text-slate-200 font-bold">❤️ 12.5k</span>
+            </div>
+            <div class="inner-bento-card p-2">
+              <span class="text-slate-500 block text-[8px]">VISITS</span>
+              <span class="text-slate-200 font-bold">👥 1.2M</span>
             </div>
           </div>
         </div>
+
+        <!-- CHANGELOG BENTO CARD -->
+        <div class="glass-card rounded-2xl p-4 space-y-2.5 shadow-xl font-mono text-xs">
+          <div class="border-b border-white/5 pb-2 flex items-center justify-between">
+            <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">[ CHANGELOG ]</span>
+            <span class="text-[9px] text-[#00E599] font-bold">v1.0.4 Patch</span>
+          </div>
+          <div class="space-y-1.5 text-[10px] text-slate-300">
+            <div class="flex items-start gap-1.5">
+              <span class="text-[#00E599] font-bold">+</span>
+              <span>New Tsunami Type: "Acid Wave"</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-[#00E599] font-bold">+</span>
+              <span>Buffed Speed Coil item velocity</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold">-</span>
+              <span>Fixed shop item duplication glitch</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SERVER STATUS BENTO CARD -->
+        <div class="glass-card rounded-2xl p-4 space-y-2 shadow-xl font-mono text-[10px]">
+          <div class="border-b border-white/5 pb-1.5 flex items-center justify-between">
+            <span class="font-bold text-slate-200 uppercase tracking-wider text-[9px]">[ SERVER_STATUS ]</span>
+            <span class="text-[#00E599] font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span> ALL ONLINE</span>
+          </div>
+          <div class="space-y-1 text-slate-400">
+            <div class="flex items-center justify-between">
+              <span>DataStores API:</span>
+              <span class="text-slate-200 font-bold">Operational</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>MessagingService:</span>
+              <span class="text-slate-200 font-bold">Operational</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Game Instances:</span>
+              <span class="text-[#00E599] font-bold">12 Active</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
 
+    <!-- MOD LOGS / SECURITY AUDIT RECTANGLE CARD -->
     <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-4">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
         <div>
           <div class="flex items-center gap-3 font-mono">
             <h2 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
               <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              <span>[ SECURITY_AUDIT ]</span>
+              <span>[ MOD LOGS ]</span>
             </h2>
             <span id="accountStandingBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] text-[10px] font-bold rounded-md uppercase">
               Good Standing
             </span>
           </div>
-          <p class="text-[11px] text-slate-400 font-mono mt-1">Official security log and historical infraction audit</p>
+          <p class="text-[11px] text-slate-400 font-mono mt-1">Your warning and ban history</p>
         </div>
 
         <div class="w-full sm:w-64 space-y-1.5 font-mono">
@@ -469,9 +585,12 @@
             <span class="text-slate-400">SERIAL ID: <span id="appealCaseId" class="text-slate-200 font-bold tracking-widest">#CASE-9102</span></span>
             <span id="appealCaseAction" class="px-2 py-0.5 border-l-2 border-amber-400 bg-amber-500/10 text-amber-400 font-bold rounded-r uppercase text-[10px]">[ WARN ]</span>
           </div>
-          <div class="text-slate-400 pt-0.5 flex items-center gap-1">
-            <span>RECORDED REASON:</span>
-            <span id="appealCaseReason" class="text-slate-200 font-medium truncate">Automated chat frequency flag</span>
+          <div class="text-slate-400 pt-0.5 flex items-center justify-between">
+            <span>REASON: <span id="appealCaseReason" class="text-slate-200 font-medium truncate">Automated chat frequency flag</span></span>
+            <span class="text-[9px] text-[#00E599]">👁️ Log Recorded</span>
+          </div>
+          <div class="text-[9px] text-slate-500 pt-1 border-t border-white/5">
+            OCCURRED: 08/21/2026 - 14:02 EST
           </div>
         </div>
 
@@ -499,6 +618,40 @@
     </div>
   </div>
 
+  <!-- FEEDBACK / BUG REPORT MODAL -->
+  <div id="feedbackModal" class="modal-overlay hidden">
+    <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3 font-mono">
+        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
+          <span>SUBMIT FEEDBACK / BUG</span>
+        </h3>
+        <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs font-mono">
+        <div class="space-y-1">
+          <label class="text-[10px] text-slate-400 uppercase tracking-wider block">Category</label>
+          <select id="feedbackCategory" class="slot-input">
+            <option value="bug">🐛 In-Game Bug Report</option>
+            <option value="portal">🌐 Portal / Dashboard Feedback</option>
+            <option value="feature">💡 Feature Suggestion</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] text-slate-400 uppercase tracking-wider block">Description / Steps to Reproduce</label>
+          <textarea id="feedbackText" rows="4" placeholder="Type clear details here..." class="w-full p-3 bg-[#030508] border border-white/10 rounded text-slate-100 text-xs focus:outline-none focus:border-[#00E599] resize-none font-sans"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5 font-mono">
+        <button onclick="closeFeedbackModal()" class="px-4 py-2 bg-transparent text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded">Cancel</button>
+        <button onclick="submitFeedbackForm()" class="px-5 py-2 bg-[#00E599] text-black text-xs font-extrabold rounded shadow-md uppercase tracking-wider">Send Dispatch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROBLOX VERIFICATION MODAL -->
   <div id="verificationModal" class="modal-overlay hidden">
     <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
@@ -534,8 +687,8 @@
     let activeAppealCase = null;
 
     let sampleUserRecords = [
-      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false, occurred: '08/20/2026 - 11:45 EST' },
-      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true, occurred: '08/21/2026 - 14:02 EST' }
+      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false },
+      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -625,11 +778,11 @@
             <td class="py-3 text-slate-400">${r.date}</td>
             <td class="py-3"><span class="px-2 py-0.5 ${r.actionBadge} text-[10px] font-bold rounded-r uppercase">[ ${r.action} ]</span></td>
             <td class="py-3 text-slate-300">${r.reason}</td>
-            <td class="py-3 ${r.status.includes('Approved') ? 'text-emerald-400 font-bold' : r.status.includes('Denied') ? 'text-red-400 font-bold' : 'text-amber-400 font-bold'}">${r.status}</td>
+            <td class="py-3 ${r.status.includes('Approved') ? 'text-emerald-400 font-bold' : r.status.includes('Denied') ? 'text-red-400 font-bold' : 'text-amber-400 font-bold status-pulse-active'}">${r.status}</td>
             <td class="py-3 text-right">
               ${r.canAppeal && r.status === 'Active' ? `
                 <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 ghost-btn-review text-[10px] font-bold rounded cursor-pointer">
-                  Submit Appeal
+                  Initiate Review
                 </button>
               ` : `<span class="text-slate-600 text-[10px]">N/A</span>`}
             </td>
@@ -695,6 +848,17 @@
       } catch (err) {
         showPortalToast('Network error submitting appeal.', 'emergency');
       }
+    }
+
+    function openFeedbackModal() { document.getElementById('feedbackModal').classList.remove('hidden'); }
+    function closeFeedbackModal() { document.getElementById('feedbackModal').classList.add('hidden'); }
+
+    function submitFeedbackForm() {
+      const text = document.getElementById('feedbackText').value.trim();
+      if (!text) return showPortalToast('Please enter feedback details!', 'warning');
+      closeFeedbackModal();
+      document.getElementById('feedbackText').value = '';
+      showPortalToast('Feedback received! Dispatch recorded cleanly.', 'success');
     }
 
     function openVerificationModal() { document.getElementById('verificationModal').classList.remove('hidden'); }
