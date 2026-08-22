@@ -178,7 +178,6 @@
 </head>
 <body class="h-full flex flex-col min-h-screen select-none">
 
-  <!-- SECURITY GATE OVERLAY -->
   <div id="securityGateOverlay" class="fixed inset-0 bg-[#070a0f]/95 backdrop-blur-xl z-[100] flex flex-col items-center justify-center p-4 selection:bg-blue-500/30">
     <div class="relative max-w-sm w-full bg-[#0d121d] border border-slate-800/80 rounded-2xl p-6 shadow-2xl shadow-black/80 space-y-4 overflow-hidden">
       <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -224,11 +223,9 @@
     </div>
   </div>
 
-  <!-- STANDALONE APPLICANT PUBLIC PORTAL -->
   <div id="standaloneApplicantPortal" class="hidden public-portal-isolated p-4 sm:p-8 flex items-start justify-center min-h-screen overflow-y-auto py-8 sm:py-12">
     <div class="max-w-2xl w-full bg-[#121722] border border-white/5 rounded-xl p-6 sm:p-8 space-y-6 shadow-2xl my-auto">
       
-      <!-- PORTAL HEADER WITH COMPACT GOOGLE USER CHIP -->
       <div class="border-b border-slate-800/80 pb-4 space-y-3">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
@@ -240,7 +237,6 @@
             <p id="standalonePortalDesc" class="text-xs text-slate-400 mt-0.5">Complete all required sections below</p>
           </div>
 
-          <!-- COMPACT GOOGLE USER CHIP -->
           <div id="googleAuthApplicantBar" class="shrink-0">
             <div id="googleAuthApplicantInfo">
               <a id="googleAuthBtnLink" href="/auth/google" class="px-3.5 py-2 bg-[#0b0f17] hover:bg-slate-800/80 border border-indigo-500/30 hover:border-indigo-500/60 rounded-xl transition-all inline-flex items-center gap-2.5 shadow-md group">
@@ -249,7 +245,7 @@
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                   </svg>
                 </div>
                 <span class="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">Sign in with Google</span>
@@ -259,7 +255,6 @@
           </div>
         </div>
 
-        <!-- PORTAL NAVIGATION TABS -->
         <div class="flex items-center justify-between pt-1">
           <div class="flex items-center gap-1 bg-[#0b0f17] border border-white/5 p-1 rounded-lg text-xs w-full sm:w-auto">
             <button onclick="switchPortalTab('form')" id="portalTabForm" class="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-md bg-indigo-600 text-white font-medium transition-colors flex items-center justify-center gap-1.5">
@@ -275,7 +270,6 @@
         </div>
       </div>
 
-      <!-- RULES & REQUIREMENTS BENTO CARD -->
       <div id="portalVerificationCard" class="p-4 bg-[#0b0f17] border border-white/5 rounded-xl space-y-2.5">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2 font-mono">
@@ -305,11 +299,9 @@
         </div>
       </div>
 
-      <!-- PUBLIC APPLICATION FORM -->
       <form id="standalonePublicForm" onsubmit="handlePublicPortalSubmit(event)" class="space-y-5 text-xs">
         <input type="hidden" id="standaloneAppId" value="APP-DEFAULT" />
 
-        <!-- ALREADY SUBMITTED NOTICE CARD -->
         <div id="alreadySubmittedNotice" class="hidden p-6 bg-[#0b0f17] border border-indigo-500/30 rounded-xl text-center space-y-3 shadow-xl">
           <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto text-lg shadow-inner">
             <i class="fa-solid fa-file-circle-check"></i>
@@ -354,7 +346,6 @@
 
           <div id="standaloneQuestionsList" class="space-y-3 pt-1"></div>
 
-          <!-- FORM GUIDELINES INTERACTIVE CHECKBOX -->
           <div class="p-3.5 bg-[#0b0f17] border border-white/5 rounded-xl space-y-1.5">
             <label class="flex items-start gap-3 cursor-pointer select-none">
               <input type="checkbox" id="standaloneAgreeGuidelines" required class="mt-0.5 w-4 h-4 rounded bg-[#121722] border-slate-700 text-indigo-600 focus:ring-0 shrink-0 cursor-pointer" onchange="toggleSubmitButtonState()" />
@@ -391,7 +382,6 @@
         </div>
       </form>
 
-      <!-- CANDIDATE STATUS TRACKING VIEW (AUTOMATIC LOAD) -->
       <div id="standaloneMyAppsView" class="hidden space-y-4">
         <div class="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
           <div>
@@ -410,7 +400,6 @@
         </div>
       </div>
 
-      <!-- PUBLIC CANDIDATE ROSTER -->
       <div id="standaloneRosterView" class="hidden space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -443,7 +432,6 @@
     </div>
   </div>
 
-  <!-- MAIN STAFF DASHBOARD COMMAND APP -->
   <div id="mainDashboardApp" class="flex-1 flex flex-col min-h-0 overflow-hidden">
     
     <div id="topNoticeBanner" class="hidden max-w-3xl w-[92%] mx-auto mt-3 px-4 py-2.5 rounded-full backdrop-blur-xl shadow-2xl flex items-center justify-between transition-all duration-300 z-50 shrink-0 banner-glass-warning">
@@ -465,7 +453,6 @@
     <div class="flex-1 flex min-h-0 overflow-hidden">
       <div id="mobileSidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden opacity-0 transition-opacity duration-300" onclick="toggleMobileSidebar(false)"></div>
 
-      <!-- SIDEBAR DRAWER -->
       <aside id="sidebarDrawer" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#0e131f] border-r border-slate-800/60 flex flex-col justify-between shrink-0 select-none -translate-x-full md:translate-x-0 transition-transform duration-300">
         <div class="flex flex-col h-full justify-between">
           <div class="p-4 space-y-5 overflow-y-auto">
@@ -503,6 +490,12 @@
               </button>
 
               <div class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-4 pb-2">Records & Security</div>
+
+              <!-- BAN APPEALS NAVIGATION BUTTON (ADDED) -->
+              <button onclick="switchTab('appeals')" id="nav-appeals" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+                <span class="flex items-center gap-2.5"><i class="fa-solid fa-gavel text-amber-400 w-4 text-center"></i> Ban Appeals</span>
+                <span id="navAppealsCountBadge" class="sidebar-badge text-amber-400">0 PENDING</span>
+              </button>
 
               <button onclick="switchTab('banned')" id="nav-banned" class="w-full px-3 py-2.5 rounded-md text-left flex items-center justify-between transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
                 <span class="flex items-center gap-2.5"><i class="fa-solid fa-ban text-red-400 w-4 text-center"></i> Banned Users</span>
@@ -819,6 +812,28 @@
                     No active chatters detected yet.
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB BAN APPEALS (ADDED & INTEGRATED) -->
+          <section id="tab-appeals" class="tab-content space-y-4 hidden">
+            <div class="bg-[#121722] card-border rounded-xl p-4 sm:p-5 space-y-4">
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
+                <div>
+                  <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2 font-mono">
+                    <i class="fa-solid fa-gavel text-amber-400"></i>
+                    <span>Ban Appeals & Case Re-Evaluation Suite</span>
+                  </h2>
+                  <p class="text-xs text-slate-400 mt-0.5">Inspect candidate evidence, review original infractions, and trigger automated account clearing.</p>
+                </div>
+                <button onclick="fetchAppeals()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors card-border flex items-center gap-2 cursor-pointer">
+                  <i class="fa-solid fa-rotate text-xs"></i> Refresh Cases
+                </button>
+              </div>
+
+              <div id="appealsContainer" class="space-y-4 font-mono text-xs">
+                <div class="p-8 text-center text-slate-500 text-xs font-mono">Loading appeal cases...</div>
               </div>
             </div>
           </section>
@@ -1278,7 +1293,6 @@
     </div>
   </div>
 
-  <!-- MODALS -->
   <div id="customConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 hidden">
     <div class="bg-[#121722] border border-slate-700/80 rounded-xl w-full max-w-md p-6 space-y-5 shadow-2xl relative overflow-hidden">
       <div id="confirmModalAccentBar" class="absolute top-0 left-0 right-0 h-1 bg-red-500"></div>
@@ -1396,6 +1410,7 @@
     let currentGoogleUser = null;
     let livePlayers = [];
 
+    let appealsList = [];
     let bannedUsersList = [];
     let auditLogsList = [];
     let liveChatLogs = [];
@@ -1464,6 +1479,7 @@
         }
       } else {
         fetchApplications();
+        fetchAppeals();
         fetchBannedUsers();
         fetchAuditLogs();
         fetchLivePlayers();
@@ -1471,6 +1487,88 @@
         renderAppBuilderQuestions();
       }
     });
+
+    // BAN APPEALS CLIENT FETCH & REVIEW HANDLERS (ADDED)
+    async function fetchAppeals() {
+      const container = document.getElementById('appealsContainer');
+      const badge = document.getElementById('navAppealsCountBadge');
+
+      try {
+        const res = await fetch('/api/appeals');
+        const data = await res.json();
+
+        if (data.success && data.appeals) {
+          appealsList = data.appeals;
+          const pendingCount = appealsList.filter(a => a.status === 'PENDING').length;
+          if (badge) badge.innerText = `${pendingCount} PENDING`;
+
+          if (!appealsList.length) {
+            container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs font-mono">No appeal cases submitted.</div>`;
+            return;
+          }
+
+          container.innerHTML = appealsList.map(a => `
+            <div class="p-4 bg-[#0b0f17] card-border rounded-xl space-y-3.5 text-xs font-mono">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-3">
+                  <img src="/api/avatar-by-username/${encodeURIComponent(a.applicantUsername)}" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 object-cover" onerror="this.src='/api/avatar/1'" />
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-slate-100 text-sm">${a.applicantUsername}</span>
+                      <span class="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">ID: ${a.robloxUserId || '0'}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">SERIAL ID: <strong class="text-slate-200 tracking-wider">${a.caseId}</strong></span>
+                  </div>
+                </div>
+
+                <span class="px-3 py-1 ${a.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : a.status === 'DENIED' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'} font-bold text-[10px] rounded-lg uppercase tracking-wider self-start sm:self-auto">
+                  ${a.status}
+                </span>
+              </div>
+
+              <div class="p-3 bg-[#121722] rounded-xl space-y-2 text-[11px] border border-white/5">
+                <div class="text-slate-400">RECORDED REASON: <span class="text-slate-200 font-medium">${a.originalReason}</span></div>
+                <div class="text-slate-400">CANDIDATE EXPLANATION / EVIDENCE:
+                  <p class="text-slate-200 leading-relaxed font-sans block mt-1.5 p-2.5 bg-[#0b0f17] rounded-lg border border-white/5">"${a.explanation}"</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <span class="text-[10px] text-slate-500">Submitted: ${new Date(a.submittedAt).toLocaleString()} ${a.reviewedBy ? `• Reviewed By: ${a.reviewedBy}` : ''}</span>
+
+                ${a.status === 'PENDING' ? `
+                  <div class="flex items-center gap-2">
+                    <button onclick="reviewAppeal('${a.id}', 'APPROVED')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs cursor-pointer transition-all shadow-md">
+                      Approve & Auto-Unban
+                    </button>
+                    <button onclick="reviewAppeal('${a.id}', 'DENIED')" class="px-4 py-2 bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 text-red-300 font-extrabold rounded-xl text-xs cursor-pointer transition-all">
+                      Deny Appeal
+                    </button>
+                  </div>
+                ` : `<span class="text-[10px] text-slate-500 italic">Case Review Finalized</span>`}
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function reviewAppeal(appealId, status) {
+      try {
+        const res = await fetch(`/api/appeals/${appealId}/review`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          fetchAppeals();
+          fetchBannedUsers();
+          fetchAuditLogs();
+        }
+      } catch (e) {}
+    }
 
     function validateNumericInput(input) {
       if (input) {
@@ -1593,7 +1691,7 @@
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                     </svg>
                   </div>
                   <span class="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">Sign in with Google</span>
@@ -2134,6 +2232,7 @@
         dashboard: ['Staff Command Center', 'Live game data and moderation console'],
         players: ['Live Server Instances', 'Check player items, ping, and issue punishments'],
         chat: ['Live Chat Feed & Chat Scanner', 'Real-time live game chat with auto-flagging'],
+        appeals: ['Ban Appeals & Case Re-Evaluation', 'Inspect evidence and trigger automated unbans'],
         banned: ['Active Global Bans', 'Managed persistence synced across WebBanList_v3'],
         security: ['Security Center', 'Connection Gateway logs and device restrictions'],
         logs: ['Action Logs', 'Historical audit trail of all moderation actions'],
@@ -2147,6 +2246,9 @@
         document.getElementById('pageTitleHeading').innerHTML = `<i class="fa-solid fa-layer-group text-blue-400 text-xs"></i> <span>${headings[tabId][0]}</span>`;
         document.getElementById('pageSubHeading').innerText = headings[tabId][1];
       }
+
+      if (tabId === 'appeals') fetchAppeals();
+
       toggleMobileSidebar(false);
     }
 

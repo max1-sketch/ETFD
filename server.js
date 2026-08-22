@@ -118,7 +118,7 @@ function requireOwner(req, res, next) {
 }
 
 let isMongoConnected = false;
-let ApplicationModel, SubmissionModel, BannedUserModel, UserModel, SecurityGateModel;
+let ApplicationModel, SubmissionModel, BannedUserModel, UserModel, SecurityGateModel, AppealModel;
 
 if (mongoose) {
   const ApplicationSchema = new mongoose.Schema({
@@ -162,6 +162,22 @@ if (mongoose) {
     bannedAt: { type: Date, default: Date.now }
   });
 
+  const AppealSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    caseId: String,
+    robloxUserId: Number,
+    applicantUsername: String,
+    action: String,
+    originalReason: String,
+    originalAdmin: String,
+    explanation: String,
+    status: { type: String, default: 'PENDING' },
+    reviewedBy: String,
+    reviewNote: String,
+    submittedAt: { type: Date, default: Date.now },
+    reviewedAt: Date
+  });
+
   const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: String,
@@ -179,18 +195,21 @@ if (mongoose) {
   ApplicationModel = mongoose.models.Application || mongoose.model('Application', ApplicationSchema);
   SubmissionModel = mongoose.models.Submission || mongoose.model('Submission', SubmissionSchema);
   BannedUserModel = mongoose.models.BannedUser || mongoose.model('BannedUser', BannedUserSchema);
+  AppealModel = mongoose.models.Appeal || mongoose.model('Appeal', AppealSchema);
   UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
   SecurityGateModel = mongoose.models.SecurityGate || mongoose.model('SecurityGate', SecurityGateSchema);
 }
 
 const APPLICATIONS_FILE = path.join(__dirname, 'applications.json');
 const BANS_FILE = path.join(__dirname, 'banned_users.json');
+const APPEALS_FILE = path.join(__dirname, 'appeals.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
 const SECURITY_FILE = path.join(__dirname, 'security_gate.json');
 
 let applicationsMap = new Map();
 let applicationSubmissions = [];
 let bannedUsersMap = new Map();
+let appealsList = [];
 let usersMap = new Map();
 let blockedSignatures = new Set();
 let securityLogs = [];
@@ -241,6 +260,14 @@ function saveBansToFile() {
   }
 }
 
+function saveAppealsToFile() {
+  try {
+    fs.writeFileSync(APPEALS_FILE, JSON.stringify(appealsList, null, 2));
+  } catch (err) {
+    console.error('Error saving appeals.json:', err.message);
+  }
+}
+
 if (fs.existsSync(APPLICATIONS_FILE)) {
   try {
     const rawApps = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
@@ -255,6 +282,13 @@ if (fs.existsSync(BANS_FILE)) {
     const rawBans = fs.readFileSync(BANS_FILE, 'utf8');
     JSON.parse(rawBans).forEach(b => bannedUsersMap.set(Number(b.userId), b));
   } catch (err) { console.error('Error reading banned_users.json:', err.message); }
+}
+
+if (fs.existsSync(APPEALS_FILE)) {
+  try {
+    const rawAppeals = fs.readFileSync(APPEALS_FILE, 'utf8');
+    appealsList = JSON.parse(rawAppeals);
+  } catch (err) { console.error('Error reading appeals.json:', err.message); }
 }
 
 if (fs.existsSync(SECURITY_FILE)) {
@@ -297,13 +331,18 @@ if (mongoose && hasValidMongoUri) {
           dbBans.forEach(b => bannedUsersMap.set(Number(b.userId), b.toObject()));
         }
 
+        const dbAppeals = await AppealModel.find({}).sort({ submittedAt: -1 });
+        if (dbAppeals.length > 0) {
+          appealsList = dbAppeals.map(a => a.toObject());
+        }
+
         const dbSec = await SecurityGateModel.findOne({ configId: 'default' });
         if (dbSec) {
           if (Array.isArray(dbSec.blockedSignatures)) blockedSignatures = new Set(dbSec.blockedSignatures);
           if (Array.isArray(dbSec.securityLogs)) securityLogs = dbSec.securityLogs;
         }
 
-        console.log(`✅ Loaded ${applicationsMap.size} Apps & ${applicationSubmissions.length} Submissions from MongoDB Atlas.`);
+        console.log(`✅ Loaded ${applicationsMap.size} Apps, ${applicationSubmissions.length} Submissions, & ${appealsList.length} Appeals from MongoDB.`);
       } catch (err) {
         console.error('Error hydrating data from MongoDB Atlas:', err.message);
       }
@@ -550,6 +589,127 @@ app.get('/api/member/me', (req, res) => {
     member,
     google,
     discord
+  });
+});
+
+app.post('/api/member/appeals', async (req, res) => {
+  const { caseId, action, reason, explanation, robloxUserId, applicantUsername } = req.body;
+
+  if (!explanation || !explanation.trim()) {
+    return res.status(400).json({ success: false, error: 'Detailed explanation/evidence is required to submit an appeal.' });
+  }
+
+  const member = req.session ? req.session.memberUser : null;
+  const username = applicantUsername || (member ? member.exactName : 'Verified Member');
+  const rbxId = robloxUserId || (member ? member.userId : 0);
+
+  const appeal = {
+    id: 'APP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    caseId: caseId || '#CASE-UNKNOWN',
+    robloxUserId: rbxId,
+    applicantUsername: username,
+    action: action || 'WARN',
+    originalReason: reason || 'Infraction recorded on system',
+    originalAdmin: 'System Mod',
+    explanation: explanation.trim(),
+    status: 'PENDING',
+    submittedAt: new Date()
+  };
+
+  appealsList.unshift(appeal);
+  saveAppealsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await AppealModel.findOneAndUpdate({ id: appeal.id }, appeal, { upsert: true });
+    } catch (e) {}
+  }
+
+  actionLogs.unshift({
+    id: Date.now(),
+    action: 'SUBMIT_APPEAL',
+    userId: rbxId,
+    admin: username,
+    reason: `Submitted formal appeal for case ${appeal.caseId}.`,
+    timestamp: new Date()
+  });
+
+  res.json({
+    success: true,
+    message: `Appeal submitted for ${appeal.caseId}! Case review pending.`,
+    appeal
+  });
+});
+
+app.get('/api/member/my-appeals', (req, res) => {
+  const member = req.session ? req.session.memberUser : null;
+  if (!member) {
+    return res.json({ success: true, appeals: [] });
+  }
+
+  const userAppeals = appealsList.filter(a => Number(a.robloxUserId) === Number(member.userId) || a.applicantUsername.toLowerCase() === member.exactName.toLowerCase());
+  res.json({ success: true, appeals: userAppeals });
+});
+
+app.get('/api/appeals', requireAuth, (req, res) => {
+  res.json({ success: true, appeals: appealsList });
+});
+
+app.post('/api/appeals/:id/review', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status, reviewNote } = req.body;
+
+  const appeal = appealsList.find(a => a.id === id);
+  if (!appeal) {
+    return res.status(404).json({ success: false, error: 'Appeal case file not found.' });
+  }
+
+  const adminName = req.session.adminName || 'roblox';
+  appeal.status = status || 'PENDING';
+  appeal.reviewedBy = adminName;
+  appeal.reviewNote = reviewNote || '';
+  appeal.reviewedAt = new Date();
+
+  saveAppealsToFile();
+
+  if (isMongoConnected) {
+    try {
+      await AppealModel.updateOne({ id }, { status: appeal.status, reviewedBy: adminName, reviewNote: appeal.reviewNote, reviewedAt: appeal.reviewedAt });
+    } catch (e) {}
+  }
+
+  if (status === 'APPROVED') {
+    if (appeal.robloxUserId) {
+      bannedUsersMap.delete(Number(appeal.robloxUserId));
+      saveBansToFile();
+      if (isMongoConnected) {
+        try { await BannedUserModel.deleteOne({ userId: Number(appeal.robloxUserId) }); } catch (e) {}
+      }
+    }
+
+    actionLogs.unshift({
+      id: Date.now(),
+      action: 'APPROVE_APPEAL_UNBAN',
+      userId: appeal.robloxUserId || 0,
+      admin: adminName,
+      reason: `Approved appeal for case ${appeal.caseId} (${appeal.applicantUsername}). Account restrictions cleared.`,
+      timestamp: new Date()
+    });
+  } else if (status === 'DENIED') {
+    actionLogs.unshift({
+      id: Date.now(),
+      action: 'DENY_APPEAL',
+      userId: appeal.robloxUserId || 0,
+      admin: adminName,
+      reason: `Denied appeal for case ${appeal.caseId} (${appeal.applicantUsername}). Restrictions upheld.`,
+      timestamp: new Date()
+    });
+  }
+
+  res.json({
+    success: true,
+    message: `Appeal ${appeal.caseId} ${status === 'APPROVED' ? 'Approved & Account Cleared' : 'Denied'}.`,
+    appeal
   });
 });
 
@@ -1451,7 +1611,7 @@ app.get('/index.html', (req, res) => {
 });
 
 // Protected Staff Routes
-app.get(['/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security'], requireAuth, (req, res) => {
+app.get(['/dashboard', '/chat', '/banned', '/logs', '/system', '/lookup', '/management', '/applications', '/security', '/appeals'], requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
 });
 
