@@ -56,7 +56,7 @@
 
     /* Tactile Beveled Glass Panels */
     .glass-card {
-      background: rgba(11, 14, 20, 0.76) !important;
+      background: rgba(11, 14, 20, 0.82) !important;
       backdrop-filter: blur(28px) !important;
       -webkit-backdrop-filter: blur(28px) !important;
       border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -64,7 +64,7 @@
       border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
       border-right: 1px solid rgba(0, 0, 0, 0.5) !important;
       border-bottom: 1px solid rgba(0, 0, 0, 0.6) !important;
-      border-radius: 18px !important;
+      border-radius: 14px !important;
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9) !important;
       transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
     }
@@ -79,7 +79,7 @@
     .inner-bento-card {
       background: rgba(5, 7, 10, 0.85) !important;
       border: 1px solid rgba(255, 255, 255, 0.06) !important;
-      border-radius: 14px !important;
+      border-radius: 10px !important;
       transition: all 0.2s ease;
     }
 
@@ -132,7 +132,7 @@
       box-shadow: 0 0 28px rgba(0, 229, 153, 0.22) !important;
     }
 
-    /* Ghost Button for Initiate Review */
+    /* Ghost Button for Initiate Review / Appeal */
     .ghost-btn-review {
       background: transparent !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -220,7 +220,7 @@
     .terminal-slot {
       background: #030508 !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 0.75rem 1rem;
       font-family: 'JetBrains Mono', monospace !important;
       display: flex;
@@ -276,7 +276,7 @@
       </div>
 
       <div class="space-y-2.5 pt-1">
-        <!-- DISCORD VERIFICATION BUTTON (MINT BRAND INTEGRATION) -->
+        <!-- DISCORD VERIFICATION BUTTON -->
         <a id="discordLoginBtn" href="/auth/discord" class="group w-full glass-btn-discord text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2.5 shadow-lg cursor-pointer">
           <svg class="w-4 h-4 fill-[#00E599] opacity-90 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.074 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.229 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           <span>Verify via Discord</span>
@@ -294,7 +294,7 @@
           <span class="relative bg-[#080b11]/90 px-2 text-[8px] font-mono text-slate-500 uppercase tracking-widest">or</span>
         </div>
 
-        <!-- ROBLOX BIO VERIFICATION GLASS BUTTON -->
+        <!-- ROBLOX BIO VERIFICATION BUTTON -->
         <button onclick="openVerificationModal()" class="w-full glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer">
           <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>Roblox Bio Verification</span>
@@ -416,7 +416,6 @@
           </div>
         </div>
 
-        <!-- USER TELEMETRY BENTO CARD (DOUBLE BORDER INNER CARDS) -->
         <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
           <div class="border-b border-white/5 pb-3 flex items-center justify-between font-mono">
             <h2 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
@@ -452,7 +451,6 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: INSTANCE GATEWAY & METADATA -->
       <div class="space-y-5">
 
         <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl font-mono">
@@ -567,7 +565,6 @@
     </div>
   </main>
 
-  <!-- ROBLOX VERIFICATION MODAL -->
   <div id="verificationModal" class="modal-overlay hidden">
     <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
       
@@ -613,39 +610,60 @@
     </div>
   </div>
 
-  <!-- FILE APPEAL / INITIATE REVIEW MODAL -->
   <div id="appealModal" class="modal-overlay hidden">
-    <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
+    <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
       
+      <!-- HEADER WITH DIMMED WATERMARK ICON -->
       <div class="flex items-center justify-between border-b border-white/5 pb-3">
-        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.15em] flex items-center gap-2 font-mono">
-          <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m14 13-7.5 7.5a2.12 2.12 0 0 1-3-3L11 10"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>
-          <span>Initiate Review</span>
+        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.2em] flex items-center gap-2 font-mono">
+          <svg class="w-4 h-4 stroke-[#00E599] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>CASE RE-EVALUATION</span>
         </h3>
-        <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer" title="Close">
-          <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer" title="Close">
+          <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="space-y-4 text-xs">
-        <div id="appealRecordSummary" class="p-3 bg-[#030508] border border-white/10 rounded-xl space-y-1 font-mono text-[11px]">
-          <div class="text-slate-400">Case ID: <span id="appealCaseId" class="text-slate-200 font-bold">#CASE-9482</span></div>
-          <div class="text-slate-400">Action: <span id="appealCaseAction" class="text-amber-400 font-bold">[ WARN ]</span></div>
-          <div class="text-slate-400">Reason: <span id="appealCaseReason" class="text-slate-200">Excessive speed violation</span></div>
+      <div class="space-y-3.5 text-xs">
+        
+        <!-- CASE METADATA DOSSIER CARD -->
+        <div id="appealRecordSummary" class="p-3 bg-[#030508] border border-white/10 rounded space-y-1.5 font-mono text-[11px]">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">SERIAL ID: <span id="appealCaseId" class="text-slate-200 font-bold tracking-widest">#CASE-9102</span></span>
+            <span id="appealCaseAction" class="px-2 py-0.5 border-l-2 border-amber-400 bg-amber-500/10 text-amber-400 font-bold rounded-r uppercase text-[10px]">[ WARN ]</span>
+          </div>
+          
+          <div class="text-slate-400 flex items-center justify-between pt-0.5">
+            <span>TIMESTAMP: <span id="appealCaseOccurred" class="text-slate-300 font-semibold">08/21/2026 - 14:02 EST</span></span>
+            <span class="text-[9px] text-[#00E599] bg-[#00E599]/10 px-1.5 py-0.5 rounded border border-[#00E599]/20 flex items-center gap-1 font-bold">
+              <span>👁️</span> Log Archived
+            </span>
+          </div>
+
+          <div class="text-slate-400 pt-0.5">RECORDED REASON: <span id="appealCaseReason" class="text-slate-200 font-medium">Automated chat frequency flag</span></div>
         </div>
 
+        <!-- EXPLANATION INPUT WITH LIVE CHARACTER COUNTER -->
         <div class="space-y-1.5">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Review Context & Justification</label>
-          <textarea id="appealTextInput" rows="4" placeholder="Provide clear context explaining why this action should be reviewed..." class="w-full p-3 bg-[#030508] border border-white/10 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none"></textarea>
+          <div class="flex items-center justify-between font-mono text-[10px]">
+            <label class="font-semibold text-slate-300 uppercase tracking-wider block">EXPLANATION / EVIDENCE *</label>
+            <span class="text-slate-500"><span id="appealCharCount" class="text-[#00E599] font-bold">0</span> / 500</span>
+          </div>
+          <textarea id="appealTextInput" maxlength="500" rows="4" placeholder="Describe why this action should be reconsidered..." class="w-full p-3 bg-[#030508] border border-white/10 rounded text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none font-sans" oninput="updateAppealCharCount()"></textarea>
         </div>
+
+        <!-- FORMAL ANTI-SPAM LEGAL WARNING FOOTER -->
+        <p class="text-[9.5px] font-mono text-slate-500 leading-relaxed pt-1">
+          ⚠️ <strong>Note:</strong> Intentional abuse of the appeal system or providing false evidence will result in a permanent account lockout.
+        </p>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
-        <button onclick="closeAppealModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded-xl transition-all cursor-pointer">
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5 font-mono">
+        <button onclick="closeAppealModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded transition-all cursor-pointer">
           Cancel
         </button>
-        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded-xl shadow-lg shadow-[#00E599]/20 transition-all cursor-pointer font-mono">
-          Initiate Review
+        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded shadow-md transition-all cursor-pointer uppercase tracking-wider">
+          Submit Appeal
         </button>
       </div>
     </div>
@@ -660,8 +678,8 @@
 
     // Sample moderation records for verified state
     let sampleUserRecords = [
-      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false },
-      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
+      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false, occurred: '08/20/2026 - 11:45 EST' },
+      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true, occurred: '08/21/2026 - 14:02 EST' }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -846,8 +864,8 @@
             <td class="py-3 ${r.status === 'Active' ? 'text-amber-400 font-bold' : r.status === 'Appealed' ? 'text-cyan-400 font-bold' : 'text-slate-500'}">${r.status}</td>
             <td class="py-3 text-right">
               ${r.canAppeal && r.status === 'Active' ? `
-                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 ghost-btn-review text-[10px] font-bold rounded-md cursor-pointer">
-                  Initiate Review
+                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}', '${r.occurred || '08/21/2026 - 14:02 EST'}')" class="px-2.5 py-1 ghost-btn-review text-[10px] font-bold rounded cursor-pointer">
+                  Submit Appeal
                 </button>
               ` : `
                 <span class="text-slate-600 text-[10px]">N/A</span>
@@ -858,16 +876,31 @@
       }
     }
 
-    function openAppealModal(caseId, action, reason) {
+    function updateAppealCharCount() {
+      const input = document.getElementById('appealTextInput');
+      const counter = document.getElementById('appealCharCount');
+      if (input && counter) {
+        counter.innerText = input.value.length;
+      }
+    }
+
+    function openAppealModal(caseId, action, reason, occurredTime) {
       activeAppealCase = caseId;
       const modal = document.getElementById('appealModal');
       const caseEl = document.getElementById('appealCaseId');
       const actionEl = document.getElementById('appealCaseAction');
       const reasonEl = document.getElementById('appealCaseReason');
+      const occurredEl = document.getElementById('appealCaseOccurred');
+      const input = document.getElementById('appealTextInput');
 
       if (caseEl) caseEl.innerText = caseId;
       if (actionEl) actionEl.innerText = `[ ${action} ]`;
       if (reasonEl) reasonEl.innerText = reason;
+      if (occurredEl) occurredEl.innerText = occurredTime || '08/21/2026 - 14:02 EST';
+      if (input) {
+        input.value = '';
+        updateAppealCharCount();
+      }
 
       if (modal) modal.classList.remove('hidden');
     }
@@ -882,7 +915,7 @@
       const text = input ? input.value.trim() : '';
 
       if (!text) {
-        showPortalToast('Please enter an explanation for your review request.', 'warning');
+        showPortalToast('Please provide an explanation / evidence for your appeal.', 'warning');
         return;
       }
 
@@ -894,7 +927,7 @@
 
       unlockModHistory(sampleUserRecords);
       closeAppealModal();
-      showPortalToast(`Review request for ${activeAppealCase} registered cleanly! Staff will audit shortly.`, 'success');
+      showPortalToast(`Appeal case for ${activeAppealCase} submitted successfully! Case review pending.`, 'success');
       if (input) input.value = '';
     }
 
