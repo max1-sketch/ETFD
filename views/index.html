@@ -1,1015 +1,612 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" data-theme="slate">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami - Member Portal & Security Hub</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape Tsunami — Community Hub</title>
 
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    html, body {
-      height: 100%;
-      background-color: #05070a !important;
-      background-image: 
-        radial-gradient(circle at 50% 30%, rgba(10, 15, 26, 0.75) 0%, rgba(5, 7, 10, 0.98) 100%),
-        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px) !important;
-      background-size: 100% 100%, 40px 40px, 40px 40px !important;
-      color: #f8fafc;
-      overflow-x: hidden;
-      user-select: none;
-    }
+<style>
+  :root{
+    --void:#060a12;
+    --void-2:#040609;
+    --panel:rgba(16,21,32,.62);
+    --panel-solid:#0e131e;
+    --hair:rgba(255,255,255,.07);
+    --hair-strong:rgba(255,255,255,.14);
+    --ink:#eef2f8;
+    --ink-dim:#8590a6;
+    --ink-faint:#4d566b;
+    --signal:#2dd6bd;
+    --signal-dim:rgba(45,214,189,.14);
+    --amber:#f2a93b;
+    --amber-dim:rgba(242,169,59,.14);
+    --crimson:#ec5850;
+    --crimson-dim:rgba(236,88,80,.14);
+    --accent:#5b8def;
+    --accent-dim:rgba(91,141,239,.14);
+    --radius:14px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Plus Jakarta Sans',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  html[data-theme="purple"]{
+    --signal:#9b8cf2; --signal-dim:rgba(155,140,242,.16); --accent:#9b8cf2; --accent-dim:rgba(155,140,242,.14);
+    --void:#0a0714; --void-2:#070512; --panel:rgba(24,17,38,.62); --panel-solid:#150f22;
+  }
+  html[data-theme="stealth"]{
+    --signal:#c9cdd6; --signal-dim:rgba(201,205,214,.12); --accent:#9aa1ae; --accent-dim:rgba(154,161,174,.12);
+    --void:#040405; --void-2:#020202; --panel:rgba(14,14,15,.62); --panel-solid:#0a0a0b;
+    --amber:#c9a25a; --crimson:#c96b66;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, color-mix(in srgb, var(--signal) 7%, transparent), transparent),
+      var(--void);
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:var(--font-mono);}
+  .display{font-family:var(--font-display);}
+  ::selection{background:var(--signal);color:var(--void);}
+  a{color:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
 
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace !important;
-    }
+  .glass{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    position:relative;
+  }
+  .glass::before{
+    content:"";
+    position:absolute;inset:0;
+    border-radius:inherit;
+    background:linear-gradient(160deg, rgba(255,255,255,.05), transparent 40%);
+    pointer-events:none;
+  }
 
-    .glass-card {
-      background: rgba(11, 14, 20, 0.85) !important;
-      backdrop-filter: blur(28px) !important;
-      -webkit-backdrop-filter: blur(28px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.06) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
-      border-right: 1px solid rgba(0, 0, 0, 0.5) !important;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.6) !important;
-      border-radius: 14px !important;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease !important;
-    }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
 
-    .glass-card:hover {
-      border-color: rgba(0, 229, 153, 0.35) !important;
-      border-top-color: rgba(0, 229, 153, 0.5) !important;
-    }
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);font-size:10px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;
+    padding:5px 10px;border-radius:6px;
+    border:1px solid var(--hair-strong);
+  }
+  .badge-on{background:var(--signal-dim);border-color:color-mix(in srgb, var(--signal) 40%, transparent);color:var(--signal);}
+  .badge-off{background:rgba(255,255,255,.03);color:var(--ink-faint);}
+  .badge-warn{background:var(--amber-dim);border-color:color-mix(in srgb, var(--amber) 40%, transparent);color:var(--amber);}
 
-    .inner-bento-card {
-      background: rgba(5, 7, 10, 0.88) !important;
-      border: 1px solid rgba(255, 255, 255, 0.06) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 10px !important;
-      transition: all 0.2s ease;
-    }
+  .btn{
+    font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.04em;
+    padding:10px 16px;border-radius:9px;cursor:pointer;border:1px solid var(--hair-strong);
+    background:rgba(255,255,255,.03);color:var(--ink);
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .btn:hover{background:rgba(255,255,255,.06);border-color:var(--hair-strong);}
+  .btn:active{transform:translateY(1px);}
+  .btn-signal{background:var(--signal);color:var(--void-2);border-color:var(--signal);}
+  .btn-signal:hover{filter:brightness(1.08);background:var(--signal);}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;}
 
-    .inner-bento-card:hover {
-      border-color: rgba(0, 229, 153, 0.3) !important;
-    }
+  .stamp{
+    position:absolute; top:16px; right:-34px;
+    transform:rotate(8deg);
+    font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:.12em;
+    color:var(--crimson);
+    border:1.5px dashed color-mix(in srgb, var(--crimson) 55%, transparent);
+    padding:5px 42px;
+    text-transform:uppercase;
+    opacity:.55;
+    mix-blend-mode:screen;
+    pointer-events:none;
+    white-space:nowrap;
+  }
 
-    .bg-stripes-pattern {
-      background-image: repeating-linear-gradient(
-        -45deg,
-        rgba(255, 255, 255, 0.015),
-        rgba(255, 255, 255, 0.015) 12px,
-        transparent 12px,
-        transparent 24px
-      ) !important;
-    }
+  .redact{position:relative; overflow:hidden;}
+  .redact-bar{
+    display:inline-block; height:.85em; width:100%; border-radius:2px;
+    background:repeating-linear-gradient(45deg, #0a0d13, #0a0d13 3px, #14181f 3px, #14181f 6px);
+    vertical-align:middle;
+    position:relative;
+    overflow:hidden;
+  }
+  .redact-bar::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg, transparent, rgba(236,88,80,.35), transparent);
+    animation:scanjitter 2.6s ease-in-out infinite;
+  }
+  @keyframes scanjitter{0%{transform:translateX(-100%);}50%{transform:translateX(100%);}100%{transform:translateX(100%);}}
 
-    .glass-btn-mint {
-      background: rgba(0, 229, 153, 0.08) !important;
-      border: 1px solid rgba(0, 229, 153, 0.25) !important;
-      border-top: 1px solid rgba(0, 229, 153, 0.5) !important;
-      padding: 0.55rem 1.25rem !important;
-      color: #00E599 !important;
-      transition: all 0.2s ease !important;
-    }
+  .lock-veil{
+    position:absolute; inset:0; z-index:5;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    background:linear-gradient(180deg, rgba(6,10,18,.55), rgba(6,10,18,.86));
+    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+    border-radius:inherit; padding:24px; gap:10px;
+  }
 
-    .glass-btn-mint:hover {
-      background: rgba(0, 229, 153, 0.18) !important;
-      border-color: rgba(0, 229, 153, 0.6) !important;
-      color: #ffffff !important;
-      box-shadow: 0 0 15px rgba(0, 229, 153, 0.2) !important;
-    }
+  .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 60%, transparent);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 55%, transparent);}70%{box-shadow:0 0 0 8px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
 
-    .glass-btn-discord {
-      background: rgba(88, 101, 242, 0.12) !important;
-      border: 1px solid rgba(88, 101, 242, 0.3) !important;
-      border-top: 1px solid rgba(88, 101, 242, 0.5) !important;
-      padding: 0.6rem 1.25rem !important;
-      color: #ffffff !important;
-      transition: all 0.2s ease !important;
-    }
+  .toast{
+    font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.03em;
+    display:flex; align-items:center; gap:10px;
+    padding:12px 14px; border-radius:9px; border:1px solid var(--hair-strong);
+    background:var(--panel-solid); color:var(--ink);
+    box-shadow:0 12px 32px rgba(0,0,0,.45);
+    animation:slidein .25s ease-out;
+    min-width:260px;
+  }
+  @keyframes slidein{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
 
-    .glass-btn-discord:hover {
-      background: rgba(88, 101, 242, 0.25) !important;
-      border-color: rgba(88, 101, 242, 0.7) !important;
-      box-shadow: 0 0 15px rgba(88, 101, 242, 0.25) !important;
-    }
+  .theme-dot{width:16px;height:16px;border-radius:50%;border:1px solid var(--hair-strong);cursor:pointer;}
 
-    .ghost-btn-review {
-      background: transparent !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      color: #cbd5e1 !important;
-      transition: all 0.2s ease !important;
-    }
+  .grid-bento{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:1024px){.grid-bento{grid-template-columns:2fr 1fr;align-items:start;}}
 
-    .ghost-btn-review:hover {
-      background: rgba(0, 229, 153, 0.12) !important;
-      border-color: rgba(0, 229, 153, 0.5) !important;
-      color: #00E599 !important;
-    }
+  .flow-fade{animation:fadeup .4s ease both;}
+  @keyframes fadeup{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 7, 10, 0.94) !important;
-      backdrop-filter: blur(32px) !important;
-      -webkit-backdrop-filter: blur(32px) !important;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    .portal-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      background: rgba(8, 11, 17, 0.88);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 0.85rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .portal-container {
-      max-width: 1140px;
-      width: 94%;
-      margin: 0 auto;
-    }
-
-    .bento-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      padding: 1.25rem 0;
-    }
-
-    @media (min-width: 1024px) {
-      .bento-grid { grid-template-columns: 8fr 4fr; }
-    }
-
-    .record-table-blur {
-      filter: blur(6px);
-      pointer-events: none;
-      opacity: 0.2;
-    }
-
-    .terminal-slot {
-      background: #030508 !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-family: 'JetBrains Mono', monospace !important;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .slot-input {
-      width: 100%;
-      padding: 0.6rem 0.85rem;
-      background: #030508 !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 8px;
-      color: #f8fafc !important;
-      font-size: 0.8rem;
-      outline: none !important;
-      transition: border-color 0.2s ease;
-    }
-
-    .slot-input:focus {
-      border-color: #00E599 !important;
-      box-shadow: 0 0 10px rgba(0, 229, 153, 0.15) !important;
-    }
-
-    .ledger-row {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-    }
-
-    .ledger-row:last-child {
-      border-bottom: none !important;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    @keyframes slowPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    .status-pulse-active {
-      animation: slowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-  
-/* ===== Member Portal / Dashboard Styling ===== */
-.member-portal-dashboard,
-.dashboard-style {
-  --bg-main: #080b11;
-  --bg-sidebar: #0e131f;
-  --bg-card: #141b2d;
-  --bg-input: #0a0e18;
-  --border-color: #232d42;
-  --border-focus: #3b82f6;
-  --text-main: #f8fafc;
-  --text-muted: #8e9bb0;
-  --accent-blue: #3b82f6;
-  --accent-red: #ef4444;
-  --accent-yellow: #f59e0b;
-  --accent-green: #10b981;
-  --accent-purple: #8b5cf6;
-}
-
-.member-portal-dashboard,
-.dashboard-style {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-.member-portal-dashboard .nav-item,
-.dashboard-style .nav-item {
-  transition: 0.2s;
-}
-
-.member-portal-dashboard .nav-item:hover,
-.dashboard-style .nav-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-}
-
-.member-portal-dashboard .nav-item.active,
-.dashboard-style .nav-item.active {
-  background: var(--accent-blue);
-  color: #fff;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-}
-
-.member-portal-dashboard .panel-box,
-.dashboard-style .panel-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
-.member-portal-dashboard .form-group input:focus,
-.member-portal-dashboard .styled-input:focus,
-.dashboard-style .form-group input:focus,
-.dashboard-style .styled-input:focus {
-  border-color: var(--border-focus);
-}
-
-.member-portal-dashboard .btn:hover,
-.dashboard-style .btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.member-portal-dashboard .pulse-dot,
-.dashboard-style .pulse-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent-green);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-green);
-}
-
-  </style>
+  .switch{position:relative;width:36px;height:20px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid var(--hair-strong);cursor:pointer;flex-shrink:0;}
+  .switch i{position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:var(--ink-faint);transition:transform .15s ease, background .15s ease;}
+  .switch.on{background:var(--signal-dim);border-color:color-mix(in srgb, var(--signal) 45%, transparent);}
+  .switch.on i{transform:translateX(16px);background:var(--signal);}
+</style>
 </head>
-<body class="h-full flex flex-col min-h-screen select-none overflow-x-hidden">
+<body>
 
-  <!-- ACCESS GATEWAY MODAL OVERLAY -->
-  <div id="memberAuthGateOverlay" class="modal-overlay">
-    <div class="relative">
-      <div class="absolute -top-10 -left-10 w-48 h-48 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-[#00E599]/15 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div class="glass-card p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden text-center" style="max-width: 440px; width: 100%;">
-        
-        <div class="w-12 h-12 rounded-xl bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] flex items-center justify-center mx-auto shadow-inner relative">
-          <svg class="w-6 h-6 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0110 0v4"></path>
-          </svg>
-          <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#00E599] animate-ping opacity-75"></span>
-        </div>
-
-        <div class="space-y-1">
-          <h2 class="text-xs font-extrabold text-slate-100 uppercase tracking-[0.25em] leading-none font-mono">ACCESS GATEWAY</h2>
-          <p class="text-[10px] text-slate-400 font-bold tracking-[0.18em] uppercase font-mono mt-1">ESCAPE TSUNAMI NETWORK HUB</p>
-        </div>
-
-        <div class="space-y-2.5 pt-1">
-          <a id="discordLoginBtn" href="/auth/discord" class="group w-full glass-btn-discord text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2.5 cursor-pointer">
-            <svg class="w-4 h-4 fill-[#00E599]" viewBox="0 0 24 24">
-              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-            <span>Verify via Discord</span>
-          </a>
-
-          <a id="googleLoginBtn" href="/auth/google" class="w-full py-2.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/10 rounded-xl text-xs font-bold text-slate-200 transition-all flex items-center justify-center gap-2.5 shadow-md">
-            <svg class="w-4 h-4" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span>Access via Google</span>
-          </a>
-
-          <div class="relative my-2 flex items-center justify-center font-mono">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-            <span class="relative bg-[#0b0e14] px-3 text-[9px] text-slate-500 uppercase tracking-widest">OR</span>
-          </div>
-
-          <button onclick="openVerificationModal()" class="w-full glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-            <span>Roblox Bio Verification</span>
-          </button>
-        </div>
-      </div>
+<div id="identityGate" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 900px 500px at 50% 20%, rgba(91,141,239,.08), transparent), var(--void); padding:20px;">
+  <div class="glass flow-fade" style="max-width:400px;width:100%;padding:32px 28px;text-align:center;">
+    <div style="width:48px;height:48px;border-radius:12px;background:var(--accent-dim);border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+      <i class="fa-solid fa-satellite-dish" style="color:var(--accent);font-size:18px;"></i>
     </div>
+    <div class="eyebrow" style="margin-bottom:8px;">Stage 1 // Identity Link</div>
+    <h1 class="display" style="font-size:19px;font-weight:600;margin:0 0 10px;">Identity link required</h1>
+    <p style="font-size:12.5px;color:var(--ink-dim);line-height:1.6;margin:0 0 22px;">
+      Connect your Discord account to open the Community Hub. Server status and news stay visible either way — your file unlocks once you're linked.
+    </p>
+    <button class="btn btn-signal" style="width:100%;padding:12px;" onclick="linkDiscord()" id="discordBtn">
+      <i class="fa-brands fa-discord"></i> <span id="discordBtnLabel">Link identity via Discord</span>
+    </button>
+    <div class="mono" style="font-size:9.5px;color:var(--ink-faint);margin-top:14px;letter-spacing:.05em;">NODE_STATUS: AWAITING_HANDSHAKE</div>
   </div>
+</div>
 
-  <!-- PORTAL HEADER -->
-  <header class="portal-header">
-    <div class="flex items-center gap-3.5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E599] to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-[#00E599]/10">
-        <svg class="w-6 h-6 stroke-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M2 12h20M2 12c2.5-3 5.5-3 8 0s5.5 3 8 0M2 12c2.5 3 5.5 3 8 0s5.5-3 8 0"/></svg>
+<div id="hub" style="display:none;max-width:1240px;margin:0 auto;padding:20px 20px 60px;">
+
+  <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:6px 4px 20px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--signal-dim);border:1px solid color-mix(in srgb, var(--signal) 40%, transparent);display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-shield-halved" style="color:var(--signal);font-size:15px;"></i>
       </div>
       <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xs font-black text-slate-100 uppercase tracking-[0.22em] leading-none font-mono">ESCAPE TSUNAMI</h1>
-          <span class="text-[8px] font-mono text-[#00E599] bg-[#00E599]/10 px-1.5 py-0.5 rounded border border-[#00E599]/30 font-bold">OPS_CENTER</span>
-        </div>
+        <div class="display" style="font-size:15px;font-weight:600;line-height:1.1;">Escape Tsunami</div>
+        <div class="eyebrow" style="margin-top:2px;">Community Hub</div>
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button onclick="openFeedbackModal()" class="px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.06] border border-white/10 rounded-xl text-xs font-mono font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-        <span class="hidden sm:inline">Feedback / Bug</span>
-      </button>
-
-      <div id="memberHeaderUserChip" class="flex items-center gap-2.5 bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-xl text-xs">
-        <img id="memberHeaderAvatar" src="/api/avatar/1" class="w-6 h-6 rounded-full bg-slate-800 border border-white/10 object-cover" />
-        <div class="text-left hidden sm:block">
-          <span id="memberHeaderName" class="font-bold text-slate-200 text-xs block leading-tight">Guest Member</span>
-          <span id="memberHeaderRank" class="text-[9px] font-mono text-slate-400 font-semibold block">UNLINKED</span>
-        </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span class="badge badge-on"><i class="fa-brands fa-discord"></i> Discord Linked</span>
+      <span class="badge badge-off" id="bioBadge"><i class="fa-solid fa-triangle-exclamation"></i> Bio Unverified</span>
+      <div style="width:1px;height:22px;background:var(--hair-strong);margin:0 4px;"></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="theme-dot" style="background:#5b8def;" onclick="setTheme('slate')" title="Slate"></div>
+        <div class="theme-dot" style="background:#9b8cf2;" onclick="setTheme('purple')" title="Purple"></div>
+        <div class="theme-dot" style="background:#c9cdd6;" onclick="setTheme('stealth')" title="Stealth"></div>
       </div>
-
-      <button id="memberHeaderLinkBtn" onclick="openVerificationModal()" class="px-3.5 py-1.5 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer font-mono">
-        <svg class="w-3.5 h-3.5 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-        <span id="memberHeaderLinkText" class="hidden sm:inline">Link Account</span>
-      </button>
     </div>
   </header>
 
-  <main class="portal-container flex-1">
-    
-    <!-- TOP ANNOUNCEMENT TICKER BANNER -->
-    <div class="my-4 p-2.5 glass-card rounded-xl flex items-center gap-3 text-xs font-mono border-l-4 border-l-[#00E599]">
-      <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse shrink-0"></span>
-      <div class="flex items-center gap-2 overflow-hidden text-slate-300 text-[11px]">
-        <span class="text-[#00E599] font-bold uppercase tracking-wider shrink-0">[ ANNOUNCEMENTS ]</span>
-        <span id="systemNoticeText" class="truncate">Group Event: Mega Tsunami Survival Tryouts this Saturday at 6:00 PM EST!</span>
+  <section id="securityGateBanner" class="glass flow-fade" style="padding:18px 20px;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;border-color:color-mix(in srgb, var(--amber) 30%, var(--hair));">
+    <div style="display:flex;align-items:flex-start;gap:12px;max-width:520px;">
+      <i class="fa-solid fa-fingerprint" style="color:var(--amber);font-size:18px;margin-top:2px;"></i>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Stage 2 // Authority Check</div>
+        <div style="font-size:12px;color:var(--ink-dim);line-height:1.55;">
+          Paste this signature into your Roblox <span class="mono" style="color:var(--ink);">About</span> section, then sync. This unlocks your Security Registry, Case Review, and key resets.
+        </div>
       </div>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div class="mono" id="gateCode" style="font-size:13px;font-weight:700;letter-spacing:.06em;background:rgba(255,255,255,.04);border:1px solid var(--hair-strong);padding:9px 12px;border-radius:8px;color:var(--amber);">TSUNAMI-0000</div>
+      <button class="btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
+      <button class="btn btn-signal" id="syncBtn" onclick="syncSignature()"><i class="fa-solid fa-rotate"></i> <span id="syncBtnLabel">Sync signature</span></button>
+    </div>
+  </section>
 
-    <div class="bento-grid">
+  <div class="grid-bento">
+    <div style="display:flex;flex-direction:column;gap:14px;">
 
-      <!-- LEFT COLUMN -->
-      <div class="space-y-5">
-        
-        <!-- PROFILE CARD -->
-        <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 relative overflow-hidden shadow-xl">
-          <div class="flex items-center gap-4 border-b border-white/5 pb-4">
-            <img id="memberCardAvatar" src="/api/avatar/1" class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/10 object-cover shadow-lg" />
-            <div>
-              <div class="flex items-center gap-2">
-                <h2 id="memberCardUsername" class="text-base font-bold text-slate-100 font-mono">Roblox User</h2>
-                <span id="memberCardRankBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] font-mono text-[10px] font-bold rounded-md uppercase">
-                  AUTHORIZED USER
-                </span>
-              </div>
-              <p id="memberCardDisplay" class="text-xs text-slate-400 font-mono mt-0.5">@UnverifiedUser</p>
-              <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-400 font-mono" id="memberCardAccountAge">
-                Account Age: -- days
-              </div>
+      <div class="glass flow-fade" style="padding:22px;overflow:hidden;">
+        <div class="stamp" id="classifiedStamp">Classified · Node #4471</div>
+        <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;">
+          <div style="position:relative;flex-shrink:0;">
+            <div id="avatarCircle" style="width:76px;height:76px;border-radius:50%;background:linear-gradient(150deg,var(--accent-dim),transparent);border:1px solid var(--hair-strong);display:flex;align-items:center;justify-content:center;">
+              <span class="display" style="font-size:24px;font-weight:700;color:var(--accent);">GD</span>
             </div>
+            <span style="position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--signal);border:3px solid var(--panel-solid);" title="In-game now" class="pulse-dot"></span>
           </div>
-
-          <!-- 3-STAGE SEGMENTED ACCESS LEVEL METER -->
-          <div class="space-y-2 font-mono">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-300 uppercase tracking-widest text-[10px]">[ ACCESS LEVEL ]</span>
-              <span class="text-[#00E599] font-bold text-[10px]" id="clearanceStageLabel">STAGE 2 // TRUSTED MEMBER</span>
+          <div style="flex:1;min-width:220px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+              <div class="display" style="font-size:18px;font-weight:600;">Golddoggo9866</div>
+              <span class="badge badge-on">Verified Node</span>
             </div>
-            <div class="grid grid-cols-3 gap-2 text-[9px]">
-              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center justify-between">
-                <div>
-                  <span class="text-slate-400 block">STAGE 1</span>
-                  <span class="text-[#00E599] font-bold block">BASIC ACCESS</span>
-                </div>
-                <span class="text-[#00E599] font-bold">✓</span>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+              <div>
+                <div class="eyebrow">Operational Since</div>
+                <div class="mono" style="font-size:12.5px;margin-top:3px;">Mar 14, 2023</div>
               </div>
-              <div class="p-2 bg-[#00E599]/15 border border-[#00E599]/40 rounded-lg flex items-center justify-between">
-                <div>
-                  <span class="text-slate-400 block">STAGE 2</span>
-                  <span class="text-[#00E599] font-bold block">TRUSTED MEMBER</span>
-                </div>
-                <span class="text-[#00E599] font-bold">✓</span>
+              <div>
+                <div class="eyebrow">Account Age</div>
+                <div class="mono" style="font-size:12.5px;margin-top:3px;">3 yrs, 5 mo</div>
               </div>
-              <div class="p-2 bg-white/[0.02] border border-white/5 rounded-lg opacity-50 flex items-center justify-between">
-                <div>
-                  <span class="text-slate-500 block">STAGE 3</span>
-                  <span class="text-slate-400 font-bold block">VETERAN</span>
-                </div>
-                <span class="text-slate-600">○</span>
+              <div>
+                <div class="eyebrow">Authority Level</div>
+                <div class="mono" style="font-size:12.5px;margin-top:3px;color:var(--signal);">Trusted Member</div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- DISCORD ROLES BENTO CARD -->
-        <div class="glass-card bg-stripes-pattern rounded-2xl p-5 space-y-3 shadow-xl font-mono relative overflow-hidden">
-          <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
-              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              <span>[ DISCORD ROLES ]</span>
-            </h3>
-            <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[9px] font-bold rounded uppercase">
-              COMING SOON
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
-            Discord Role progress coming in the next update. Automatic role syncing for roles like <strong>Trusted Member</strong>, <strong>Veteran</strong>, and <strong>VIP</strong> is undergoing final staging.
-          </p>
+        <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">
+          <span class="badge badge-on"><i class="fa-brands fa-discord"></i> Discord Linked</span>
+          <span class="badge badge-off" id="bioBadgeMini"><i class="fa-solid fa-triangle-exclamation"></i> Bio Unverified</span>
         </div>
-
-        <!-- TELEMETRY BENTO GRID -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono">
-          <div class="inner-bento-card p-3.5 space-y-1">
-            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">SESSION FREQUENCY</div>
-            <div class="text-base font-extrabold text-slate-100">14 Checks</div>
-            <div class="text-[9px] text-[#00E599] font-semibold">Active Node Connection</div>
-          </div>
-
-          <div class="inner-bento-card p-3.5 space-y-1">
-            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">DEVICE ID</div>
-            <div class="text-xs font-bold text-slate-200 tracking-wider truncate" id="telemetryDeviceSigTag">HWID: 882-XQ</div>
-            <div class="text-[9px] text-slate-500">Security Gate Verified</div>
-          </div>
-
-          <div class="inner-bento-card p-3.5 space-y-1">
-            <div class="text-[9px] text-slate-400 uppercase tracking-wider font-bold flex items-center justify-between">
-              <span>SYSTEM LATENCY</span>
-              <span class="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span>
-            </div>
-            <div class="text-base font-extrabold text-[#00E599]">14ms</div>
-            <div class="text-[9px] text-slate-400">Status: Stable</div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <div class="space-y-5">
-        
-        <!-- PLAY / REAL ROBLOX EXPERIENCE CARD (PLACE 103398581793479) -->
-        <div class="glass-card rounded-2xl p-5 space-y-4 shadow-xl font-mono">
-          <div class="border-b border-white/5 pb-2.5 flex items-center justify-between">
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
-              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span>[ PLAY ]</span>
-            </h3>
-            <span class="w-2 h-2 rounded-full bg-[#00E599] animate-pulse"></span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;">
+        <div class="glass flow-fade" style="padding:16px;">
+          <div class="eyebrow" style="margin-bottom:8px;">Session History</div>
+          <div class="display" style="font-size:24px;font-weight:600;">142</div>
+          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Hub visits logged</div>
+        </div>
+        <div class="glass flow-fade" style="padding:16px;">
+          <div class="eyebrow" style="margin-bottom:8px;">Active Duty</div>
+          <div class="display" style="font-size:24px;font-weight:600;">86h 12m</div>
+          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Total in-game time</div>
+        </div>
+        <div class="glass flow-fade" style="padding:16px;">
+          <div class="eyebrow" style="margin-bottom:8px;">Resource Balance</div>
+          <div class="display" style="font-size:24px;font-weight:600;">4,920</div>
+          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Tide Coins</div>
+        </div>
+      </div>
+
+      <div class="glass flow-fade" style="position:relative;overflow:hidden;">
+        <div style="padding:18px 20px;border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:13.5px;font-weight:700;">Security Registry</div>
+            <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Every warn, mute, or kick tied to your restriction log</div>
+          </div>
+          <span class="eyebrow">3 entries</span>
+        </div>
+
+        <div id="registryLockWrap" style="position:relative;">
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr class="mono" style="text-align:left;color:var(--ink-faint);font-size:10px;letter-spacing:.06em;text-transform:uppercase;">
+                  <th style="padding:10px 20px;font-weight:600;">Timestamp</th>
+                  <th style="padding:10px 12px;font-weight:600;">Protocol_Action</th>
+                  <th style="padding:10px 12px;font-weight:600;">Notes</th>
+                  <th style="padding:10px 12px;font-weight:600;">Status</th>
+                  <th style="padding:10px 20px;font-weight:600;text-align:right;">Case Review</th>
+                </tr>
+              </thead>
+              <tbody id="registryBody" class="redact"></tbody>
+            </table>
           </div>
 
-          <a href="https://www.roblox.com/games/103398581793479/Escape-Tsunami-For-Developers" target="_blank" class="w-full py-2.5 glass-btn-mint font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2.5 cursor-pointer">
-            <svg class="w-4 h-4 fill-[#00E599]" viewBox="0 0 24 24">
-              <path d="M18.875 0l-6.14 18.291L0 12.15 6.14 0h12.735zM5.125 24l6.14-18.291L24 11.85 17.86 24H5.125z"/>
-            </svg>
-            <span>JOIN GAME</span>
-          </a>
-
-          <!-- LIVE ROBLOX API METRICS -->
-          <div class="grid grid-cols-3 gap-2 text-center text-[10px] text-slate-400">
-            <div class="inner-bento-card p-2">
-              <span class="text-slate-500 block text-[8px]">RATING</span>
-              <span id="gameRatingVal" class="text-slate-200 font-bold">⭐ 88%</span>
-            </div>
-            <div class="inner-bento-card p-2">
-              <span class="text-slate-500 block text-[8px]">FAVORITES</span>
-              <span id="gameFavsVal" class="text-slate-200 font-bold">❤️ 12.5k</span>
-            </div>
-            <div class="inner-bento-card p-2">
-              <span class="text-slate-500 block text-[8px]">VISITS</span>
-              <span id="gameVisitsVal" class="text-slate-200 font-bold">👥 1.2M</span>
+          <div class="lock-veil" id="registryVeil">
+            <i class="fa-solid fa-lock" style="color:var(--amber);font-size:20px;"></i>
+            <div style="font-size:12.5px;font-weight:700;">Verification required</div>
+            <div style="font-size:11.5px;color:var(--ink-dim);max-width:320px;line-height:1.55;">
+              Accessing your private Security Registry requires Roblox Bio validation. Complete Stage 2 above to declassify this file.
             </div>
           </div>
         </div>
-
-        <!-- DYNAMIC CHANGELOG BENTO CARD -->
-        <div class="glass-card rounded-2xl p-4 space-y-2.5 shadow-xl font-mono text-xs">
-          <div class="border-b border-white/5 pb-2 flex items-center justify-between">
-            <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">[ CHANGELOG ]</span>
-            <span id="changelogVersionBadge" class="text-[9px] text-[#00E599] font-bold">v1.0.4 Patch</span>
-          </div>
-          <div id="changelogListContainer" class="space-y-1.5 text-[10px] text-slate-300">
-            <div class="flex items-start gap-1.5">
-              <span class="text-[#00E599] font-bold">+</span>
-              <span>New Tsunami Type: "Acid Wave"</span>
-            </div>
-            <div class="flex items-start gap-1.5">
-              <span class="text-[#00E599] font-bold">+</span>
-              <span>Buffed Speed Coil item velocity</span>
-            </div>
-            <div class="flex items-start gap-1.5">
-              <span class="text-amber-400 font-bold">-</span>
-              <span>Fixed shop item duplication glitch</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- SERVER STATUS BENTO CARD -->
-        <div class="glass-card rounded-2xl p-4 space-y-2 shadow-xl font-mono text-[10px]">
-          <div class="border-b border-white/5 pb-1.5 flex items-center justify-between">
-            <span class="font-bold text-slate-200 uppercase tracking-wider text-[9px]">[ SERVER_STATUS ]</span>
-            <span class="text-[#00E599] font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span> ALL ONLINE</span>
-          </div>
-          <div class="space-y-1 text-slate-400">
-            <div class="flex items-center justify-between">
-              <span>DataStores API:</span>
-              <span class="text-slate-200 font-bold">Operational</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>MessagingService:</span>
-              <span class="text-slate-200 font-bold">Operational</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>Game Instances:</span>
-              <span class="text-[#00E599] font-bold">12 Active</span>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
 
-    <!-- MOD LOGS / SECURITY AUDIT -->
-    <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5 shadow-xl relative overflow-hidden my-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
-        <div>
-          <div class="flex items-center gap-3 font-mono">
-            <h2 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
-              <svg class="w-4 h-4 stroke-[#00E599]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              <span>[ MOD LOGS ]</span>
-            </h2>
-            <span id="accountStandingBadge" class="px-2.5 py-0.5 bg-[#00E599]/10 border border-[#00E599]/30 text-[#00E599] text-[10px] font-bold rounded-md uppercase">
-              Good Standing
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-400 font-mono mt-1">Your warning and ban history</p>
-        </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
 
-        <div class="w-full sm:w-64 space-y-1.5 font-mono">
-          <div class="flex items-center justify-between text-[10px]">
-            <span class="text-slate-400 uppercase tracking-wider">Account Risk Level</span>
-            <span id="riskLevelPctText" class="text-[#00E599] font-bold">0% (Safe)</span>
+      <div class="glass flow-fade" style="padding:18px;">
+        <div class="eyebrow" style="margin-bottom:10px;">Server Telemetry</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;color:var(--ink-dim);">Server Nodes</span>
+          <span class="mono" style="font-size:12px;color:var(--signal);">12 / 12</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-size:12px;color:var(--ink-dim);">Live Population</span>
+          <span class="mono" style="font-size:12px;">311 players</span>
+        </div>
+        <button class="btn btn-signal" style="width:100%;"><i class="fa-brands fa-google-play" style="display:none;"></i><i class="fa-solid fa-play"></i> Initialize instance</button>
+      </div>
+
+      <div class="glass flow-fade" style="padding:18px;">
+        <div class="eyebrow" style="margin-bottom:10px;">Global Changelog</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
+            <span class="mono" style="color:var(--signal);">+</span>
+            <span style="color:var(--ink-dim);">Added new wave type — <span style="color:var(--ink);">Riptide Surge</span></span>
           </div>
-          <div class="w-full bg-[#030508] h-1.5 rounded-full overflow-hidden p-0.5 border border-white/5">
-            <div id="riskLevelBar" class="bg-[#00E599] h-full rounded-full transition-all duration-500" style="width: 5%"></div>
+          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
+            <span class="mono" style="color:var(--crimson);">-</span>
+            <span style="color:var(--ink-dim);">Fixed shop preview bug on mobile</span>
+          </div>
+          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
+            <span class="mono" style="color:var(--signal);">+</span>
+            <span style="color:var(--ink-dim);">Command Review appeals now show reviewer notes</span>
           </div>
         </div>
       </div>
 
-      <div class="relative min-h-[180px]">
-        <!-- LOCKED OVERLAY FOR UNVERIFIED USERS -->
-        <div id="modHistoryLockedOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#05070a]/85 backdrop-blur-md rounded-xl space-y-3">
-          <div class="max-w-md space-y-1 font-mono">
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest">IDENTITY VERIFICATION REQUIRED</h3>
-            <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
-              Link your Roblox account to view your official record and file appeals.
-            </p>
-          </div>
-          <button onclick="openVerificationModal()" class="px-4 py-2 glass-btn-mint text-[#00E599] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer font-mono">
-            <span>Verify Profile</span>
-          </button>
+      <div class="glass flow-fade" style="padding:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span class="eyebrow">Incident Heatmap</span>
+          <span class="mono" style="font-size:9.5px;color:var(--ink-faint);">24H</span>
         </div>
-
-        <div id="modHistoryTableWrapper" class="w-full overflow-x-auto record-table-blur">
-          <table class="w-full text-left text-xs min-w-[600px] font-mono">
-            <thead>
-              <tr class="border-b border-white/10 text-[10px] text-slate-400 uppercase tracking-wider">
-                <th class="pb-2.5 font-bold">Date</th>
-                <th class="pb-2.5 font-bold">Action</th>
-                <th class="pb-2.5 font-bold">Reason</th>
-                <th class="pb-2.5 font-bold">Status</th>
-                <th class="pb-2.5 font-bold text-right">Review</th>
-              </tr>
-            </thead>
-            <tbody id="modHistoryTableBody" class="divide-y divide-white/[0.04] text-[11px]">
-              <tr class="ledger-row hover:bg-white/[0.02]">
-                <td class="py-3 text-slate-400">08/20/26</td>
-                <td class="py-3"><span class="px-2 py-0.5 border-l-2 border-amber-400 bg-amber-500/10 text-amber-400 text-[10px] font-bold rounded-r uppercase">[ WARN ]</span></td>
-                <td class="py-3 text-slate-300">Spamming in server chat channel</td>
-                <td class="py-3 text-slate-400">Expired</td>
-                <td class="py-3 text-right"><span class="text-slate-600 text-[10px]">N/A</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div style="height:64px;background:var(--void-2);border:1px solid var(--hair);border-radius:8px;padding:4px;">
+          <canvas id="heatmapCanvas" style="width:100%;height:100%;"></canvas>
         </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- APPEAL MODAL -->
-  <div id="appealModal" class="modal-overlay hidden">
-    <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 480px; width: 100%;">
-      <div class="flex items-center justify-between border-b border-white/5 pb-3">
-        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.2em] font-mono flex items-center gap-2">
-          <svg class="w-4 h-4 stroke-[#00E599] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          <span>CASE RE-EVALUATION</span>
-        </h3>
-        <button onclick="closeAppealModal()" class="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer">✕</button>
+        <div style="font-size:10.5px;color:var(--ink-faint);margin-top:8px;">Community toxicity trend, sampled from Security Registry activity.</div>
       </div>
 
-      <div class="space-y-3.5 text-xs">
-        <div id="appealRecordSummary" class="p-3 bg-[#030508] border border-white/10 rounded space-y-1.5 font-mono text-[11px]">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">SERIAL ID: <span id="appealCaseId" class="text-slate-200 font-bold tracking-widest">#CASE-9102</span></span>
-            <span id="appealCaseAction" class="px-2 py-0.5 border-l-2 border-amber-400 bg-amber-500/10 text-amber-400 font-bold rounded-r uppercase text-[10px]">[ WARN ]</span>
-          </div>
-          <div class="text-slate-400 pt-0.5 flex items-center justify-between">
-            <span>REASON: <span id="appealCaseReason" class="text-slate-200 font-medium truncate">Automated chat frequency flag</span></span>
-            <span class="text-[9px] text-[#00E599]">👁️ Log Recorded</span>
-          </div>
-          <div class="text-[9px] text-slate-500 pt-1 border-t border-white/5">
-            OCCURRED: 08/21/2026 - 14:02 EST
-          </div>
-        </div>
-
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between font-mono text-[10px]">
-            <label class="font-semibold text-slate-300 uppercase tracking-wider block">EXPLANATION / EVIDENCE *</label>
-            <span class="text-slate-500"><span id="appealCharCount" class="text-[#00E599] font-bold">0</span> / 500</span>
-          </div>
-          <textarea id="appealTextInput" maxlength="500" rows="4" placeholder="Describe why this action should be reconsidered..." class="w-full p-3 bg-[#030508] border border-white/10 rounded text-slate-100 text-xs focus:outline-none focus:border-[#00E599] transition-all resize-none font-sans" oninput="updateAppealCharCount()"></textarea>
-        </div>
-
-        <p class="text-[9.5px] font-mono text-slate-500 leading-relaxed pt-1">
-          ⚠️ <strong>Note:</strong> Intentional abuse of the appeal system or providing false evidence will result in a permanent account lockout.
-        </p>
+      <div class="glass flow-fade" style="padding:18px;">
+        <div class="eyebrow" style="margin-bottom:10px;">Command Hierarchy</div>
+        <div style="display:flex;flex-direction:column;gap:10px;" id="staffList"></div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5 font-mono">
-        <button onclick="closeAppealModal()" class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded cursor-pointer">
-          Cancel
-        </button>
-        <button onclick="submitAppealForm()" class="px-5 py-2 bg-[#00E599] hover:bg-[#00c782] text-black text-xs font-extrabold rounded shadow-md transition-all cursor-pointer uppercase tracking-wider">
-          Submit Appeal
-        </button>
+      <div class="glass flow-fade" style="padding:18px;">
+        <div class="eyebrow" style="margin-bottom:12px;">System Settings</div>
+
+        <div style="font-size:11px;color:var(--ink-dim);margin-bottom:6px;">Theme</div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;">
+          <button class="btn" style="flex:1;" onclick="setTheme('slate')">Slate</button>
+          <button class="btn" style="flex:1;" onclick="setTheme('purple')">Purple</button>
+          <button class="btn" style="flex:1;" onclick="setTheme('stealth')">Stealth</button>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;">
+          <div style="font-size:11.5px;color:var(--ink-dim);line-height:1.4;">Alert me when a staff member reviews my case</div>
+          <div class="switch on" id="notifSwitch" onclick="toggleNotif()"><i></i></div>
+        </div>
+
+        <button class="btn" style="width:100%;" onclick="syncSignature()"><i class="fa-solid fa-rotate"></i> Sync signature</button>
+        <button class="btn" style="width:100%;margin-top:8px;color:var(--crimson);border-color:color-mix(in srgb, var(--crimson) 35%, var(--hair-strong));" onclick="attemptLockedAction('Reset security keys')"><i class="fa-solid fa-key"></i> Reset security keys</button>
       </div>
+
     </div>
   </div>
+</div>
 
-  <!-- FEEDBACK MODAL -->
-  <div id="feedbackModal" class="modal-overlay hidden">
-    <div class="glass-card rounded-lg p-6 space-y-4 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
-      <div class="flex items-center justify-between border-b border-white/5 pb-3 font-mono">
-        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
-          <span>SUBMIT FEEDBACK / BUG</span>
-        </h3>
-        <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+<div id="reviewModal" style="display:none;position:fixed;inset:0;z-index:150;align-items:center;justify-content:center;background:rgba(3,5,9,.72);backdrop-filter:blur(4px);padding:16px;">
+  <div class="glass flow-fade" style="max-width:440px;width:100%;padding:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;">Submit case review</div>
+        <div class="mono" style="font-size:10.5px;color:var(--ink-faint);margin-top:2px;" id="reviewCaseId">CASE-000</div>
       </div>
-
-      <div class="space-y-3 text-xs font-mono">
-        <div class="space-y-1">
-          <label class="text-[10px] text-slate-400 uppercase tracking-wider block">Category</label>
-          <select id="feedbackCategory" class="slot-input">
-            <option value="bug">🐛 In-Game Bug Report</option>
-            <option value="portal">🌐 Portal / Dashboard Feedback</option>
-            <option value="feature">💡 Feature Suggestion</option>
-          </select>
-        </div>
-
-        <div class="space-y-1">
-          <label class="text-[10px] text-slate-400 uppercase tracking-wider block">Description / Steps to Reproduce</label>
-          <textarea id="feedbackText" rows="4" placeholder="Type clear details here..." class="w-full p-3 bg-[#030508] border border-white/10 rounded text-slate-100 text-xs focus:outline-none focus:border-[#00E599] resize-none font-sans"></textarea>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5 font-mono">
-        <button onclick="closeFeedbackModal()" class="px-4 py-2 bg-transparent text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-semibold rounded">Cancel</button>
-        <button onclick="submitFeedbackForm()" class="px-5 py-2 bg-[#00E599] text-black text-xs font-extrabold rounded shadow-md uppercase tracking-wider">Send Dispatch</button>
-      </div>
+      <button class="btn" style="padding:8px 10px;" onclick="closeReview()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="font-size:11.5px;color:var(--ink-dim);margin-bottom:8px;">Justification / evidence</div>
+    <textarea id="reviewText" rows="5" placeholder="Explain why this action should be reconsidered..." style="width:100%;background:rgba(255,255,255,.03);border:1px solid var(--hair-strong);border-radius:9px;color:var(--ink);font-family:var(--font-body);font-size:12.5px;padding:10px 12px;resize:vertical;outline:none;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn" style="flex:1;" onclick="closeReview()">Cancel</button>
+      <button class="btn btn-signal" style="flex:1;" onclick="submitReview()">Submit review</button>
     </div>
   </div>
+</div>
 
-  <!-- VERIFICATION MODAL -->
-  <div id="verificationModal" class="modal-overlay hidden">
-    <div class="glass-card rounded-2xl p-6 space-y-5 shadow-2xl relative overflow-hidden border border-white/10" style="max-width: 440px; width: 100%;">
-      <div class="flex items-center justify-between border-b border-white/5 pb-3">
-        <h3 class="text-xs font-bold text-slate-100 uppercase tracking-[0.15em] font-mono">
-          <span>Link Roblox Account</span>
-        </h3>
-        <button onclick="closeVerificationModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors cursor-pointer">✕</button>
-      </div>
+<div id="toastWrap" style="position:fixed;bottom:18px;right:18px;z-index:300;display:flex;flex-direction:column;gap:8px;"></div>
 
-      <div class="space-y-4 text-xs">
-        <p class="text-slate-300 leading-relaxed">Add this code to your Roblox <strong>"About"</strong> section to verify your account.</p>
-        <div class="terminal-slot">
-          <span id="bioVerificationCode" class="text-sm font-bold text-[#00E599] tracking-widest">TSUNAMI-8492</span>
-          <button onclick="copyBioCode()" class="p-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded text-xs cursor-pointer">Copy</button>
-        </div>
-        <div class="space-y-1.5 pt-1">
-          <label class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block font-mono">Roblox Username</label>
-          <input type="text" id="verifyRobloxUser" placeholder="Enter exact Roblox username..." class="slot-input" />
-        </div>
-      </div>
+<script>
+  let bioVerified = false;
+  let notifOn = true;
+  const gateCode = 'TSUNAMI-' + (1000 + Math.floor(Math.random() * 8999));
 
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
-        <button onclick="closeVerificationModal()" class="px-4 py-2 bg-transparent text-slate-400 text-xs font-semibold rounded-xl cursor-pointer">Cancel</button>
-        <button onclick="submitBioVerification()" class="px-5 py-2 bg-[#00E599] text-black text-xs font-extrabold rounded-xl shadow-lg cursor-pointer">Verify Profile</button>
-      </div>
-    </div>
-  </div>
+  const registry = [
+    { id: 'CASE-1042', ts: '2026-08-11 21:04', action: 'WARN', notes: 'Excessive caps in global chat', status: 'Expired' },
+    { id: 'CASE-1039', ts: '2026-07-29 03:41', action: 'KICK', notes: 'AFK during ranked wave event', status: 'Expired' },
+    { id: 'CASE-1021', ts: '2026-06-02 18:12', action: 'MUTE', notes: 'Repeated spam after staff warning', status: 'Active' },
+  ];
 
-  <div id="portalToastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+  const staff = [
+    { name: 'Jackluke010798', role: 'Owner', online: true },
+    { name: 'UhAnnakin', role: 'Admin', online: true },
+    { name: 'Golddoggo9866', role: 'Admin', online: false },
+  ];
 
-  <script>
-    let activeVerificationCode = 'TSUNAMI-' + Math.floor(1000 + Math.random() * 9000);
-    let activeAppealCase = null;
+  document.getElementById('gateCode').innerText = gateCode;
 
-    let sampleUserRecords = [
-      { id: '#CASE-8491', date: '08/20/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Spamming in server chat channel', status: 'Expired', canAppeal: false },
-      { id: '#CASE-9102', date: '08/21/26', action: 'WARN', actionBadge: 'border-l-2 border-amber-400 bg-amber-500/10 text-amber-400', reason: 'Automated chat frequency flag', status: 'Active', canAppeal: true }
-    ];
+  function showToast(msg, type){
+    const colors = { ok: 'var(--signal)', warn: 'var(--crimson)', info: 'var(--accent)' };
+    const icons = { ok: 'fa-circle-check', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}" style="color:${colors[type] || colors.info};"></i><span>${msg}</span>`;
+    wrap.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .25s ease'; setTimeout(() => el.remove(), 260); }, 4200);
+  }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const bioEl = document.getElementById('bioVerificationCode');
-      if (bioEl) bioEl.innerText = activeVerificationCode;
+  function linkDiscord(){
+    const btn = document.getElementById('discordBtn');
+    const label = document.getElementById('discordBtnLabel');
+    btn.setAttribute('disabled', 'true');
+    label.innerText = 'Establishing handshake...';
+    setTimeout(() => {
+      document.getElementById('identityGate').style.display = 'none';
+      document.getElementById('hub').style.display = 'block';
+      renderStaff();
+      renderRegistry();
+      renderHeatmap();
+      showToast('IDENTITY_SYNC_SUCCESSFUL', 'ok');
+    }, 1200);
+  }
 
-      const savedUser = localStorage.getItem('et_verified_roblox_user');
+  function copyCode(){
+    navigator.clipboard?.writeText(gateCode).catch(() => {});
+    showToast('SIGNATURE_COPIED_TO_CLIPBOARD', 'info');
+  }
 
-      // Directly unlock member portal features from the saved verified user.
-      unlockModHistory();
+  function syncSignature(){
+    if (bioVerified){ showToast('SIGNATURE_ALREADY_VERIFIED', 'info'); return; }
+    const btn = document.getElementById('syncBtn');
+    const label = document.getElementById('syncBtnLabel');
+    btn.setAttribute('disabled', 'true');
+    label.innerText = 'Querying Roblox API...';
+    setTimeout(() => {
+      label.innerText = 'Signature found';
+      setTimeout(() => {
+        bioVerified = true;
+        unlockPortal();
+        showToast('IDENTITY_SYNC_SUCCESSFUL', 'ok');
+      }, 650);
+    }, 2000);
+  }
 
-      if (savedUser) {
-        try {
-          updateProfileUI(JSON.parse(savedUser));
-        } catch (e) {}
-      }
-
-      checkMemberSession();
-      fetchMyAppeals();
-      fetchGameStats();
-      fetchChangelog();
+  function unlockPortal(){
+    document.getElementById('securityGateBanner').style.display = 'none';
+    ['bioBadge', 'bioBadgeMini'].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = 'badge badge-on';
+      el.innerHTML = '<i class="fa-solid fa-check"></i> Bio Verified';
     });
+    document.getElementById('registryVeil').style.display = 'none';
+    document.getElementById('classifiedStamp').style.opacity = '0';
+    renderRegistry();
+  }
 
-    async function fetchGameStats() {
-      try {
-        const res = await fetch('/api/public/game-stats');
-        const data = await res.json();
-        if (data.success) {
-          const rEl = document.getElementById('gameRatingVal');
-          const fEl = document.getElementById('gameFavsVal');
-          const vEl = document.getElementById('gameVisitsVal');
-          if (rEl) rEl.innerText = `⭐ ${data.ratingPct}%`;
-          if (fEl) fEl.innerText = `❤️ ${data.favorites > 1000 ? (data.favorites/1000).toFixed(1) + 'k' : data.favorites}`;
-          if (vEl) vEl.innerText = `👥 ${data.visits > 1000000 ? (data.visits/1000000).toFixed(1) + 'M' : data.visits}`;
-        }
-      } catch (e) {}
+  function attemptLockedAction(label){
+    if (!bioVerified){
+      showToast('UNAUTHORIZED_ACTION_BLOCKED', 'warn');
+      document.getElementById('securityGateBanner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
     }
+    return true;
+  }
 
-    async function fetchChangelog() {
-      try {
-        const res = await fetch('/api/public/changelog');
-        const data = await res.json();
-        if (data.success && data.changelog) {
-          const vBadge = document.getElementById('changelogVersionBadge');
-          const cContainer = document.getElementById('changelogListContainer');
-          if (vBadge) vBadge.innerText = data.changelog.version || 'v1.0.4 Patch';
-          if (cContainer && Array.isArray(data.changelog.notes)) {
-            cContainer.innerHTML = data.changelog.notes.map(n => `
-              <div class="flex items-start gap-1.5">
-                <span class="${n.type === 'fix' ? 'text-amber-400' : 'text-[#00E599]'} font-bold">${n.type === 'fix' ? '-' : '+'}</span>
-                <span>${n.text}</span>
-              </div>
-            `).join('');
-          }
-        }
-      } catch (e) {}
-    }
-
-    async function checkMemberSession() {
-      try {
-        const res = await fetch('/api/member/me', { credentials: 'include' });
-        const data = await res.json();
-        if (data && data.authenticated) {
-          const overlay = document.getElementById('memberAuthGateOverlay');
-          if (overlay) overlay.classList.add('hidden');
-          if (data.member) updateProfileUI(data.member);
-        }
-      } catch (e) {}
-    }
-
-    async function fetchMyAppeals() {
-      try {
-        const res = await fetch('/api/member/my-appeals');
-        const data = await res.json();
-        if (data.success && data.appeals && data.appeals.length) {
-          data.appeals.forEach(app => {
-            const rec = sampleUserRecords.find(r => r.id === app.caseId);
-            if (rec) {
-              rec.status = app.status === 'APPROVED' ? 'Approved (Unbanned)' : app.status === 'DENIED' ? 'Appeal Denied' : 'Appealed (Under Review)';
-              rec.canAppeal = false;
-            }
-          });
-          unlockModHistory(sampleUserRecords);
-        }
-      } catch (e) {}
-    }
-
-    function updateProfileUI(user) {
-      if (!user) return;
-      localStorage.setItem('et_verified_roblox_user', JSON.stringify(user));
-
-      const overlay = document.getElementById('memberAuthGateOverlay');
-      if (overlay) overlay.classList.add('hidden');
-
-      const hName = document.getElementById('memberHeaderName');
-      const hRank = document.getElementById('memberHeaderRank');
-      const hAv = document.getElementById('memberHeaderAvatar');
-      const cAv = document.getElementById('memberCardAvatar');
-      const cUser = document.getElementById('memberCardUsername');
-      const cDisp = document.getElementById('memberCardDisplay');
-      const hLinkText = document.getElementById('memberHeaderLinkText');
-
-      if (hName) hName.innerText = user.exactName || user.username || 'Roblox User';
-      if (hRank) hRank.innerText = 'VERIFIED';
-      if (hAv) hAv.src = `/api/avatar/${user.userId || user.id || 1}`;
-      if (cAv) cAv.src = `/api/avatar/${user.userId || user.id || 1}`;
-      if (cUser) cUser.innerText = user.exactName || user.username || 'Roblox User';
-      if (cDisp) cDisp.innerText = `@${user.exactName || user.username}`;
-      if (hLinkText) hLinkText.innerText = 'Linked ✓';
-
-      unlockModHistory(sampleUserRecords);
-    }
-
-    function unlockModHistory(records = sampleUserRecords) {
-      const lockedOverlay = document.getElementById('modHistoryLockedOverlay');
-      const tableWrapper = document.getElementById('modHistoryTableWrapper');
-      const tbody = document.getElementById('modHistoryTableBody');
-
-      if (lockedOverlay) {
-        lockedOverlay.classList.remove('flex');
-        lockedOverlay.classList.add('hidden');
-        lockedOverlay.style.setProperty('display', 'none', 'important');
+  function renderRegistry(){
+    const body = document.getElementById('registryBody');
+    body.innerHTML = registry.map(r => {
+      const statusColor = r.status === 'Active' ? 'var(--crimson)' : 'var(--ink-faint)';
+      if (!bioVerified){
+        return `<tr style="border-top:1px solid var(--hair);">
+          <td style="padding:12px 20px;"><span class="redact-bar" style="width:90px;"></span></td>
+          <td style="padding:12px 12px;"><span class="redact-bar" style="width:50px;"></span></td>
+          <td style="padding:12px 12px;"><span class="redact-bar" style="width:140px;"></span></td>
+          <td style="padding:12px 12px;"><span class="redact-bar" style="width:60px;"></span></td>
+          <td style="padding:12px 20px;text-align:right;"><span class="redact-bar" style="width:80px;display:inline-block;"></span></td>
+        </tr>`;
       }
-      if (tableWrapper) tableWrapper.classList.remove('record-table-blur');
+      return `<tr style="border-top:1px solid var(--hair);">
+        <td class="mono" style="padding:12px 20px;color:var(--ink-dim);font-size:11px;">${r.ts}</td>
+        <td class="mono" style="padding:12px 12px;font-weight:700;font-size:11px;">${r.action}</td>
+        <td style="padding:12px 12px;font-size:11.5px;color:var(--ink-dim);">${r.notes}</td>
+        <td style="padding:12px 12px;"><span class="mono" style="font-size:10.5px;color:${statusColor};">${r.status}</span></td>
+        <td style="padding:12px 20px;text-align:right;">
+          <button class="btn" style="padding:6px 10px;font-size:10px;" onclick="openReview('${r.id}')">Initiate review</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
 
-      if (tbody) {
-        tbody.innerHTML = records.map(r => `
-          <tr class="ledger-row hover:bg-white/[0.02]">
-            <td class="py-3 text-slate-400">${r.date}</td>
-            <td class="py-3"><span class="px-2 py-0.5 ${r.actionBadge} text-[10px] font-bold rounded-r uppercase">[ ${r.action} ]</span></td>
-            <td class="py-3 text-slate-300">${r.reason}</td>
-            <td class="py-3 ${r.status.includes('Approved') ? 'text-emerald-400 font-bold' : r.status.includes('Denied') ? 'text-red-400 font-bold' : 'text-amber-400 font-bold status-pulse-active'}">${r.status}</td>
-            <td class="py-3 text-right">
-              ${r.canAppeal && r.status === 'Active' ? `
-                <button onclick="openAppealModal('${r.id}', '${r.action}', '${r.reason.replace(/'/g, "\\'")}')" class="px-2.5 py-1 ghost-btn-review text-[10px] font-bold rounded cursor-pointer">
-                  Initiate Review
-                </button>
-              ` : `<span class="text-slate-600 text-[10px]">N/A</span>`}
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
+  let activeCase = null;
+  function openReview(caseId){
+    if (!attemptLockedAction('review')) return;
+    activeCase = caseId;
+    document.getElementById('reviewCaseId').innerText = caseId;
+    document.getElementById('reviewText').value = '';
+    document.getElementById('reviewModal').style.display = 'flex';
+  }
+  function closeReview(){ document.getElementById('reviewModal').style.display = 'none'; }
+  function submitReview(){
+    const text = document.getElementById('reviewText').value.trim();
+    if (!text){ showToast('JUSTIFICATION_REQUIRED', 'warn'); return; }
+    closeReview();
+    showToast('CASE_REVIEW_SUBMITTED', 'ok');
+  }
 
-    function updateAppealCharCount() {
-      const input = document.getElementById('appealTextInput');
-      const counter = document.getElementById('appealCharCount');
-      if (input && counter) counter.innerText = input.value.length;
-    }
+  function renderStaff(){
+    document.getElementById('staffList').innerHTML = staff.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:${s.online ? 'var(--signal)' : 'var(--ink-faint)'};flex-shrink:0;"></span>
+          <span style="font-size:12px;">${s.name}</span>
+        </div>
+        <span class="mono" style="font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;">${s.role}</span>
+      </div>
+    `).join('');
+  }
 
-    function openAppealModal(caseId, action, reason) {
-      activeAppealCase = caseId;
-      document.getElementById('appealCaseId').innerText = caseId;
-      document.getElementById('appealCaseAction').innerText = `[ ${action} ]`;
-      document.getElementById('appealCaseReason').innerText = reason;
-      document.getElementById('appealModal').classList.remove('hidden');
-    }
+  function renderHeatmap(){
+    const canvas = document.getElementById('heatmapCanvas');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.offsetWidth;
+    const h = canvas.height = canvas.offsetHeight;
+    const points = [8, 14, 6, 22, 12, 30, 10, 5, 15, 26, 9, 7, 18, 4];
+    const step = w / (points.length - 1);
+    ctx.clearRect(0, 0, w, h);
 
-    function closeAppealModal() {
-      document.getElementById('appealModal').classList.add('hidden');
-    }
+    const cs = getComputedStyle(document.documentElement);
+    const signal = cs.getPropertyValue('--signal').trim() || '#2dd6bd';
 
-    async function submitAppealForm() {
-      const input = document.getElementById('appealTextInput');
-      const explanation = input ? input.value.trim() : '';
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const x = i * step;
+      const y = h - (p / 32) * h;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    ctx.fillStyle = signal + '18';
+    ctx.fill();
 
-      if (!explanation) {
-        showPortalToast('Please provide an explanation / evidence for your appeal.', 'warning');
-        return;
-      }
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const x = i * step;
+      const y = h - (p / 32) * h;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = signal;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
 
-      const savedUser = localStorage.getItem('et_verified_roblox_user');
-      let memberObj = savedUser ? JSON.parse(savedUser) : null;
+  function setTheme(name){
+    document.documentElement.setAttribute('data-theme', name);
+    setTimeout(renderHeatmap, 20);
+    showToast('THEME_SET_' + name.toUpperCase(), 'info');
+  }
 
-      try {
-        const res = await fetch('/api/member/appeals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            caseId: activeAppealCase,
-            action: 'WARN',
-            reason: document.getElementById('appealCaseReason').innerText,
-            explanation,
-            robloxUserId: memberObj ? memberObj.userId : 0,
-            applicantUsername: memberObj ? memberObj.exactName : 'Verified Member'
-          })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          const rec = sampleUserRecords.find(r => r.id === activeAppealCase);
-          if (rec) { rec.status = 'Appealed (Under Review)'; rec.canAppeal = false; }
-          unlockModHistory(sampleUserRecords);
-          closeAppealModal();
-          showPortalToast(`Appeal case for ${activeAppealCase} submitted successfully! Staff review pending.`, 'success');
-        } else {
-          showPortalToast(data.error || 'Failed to submit appeal.', 'emergency');
-        }
-      } catch (err) {
-        showPortalToast('Network error submitting appeal.', 'emergency');
-      }
-    }
-
-    function openFeedbackModal() { document.getElementById('feedbackModal').classList.remove('hidden'); }
-    function closeFeedbackModal() { document.getElementById('feedbackModal').classList.add('hidden'); }
-
-    function submitFeedbackForm() {
-      const text = document.getElementById('feedbackText').value.trim();
-      if (!text) return showPortalToast('Please enter feedback details!', 'warning');
-      closeFeedbackModal();
-      document.getElementById('feedbackText').value = '';
-      showPortalToast('Feedback received! Dispatch recorded cleanly.', 'success');
-    }
-
-    function openVerificationModal() { document.getElementById('verificationModal').classList.remove('hidden'); }
-    function closeVerificationModal() { document.getElementById('verificationModal').classList.add('hidden'); }
-    function copyBioCode() { navigator.clipboard.writeText(document.getElementById('bioVerificationCode').innerText); showPortalToast('Code copied!', 'success'); }
-
-    async function submitBioVerification() {
-      const user = document.getElementById('verifyRobloxUser').value.trim();
-      if (!user) return showPortalToast('Please enter Roblox username!', 'warning');
-
-      try {
-        const res = await fetch('/api/member/verify-bio', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user, code: activeVerificationCode })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          closeVerificationModal();
-          updateProfileUI(data.user);
-          showPortalToast(`Profile verified for ${data.user.exactName}!`, 'success');
-        } else {
-          showPortalToast(data.error || 'Verification failed.', 'emergency');
-        }
-      } catch (e) { showPortalToast('Network error.', 'emergency'); }
-    }
-
-    function showPortalToast(msg, type = 'info') {
-      const container = document.getElementById('portalToastContainer');
-      if (!container) return;
-      const toast = document.createElement('div');
-      toast.className = `p-3.5 rounded-xl border bg-[#05070a] border-white/10 text-xs text-slate-200 font-mono shadow-2xl flex items-center justify-between pointer-events-auto`;
-      toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-2 text-slate-400 hover:text-white">✕</button>`;
-      container.appendChild(toast);
-      setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4000);
-    }
-  </script>
+  function toggleNotif(){
+    notifOn = !notifOn;
+    const el = document.getElementById('notifSwitch');
+    el.classList.toggle('on', notifOn);
+    showToast(notifOn ? 'REVIEW_ALERTS_ENABLED' : 'REVIEW_ALERTS_DISABLED', 'info');
+  }
+</script>
 </body>
 </html>
