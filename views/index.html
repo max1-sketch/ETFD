@@ -1,222 +1,168 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-[#080b11] text-slate-200">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami - Member Hub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- HEADER -->
+<header class="flex items-center justify-between bg-[#0e131f] card-border p-4 rounded-xl">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-lg">ET</div>
+    <div>
+      <h1 class="text-sm font-extrabold tracking-wide uppercase">Escape Tsunami</h1>
+      <span class="text-[10px] text-blue-400 font-mono">OPS_CENTER // MEMBER PORTAL</span>
+    </div>
+  </div>
   
-  <style>
-    body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
-    .card-border { border: 1px solid rgba(255, 255, 255, 0.08); }
-    
-    /* Caution Stripe Background for Discord Roles */
-    .caution-stripe-bg {
-      background: repeating-linear-gradient(
-        -45deg,
-        rgba(0, 0, 0, 0.3),
-        rgba(0, 0, 0, 0.3) 10px,
-        rgba(255, 255, 255, 0.02) 10px,
-        rgba(255, 255, 255, 0.02) 20px
-      );
-    }
-  </style>
-</head>
-<body class="h-full bg-[#080b11] text-slate-100 p-4 sm:p-8">
-  <div class="max-w-6xl mx-auto space-y-6">
-    
-    <!-- HEADER -->
-    <header class="flex items-center justify-between bg-[#0e131f] card-border p-4 rounded-xl">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-lg">ET</div>
-        <div>
-          <h1 class="text-sm font-extrabold tracking-wide uppercase">Escape Tsunami</h1>
-          <span class="text-[10px] text-blue-400 font-mono">OPS_CENTER // MEMBER PORTAL</span>
-        </div>
-      </div>
-      
-      <button onclick="openFeedbackModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2 transition-colors">
-        <i class="fa-regular fa-bug text-xs text-amber-400"></i> Feedback / Bug Report
-      </button>
-    </header>
+  <button onclick="openFeedbackModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2 transition-colors">
+    <i class="fa-regular fa-bug text-xs text-amber-400"></i> Feedback / Bug Report
+  </button>
+</header>
 
-    <!-- BENTO GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      
-      <!-- PROFILE & COMPACT SEGMENTED ACCESS LEVEL CARD -->
-      <div class="md:col-span-8 bg-[#121722] card-border rounded-xl p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-          <span class="text-xs font-mono text-blue-400 font-bold">[ USER PROFILE ]</span>
-          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">VERIFIED</span>
-        </div>
-
-        <div id="userProfileDisplay" class="flex items-center gap-4">
-          <img id="userAvatar" src="/api/avatar/1" class="w-14 h-14 rounded-xl bg-slate-800 object-cover card-border" />
-          <div class="flex-1">
-            <div class="flex items-center gap-3">
-              <h2 id="userDisplayName" class="text-base font-bold text-white">Guest Account</h2>
-              <button onclick="openVerifyModal()" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1">
-                <i class="fa-regular fa-circle-check"></i> Verify Now
-              </button>
-            </div>
-            <div id="userAccountDetails" class="text-xs text-slate-400 font-mono mt-0.5">Unlinked Identity — Please verify your profile below.</div>
-          </div>
-        </div>
-
-        <!-- THIN SEGMENTED PROGRESS BAR -->
-        <div class="pt-2 space-y-1.5">
-          <div class="flex justify-between text-[10px] font-mono text-slate-400 uppercase">
-            <span>[ ACCESS LEVEL ]</span>
-            <span class="text-blue-400 font-bold">Stage 2 // Trusted Member</span>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5">
-            <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
-            <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
-            <div class="h-2 rounded bg-slate-800"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SHRUNK DISCORD ROLES BENTO BOX -->
-      <div class="md:col-span-4 bg-[#121722] card-border rounded-xl p-4 space-y-2 caution-stripe-bg flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-            <span class="text-[10px] font-mono text-amber-400 font-bold">[ DISCORD ROLES ]</span>
-            <span class="text-[9px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">COMING SOON</span>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
-            Role progress tracking is undergoing staging. Syncing for roles like <strong class="text-slate-200">Trusted Member</strong> and <strong class="text-slate-200">Veteran</strong> will launch next.
-          </p>
-        </div>
-      </div>
-
+<!-- BENTO GRID -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  
+  <!-- PROFILE & COMPACT SEGMENTED ACCESS LEVEL CARD -->
+  <div class="md:col-span-8 bg-[#121722] card-border rounded-xl p-5 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <span class="text-xs font-mono text-blue-400 font-bold">[ USER PROFILE ]</span>
+      <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">VERIFIED</span>
     </div>
 
-    <!-- PLAY & TELEMETRY ROW -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-      
-      <!-- PLAY CARD -->
-      <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 flex flex-col justify-between">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span class="text-xs font-mono text-emerald-400 font-bold">[ PLAY ]</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          </div>
-          
-          <!-- ROBLOX GAME LAUNCH BUTTON WITH SVG ICON -->
-          <a href="https://www.roblox.com/games/103398581793479/Escape-Tsunami-For-Developers" target="_blank" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg">
-            <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-              <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm10.328 13.914l-5.328-1.422 1.422-5.328 5.328 1.422-1.422 5.328z"/>
-            </svg>
-            <span>JOIN GAME</span>
-          </a>
+    <div id="userProfileDisplay" class="flex items-center gap-4">
+      <img id="userAvatar" src="/api/avatar/1" class="w-14 h-14 rounded-xl bg-slate-800 object-cover card-border" />
+      <div class="flex-1">
+        <div class="flex items-center gap-3">
+          <h2 id="userDisplayName" class="text-base font-bold text-white">Guest Account</h2>
+          <button onclick="openVerifyModal()" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1">
+            <i class="fa-regular fa-circle-check"></i> Verify Now
+          </button>
         </div>
-
-        <!-- SHRUNKEN TELEMETRY ICONS WITH BOLDER NUMBERS -->
-        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/60 mt-4 text-center">
-          <div>
-            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
-              <i class="fa-regular fa-user text-[9px] text-slate-400"></i> Playing
-            </span>
-            <span id="statPlaying" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">0</span>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
-              <i class="fa-regular fa-star text-[9px] text-amber-400"></i> Rating
-            </span>
-            <span id="statRating" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">88%</span>
-          </div>
-          <div>
-            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
-              <i class="fa-regular fa-eye text-[9px] text-blue-400"></i> Visits
-            </span>
-            <span id="statVisits" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">1.2M</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- CHANGELOG BENTO CARD -->
-      <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span class="text-xs font-mono text-purple-400 font-bold">[ CHANGELOG ]</span>
-          <span class="text-[10px] font-mono text-slate-500">v1.0.4 Patch</span>
-        </div>
-        <div class="space-y-2 text-xs font-mono">
-          <div class="flex items-start gap-2 text-slate-300">
-            <span class="text-emerald-400 font-bold">+</span>
-            <span>New Tsunami Type: "Acid Wave"</span>
-          </div>
-          <div class="flex items-start gap-2 text-slate-300">
-            <span class="text-emerald-400 font-bold">+</span>
-            <span>Buffed Speed Coil item velocity</span>
-          </div>
-          <div class="flex items-start gap-2 text-slate-300">
-            <span class="text-red-400 font-bold">-</span>
-            <span>Fixed shop item duplication glitch</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- MOD LOGS & FULLY CLICKABLE ROW TABLE WITH HOVER HIGHLIGHTS -->
-    <div class="bg-[#121722] card-border rounded-xl p-5 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h2 class="text-xs font-mono text-amber-400 font-bold">[ MOD LOGS & BAN APPEALS ]</h2>
-          <p class="text-[11px] text-slate-400 mt-0.5">Your record history and active appeal status — click any row to review</p>
-        </div>
-        <button onclick="openAppealModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
-          <i class="fa-regular fa-gavel"></i> Submit Appeal
-        </button>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-[#0b0f17] text-slate-500 text-[10px] uppercase card-border">
-            <tr>
-              <th class="p-3">Case ID</th>
-              <th class="p-3">Action</th>
-              <th class="p-3">Reason</th>
-              <th class="p-3 text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody id="myAppealsTableBody" class="divide-y divide-slate-800/60">
-            <!-- CLICKABLE ROW EXAMPLE -->
-            <tr onclick="openAppealModal()" class="hover:bg-slate-800/40 cursor-pointer transition-colors">
-              <td class="p-3 text-blue-400 font-bold">#CASE-1042</td>
-              <td class="p-3">WARN</td>
-              <td class="p-3 text-slate-400">Spamming in server chat channel</td>
-              <td class="p-3 text-right font-bold text-emerald-400">Expired</td>
-            </tr>
-          </tbody>
-        </table>
+        <div id="userAccountDetails" class="text-xs text-slate-400 font-mono mt-0.5">Unlinked Identity — Please verify your profile below.</div>
       </div>
     </div>
 
+    <!-- THIN SEGMENTED PROGRESS BAR -->
+    <div class="pt-2 space-y-1.5">
+      <div class="flex justify-between text-[10px] font-mono text-slate-400 uppercase">
+        <span>[ ACCESS LEVEL ]</span>
+        <span class="text-blue-400 font-bold">Stage 2 // Trusted Member</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
+        <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
+        <div class="h-2 rounded bg-slate-800"></div>
+      </div>
+    </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchGameStats();
-    });
+  <!-- SHRUNK DISCORD ROLES BENTO BOX -->
+  <div class="md:col-span-4 bg-[#121722] card-border rounded-xl p-4 space-y-2 caution-stripe-bg flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+        <span class="text-[10px] font-mono text-amber-400 font-bold">[ DISCORD ROLES ]</span>
+        <span class="text-[9px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">COMING SOON</span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+        Role progress tracking is undergoing staging. Syncing for roles like <strong class="text-slate-200">Trusted Member</strong> and <strong class="text-slate-200">Veteran</strong> will launch next.
+      </p>
+    </div>
+  </div>
 
-    async function fetchGameStats() {
-      try {
-        const res = await fetch('/api/public/game-stats');
-        const data = await res.json();
-        if (data.stats) {
-          document.getElementById('statPlaying').innerText = data.stats.playing;
-          document.getElementById('statRating').innerText = data.stats.rating + '%';
-        }
-      } catch (e) {}
-    }
+</div>
 
-    function openAppealModal() { alert('Opening case review appeal panel...'); }
-    function openFeedbackModal() { alert('Feedback form coming soon.'); }
-    function openVerifyModal() { alert('Enter your Roblox Username to verify via bio code.'); }
-  </script>
-</body>
-</html>
+<!-- PLAY & TELEMETRY ROW -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  
+  <!-- PLAY CARD -->
+  <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 flex flex-col justify-between">
+    <div class="space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <span class="text-xs font-mono text-emerald-400 font-bold">[ PLAY ]</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      </div>
+      
+      <!-- ROBLOX GAME LAUNCH BUTTON WITH SVG ICON -->
+      <a href="https://www.roblox.com/games/103398581793479/Escape-Tsunami-For-Developers" target="_blank" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg">
+        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+          <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm10.328 13.914l-5.328-1.422 1.422-5.328 5.328 1.422-1.422 5.328z"/>
+        </svg>
+        <span>JOIN GAME</span>
+      </a>
+    </div>
+
+    <!-- SHRUNKEN TELEMETRY ICONS WITH BOLDER NUMBERS -->
+    <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/60 mt-4 text-center">
+      <div>
+        <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+          <i class="fa-regular fa-user text-[9px] text-slate-400"></i> Playing
+        </span>
+        <span id="statPlaying" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">0</span>
+      </div>
+      <div>
+        <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+          <i class="fa-regular fa-star text-[9px] text-amber-400"></i> Rating
+        </span>
+        <span id="statRating" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">88%</span>
+      </div>
+      <div>
+        <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+          <i class="fa-regular fa-eye text-[9px] text-blue-400"></i> Visits
+        </span>
+        <span id="statVisits" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">1.2M</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGELOG BENTO CARD -->
+  <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+      <span class="text-xs font-mono text-purple-400 font-bold">[ CHANGELOG ]</span>
+      <span class="text-[10px] font-mono text-slate-500">v1.0.4 Patch</span>
+    </div>
+    <div class="space-y-2 text-xs font-mono">
+      <div class="flex items-start gap-2 text-slate-300">
+        <span class="text-emerald-400 font-bold">+</span>
+        <span>New Tsunami Type: "Acid Wave"</span>
+      </div>
+      <div class="flex items-start gap-2 text-slate-300">
+        <span class="text-emerald-400 font-bold">+</span>
+        <span>Buffed Speed Coil item velocity</span>
+      </div>
+      <div class="flex items-start gap-2 text-slate-300">
+        <span class="text-red-400 font-bold">-</span>
+        <span>Fixed shop item duplication glitch</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MOD LOGS & FULLY CLICKABLE ROW TABLE WITH HOVER HIGHLIGHTS -->
+<div class="bg-[#121722] card-border rounded-xl p-5 space-y-4">
+  <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div>
+      <h2 class="text-xs font-mono text-amber-400 font-bold">[ MOD LOGS & BAN APPEALS ]</h2>
+      <p class="text-[11px] text-slate-400 mt-0.5">Your record history and active appeal status — click any row to review</p>
+    </div>
+    <button onclick="openAppealModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
+      <i class="fa-regular fa-gavel"></i> Submit Appeal
+    </button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs font-mono">
+      <thead class="bg-[#0b0f17] text-slate-500 text-[10px] uppercase card-border">
+        <tr>
+          <th class="p-3">Case ID</th>
+          <th class="p-3">Action</th>
+          <th class="p-3">Reason</th>
+          <th class="p-3 text-right">Status</th>
+        </tr>
+      </thead>
+      <tbody id="myAppealsTableBody" class="divide-y divide-slate-800/60">
+        <!-- CLICKABLE ROW EXAMPLE -->
+        <tr onclick="openAppealModal()" class="hover:bg-slate-800/40 cursor-pointer transition-colors">
+          <td class="p-3 text-blue-400 font-bold">#CASE-1042</td>
+          <td class="p-3">WARN</td>
+          <td class="p-3 text-slate-400">Spamming in server chat channel</td>
+          <td class="p-3 text-right font-bold text-emerald-400">Expired</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
