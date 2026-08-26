@@ -1,612 +1,222 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="slate">
+<html lang="en" class="h-full bg-[#080b11] text-slate-200">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escape Tsunami — Community Hub</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<style>
-  :root{
-    --void:#060a12;
-    --void-2:#040609;
-    --panel:rgba(16,21,32,.62);
-    --panel-solid:#0e131e;
-    --hair:rgba(255,255,255,.07);
-    --hair-strong:rgba(255,255,255,.14);
-    --ink:#eef2f8;
-    --ink-dim:#8590a6;
-    --ink-faint:#4d566b;
-    --signal:#2dd6bd;
-    --signal-dim:rgba(45,214,189,.14);
-    --amber:#f2a93b;
-    --amber-dim:rgba(242,169,59,.14);
-    --crimson:#ec5850;
-    --crimson-dim:rgba(236,88,80,.14);
-    --accent:#5b8def;
-    --accent-dim:rgba(91,141,239,.14);
-    --radius:14px;
-    --font-display:'Space Grotesk',sans-serif;
-    --font-body:'Plus Jakarta Sans',sans-serif;
-    --font-mono:'JetBrains Mono',monospace;
-  }
-  html[data-theme="purple"]{
-    --signal:#9b8cf2; --signal-dim:rgba(155,140,242,.16); --accent:#9b8cf2; --accent-dim:rgba(155,140,242,.14);
-    --void:#0a0714; --void-2:#070512; --panel:rgba(24,17,38,.62); --panel-solid:#150f22;
-  }
-  html[data-theme="stealth"]{
-    --signal:#c9cdd6; --signal-dim:rgba(201,205,214,.12); --accent:#9aa1ae; --accent-dim:rgba(154,161,174,.12);
-    --void:#040405; --void-2:#020202; --panel:rgba(14,14,15,.62); --panel-solid:#0a0a0b;
-    --amber:#c9a25a; --crimson:#c96b66;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, color-mix(in srgb, var(--signal) 7%, transparent), transparent),
-      var(--void);
-    color:var(--ink);
-    font-family:var(--font-body);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  .mono{font-family:var(--font-mono);}
-  .display{font-family:var(--font-display);}
-  ::selection{background:var(--signal);color:var(--void);}
-  a{color:inherit;}
-  ::-webkit-scrollbar{width:8px;height:8px;}
-  ::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:8px;}
-  ::-webkit-scrollbar-track{background:transparent;}
-
-  .glass{
-    background:var(--panel);
-    border:1px solid var(--hair);
-    border-radius:var(--radius);
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-    position:relative;
-  }
-  .glass::before{
-    content:"";
-    position:absolute;inset:0;
-    border-radius:inherit;
-    background:linear-gradient(160deg, rgba(255,255,255,.05), transparent 40%);
-    pointer-events:none;
-  }
-
-  .eyebrow{
-    font-family:var(--font-mono);
-    font-size:10px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--ink-faint);
-  }
-
-  .badge{
-    display:inline-flex;align-items:center;gap:6px;
-    font-family:var(--font-mono);font-size:10px;font-weight:600;
-    letter-spacing:.06em;text-transform:uppercase;
-    padding:5px 10px;border-radius:6px;
-    border:1px solid var(--hair-strong);
-  }
-  .badge-on{background:var(--signal-dim);border-color:color-mix(in srgb, var(--signal) 40%, transparent);color:var(--signal);}
-  .badge-off{background:rgba(255,255,255,.03);color:var(--ink-faint);}
-  .badge-warn{background:var(--amber-dim);border-color:color-mix(in srgb, var(--amber) 40%, transparent);color:var(--amber);}
-
-  .btn{
-    font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.04em;
-    padding:10px 16px;border-radius:9px;cursor:pointer;border:1px solid var(--hair-strong);
-    background:rgba(255,255,255,.03);color:var(--ink);
-    display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    transition:border-color .15s ease, background .15s ease, transform .1s ease;
-  }
-  .btn:hover{background:rgba(255,255,255,.06);border-color:var(--hair-strong);}
-  .btn:active{transform:translateY(1px);}
-  .btn-signal{background:var(--signal);color:var(--void-2);border-color:var(--signal);}
-  .btn-signal:hover{filter:brightness(1.08);background:var(--signal);}
-  .btn[disabled]{opacity:.4;cursor:not-allowed;}
-
-  .stamp{
-    position:absolute; top:16px; right:-34px;
-    transform:rotate(8deg);
-    font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:.12em;
-    color:var(--crimson);
-    border:1.5px dashed color-mix(in srgb, var(--crimson) 55%, transparent);
-    padding:5px 42px;
-    text-transform:uppercase;
-    opacity:.55;
-    mix-blend-mode:screen;
-    pointer-events:none;
-    white-space:nowrap;
-  }
-
-  .redact{position:relative; overflow:hidden;}
-  .redact-bar{
-    display:inline-block; height:.85em; width:100%; border-radius:2px;
-    background:repeating-linear-gradient(45deg, #0a0d13, #0a0d13 3px, #14181f 3px, #14181f 6px);
-    vertical-align:middle;
-    position:relative;
-    overflow:hidden;
-  }
-  .redact-bar::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(90deg, transparent, rgba(236,88,80,.35), transparent);
-    animation:scanjitter 2.6s ease-in-out infinite;
-  }
-  @keyframes scanjitter{0%{transform:translateX(-100%);}50%{transform:translateX(100%);}100%{transform:translateX(100%);}}
-
-  .lock-veil{
-    position:absolute; inset:0; z-index:5;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    background:linear-gradient(180deg, rgba(6,10,18,.55), rgba(6,10,18,.86));
-    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
-    border-radius:inherit; padding:24px; gap:10px;
-  }
-
-  .pulse-dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 60%, transparent);animation:pulse 1.8s infinite;}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--signal) 55%, transparent);}70%{box-shadow:0 0 0 8px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
-
-  .toast{
-    font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.03em;
-    display:flex; align-items:center; gap:10px;
-    padding:12px 14px; border-radius:9px; border:1px solid var(--hair-strong);
-    background:var(--panel-solid); color:var(--ink);
-    box-shadow:0 12px 32px rgba(0,0,0,.45);
-    animation:slidein .25s ease-out;
-    min-width:260px;
-  }
-  @keyframes slidein{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
-
-  .theme-dot{width:16px;height:16px;border-radius:50%;border:1px solid var(--hair-strong);cursor:pointer;}
-
-  .grid-bento{display:grid;grid-template-columns:1fr;gap:14px;}
-  @media(min-width:1024px){.grid-bento{grid-template-columns:2fr 1fr;align-items:start;}}
-
-  .flow-fade{animation:fadeup .4s ease both;}
-  @keyframes fadeup{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-
-  .switch{position:relative;width:36px;height:20px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid var(--hair-strong);cursor:pointer;flex-shrink:0;}
-  .switch i{position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:var(--ink-faint);transition:transform .15s ease, background .15s ease;}
-  .switch.on{background:var(--signal-dim);border-color:color-mix(in srgb, var(--signal) 45%, transparent);}
-  .switch.on i{transform:translateX(16px);background:var(--signal);}
-</style>
-</head>
-<body>
-
-<div id="identityGate" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 900px 500px at 50% 20%, rgba(91,141,239,.08), transparent), var(--void); padding:20px;">
-  <div class="glass flow-fade" style="max-width:400px;width:100%;padding:32px 28px;text-align:center;">
-    <div style="width:48px;height:48px;border-radius:12px;background:var(--accent-dim);border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-      <i class="fa-solid fa-satellite-dish" style="color:var(--accent);font-size:18px;"></i>
-    </div>
-    <div class="eyebrow" style="margin-bottom:8px;">Stage 1 // Identity Link</div>
-    <h1 class="display" style="font-size:19px;font-weight:600;margin:0 0 10px;">Identity link required</h1>
-    <p style="font-size:12.5px;color:var(--ink-dim);line-height:1.6;margin:0 0 22px;">
-      Connect your Discord account to open the Community Hub. Server status and news stay visible either way — your file unlocks once you're linked.
-    </p>
-    <button class="btn btn-signal" style="width:100%;padding:12px;" onclick="linkDiscord()" id="discordBtn">
-      <i class="fa-brands fa-discord"></i> <span id="discordBtnLabel">Link identity via Discord</span>
-    </button>
-    <div class="mono" style="font-size:9.5px;color:var(--ink-faint);margin-top:14px;letter-spacing:.05em;">NODE_STATUS: AWAITING_HANDSHAKE</div>
-  </div>
-</div>
-
-<div id="hub" style="display:none;max-width:1240px;margin:0 auto;padding:20px 20px 60px;">
-
-  <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:6px 4px 20px;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:38px;height:38px;border-radius:10px;background:var(--signal-dim);border:1px solid color-mix(in srgb, var(--signal) 40%, transparent);display:flex;align-items:center;justify-content:center;">
-        <i class="fa-solid fa-shield-halved" style="color:var(--signal);font-size:15px;"></i>
-      </div>
-      <div>
-        <div class="display" style="font-size:15px;font-weight:600;line-height:1.1;">Escape Tsunami</div>
-        <div class="eyebrow" style="margin-top:2px;">Community Hub</div>
-      </div>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span class="badge badge-on"><i class="fa-brands fa-discord"></i> Discord Linked</span>
-      <span class="badge badge-off" id="bioBadge"><i class="fa-solid fa-triangle-exclamation"></i> Bio Unverified</span>
-      <div style="width:1px;height:22px;background:var(--hair-strong);margin:0 4px;"></div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div class="theme-dot" style="background:#5b8def;" onclick="setTheme('slate')" title="Slate"></div>
-        <div class="theme-dot" style="background:#9b8cf2;" onclick="setTheme('purple')" title="Purple"></div>
-        <div class="theme-dot" style="background:#c9cdd6;" onclick="setTheme('stealth')" title="Stealth"></div>
-      </div>
-    </div>
-  </header>
-
-  <section id="securityGateBanner" class="glass flow-fade" style="padding:18px 20px;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;border-color:color-mix(in srgb, var(--amber) 30%, var(--hair));">
-    <div style="display:flex;align-items:flex-start;gap:12px;max-width:520px;">
-      <i class="fa-solid fa-fingerprint" style="color:var(--amber);font-size:18px;margin-top:2px;"></i>
-      <div>
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Stage 2 // Authority Check</div>
-        <div style="font-size:12px;color:var(--ink-dim);line-height:1.55;">
-          Paste this signature into your Roblox <span class="mono" style="color:var(--ink);">About</span> section, then sync. This unlocks your Security Registry, Case Review, and key resets.
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <div class="mono" id="gateCode" style="font-size:13px;font-weight:700;letter-spacing:.06em;background:rgba(255,255,255,.04);border:1px solid var(--hair-strong);padding:9px 12px;border-radius:8px;color:var(--amber);">TSUNAMI-0000</div>
-      <button class="btn" onclick="copyCode()"><i class="fa-regular fa-copy"></i> Copy</button>
-      <button class="btn btn-signal" id="syncBtn" onclick="syncSignature()"><i class="fa-solid fa-rotate"></i> <span id="syncBtnLabel">Sync signature</span></button>
-    </div>
-  </section>
-
-  <div class="grid-bento">
-    <div style="display:flex;flex-direction:column;gap:14px;">
-
-      <div class="glass flow-fade" style="padding:22px;overflow:hidden;">
-        <div class="stamp" id="classifiedStamp">Classified · Node #4471</div>
-        <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;">
-          <div style="position:relative;flex-shrink:0;">
-            <div id="avatarCircle" style="width:76px;height:76px;border-radius:50%;background:linear-gradient(150deg,var(--accent-dim),transparent);border:1px solid var(--hair-strong);display:flex;align-items:center;justify-content:center;">
-              <span class="display" style="font-size:24px;font-weight:700;color:var(--accent);">GD</span>
-            </div>
-            <span style="position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:var(--signal);border:3px solid var(--panel-solid);" title="In-game now" class="pulse-dot"></span>
-          </div>
-          <div style="flex:1;min-width:220px;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-              <div class="display" style="font-size:18px;font-weight:600;">Golddoggo9866</div>
-              <span class="badge badge-on">Verified Node</span>
-            </div>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;">
-              <div>
-                <div class="eyebrow">Operational Since</div>
-                <div class="mono" style="font-size:12.5px;margin-top:3px;">Mar 14, 2023</div>
-              </div>
-              <div>
-                <div class="eyebrow">Account Age</div>
-                <div class="mono" style="font-size:12.5px;margin-top:3px;">3 yrs, 5 mo</div>
-              </div>
-              <div>
-                <div class="eyebrow">Authority Level</div>
-                <div class="mono" style="font-size:12.5px;margin-top:3px;color:var(--signal);">Trusted Member</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">
-          <span class="badge badge-on"><i class="fa-brands fa-discord"></i> Discord Linked</span>
-          <span class="badge badge-off" id="bioBadgeMini"><i class="fa-solid fa-triangle-exclamation"></i> Bio Unverified</span>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;">
-        <div class="glass flow-fade" style="padding:16px;">
-          <div class="eyebrow" style="margin-bottom:8px;">Session History</div>
-          <div class="display" style="font-size:24px;font-weight:600;">142</div>
-          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Hub visits logged</div>
-        </div>
-        <div class="glass flow-fade" style="padding:16px;">
-          <div class="eyebrow" style="margin-bottom:8px;">Active Duty</div>
-          <div class="display" style="font-size:24px;font-weight:600;">86h 12m</div>
-          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Total in-game time</div>
-        </div>
-        <div class="glass flow-fade" style="padding:16px;">
-          <div class="eyebrow" style="margin-bottom:8px;">Resource Balance</div>
-          <div class="display" style="font-size:24px;font-weight:600;">4,920</div>
-          <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Tide Coins</div>
-        </div>
-      </div>
-
-      <div class="glass flow-fade" style="position:relative;overflow:hidden;">
-        <div style="padding:18px 20px;border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-size:13.5px;font-weight:700;">Security Registry</div>
-            <div style="font-size:11px;color:var(--ink-dim);margin-top:2px;">Every warn, mute, or kick tied to your restriction log</div>
-          </div>
-          <span class="eyebrow">3 entries</span>
-        </div>
-
-        <div id="registryLockWrap" style="position:relative;">
-          <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;">
-              <thead>
-                <tr class="mono" style="text-align:left;color:var(--ink-faint);font-size:10px;letter-spacing:.06em;text-transform:uppercase;">
-                  <th style="padding:10px 20px;font-weight:600;">Timestamp</th>
-                  <th style="padding:10px 12px;font-weight:600;">Protocol_Action</th>
-                  <th style="padding:10px 12px;font-weight:600;">Notes</th>
-                  <th style="padding:10px 12px;font-weight:600;">Status</th>
-                  <th style="padding:10px 20px;font-weight:600;text-align:right;">Case Review</th>
-                </tr>
-              </thead>
-              <tbody id="registryBody" class="redact"></tbody>
-            </table>
-          </div>
-
-          <div class="lock-veil" id="registryVeil">
-            <i class="fa-solid fa-lock" style="color:var(--amber);font-size:20px;"></i>
-            <div style="font-size:12.5px;font-weight:700;">Verification required</div>
-            <div style="font-size:11.5px;color:var(--ink-dim);max-width:320px;line-height:1.55;">
-              Accessing your private Security Registry requires Roblox Bio validation. Complete Stage 2 above to declassify this file.
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:14px;">
-
-      <div class="glass flow-fade" style="padding:18px;">
-        <div class="eyebrow" style="margin-bottom:10px;">Server Telemetry</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:12px;color:var(--ink-dim);">Server Nodes</span>
-          <span class="mono" style="font-size:12px;color:var(--signal);">12 / 12</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <span style="font-size:12px;color:var(--ink-dim);">Live Population</span>
-          <span class="mono" style="font-size:12px;">311 players</span>
-        </div>
-        <button class="btn btn-signal" style="width:100%;"><i class="fa-brands fa-google-play" style="display:none;"></i><i class="fa-solid fa-play"></i> Initialize instance</button>
-      </div>
-
-      <div class="glass flow-fade" style="padding:18px;">
-        <div class="eyebrow" style="margin-bottom:10px;">Global Changelog</div>
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
-            <span class="mono" style="color:var(--signal);">+</span>
-            <span style="color:var(--ink-dim);">Added new wave type — <span style="color:var(--ink);">Riptide Surge</span></span>
-          </div>
-          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
-            <span class="mono" style="color:var(--crimson);">-</span>
-            <span style="color:var(--ink-dim);">Fixed shop preview bug on mobile</span>
-          </div>
-          <div style="display:flex;gap:8px;font-size:11.5px;line-height:1.5;">
-            <span class="mono" style="color:var(--signal);">+</span>
-            <span style="color:var(--ink-dim);">Command Review appeals now show reviewer notes</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="glass flow-fade" style="padding:18px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span class="eyebrow">Incident Heatmap</span>
-          <span class="mono" style="font-size:9.5px;color:var(--ink-faint);">24H</span>
-        </div>
-        <div style="height:64px;background:var(--void-2);border:1px solid var(--hair);border-radius:8px;padding:4px;">
-          <canvas id="heatmapCanvas" style="width:100%;height:100%;"></canvas>
-        </div>
-        <div style="font-size:10.5px;color:var(--ink-faint);margin-top:8px;">Community toxicity trend, sampled from Security Registry activity.</div>
-      </div>
-
-      <div class="glass flow-fade" style="padding:18px;">
-        <div class="eyebrow" style="margin-bottom:10px;">Command Hierarchy</div>
-        <div style="display:flex;flex-direction:column;gap:10px;" id="staffList"></div>
-      </div>
-
-      <div class="glass flow-fade" style="padding:18px;">
-        <div class="eyebrow" style="margin-bottom:12px;">System Settings</div>
-
-        <div style="font-size:11px;color:var(--ink-dim);margin-bottom:6px;">Theme</div>
-        <div style="display:flex;gap:6px;margin-bottom:16px;">
-          <button class="btn" style="flex:1;" onclick="setTheme('slate')">Slate</button>
-          <button class="btn" style="flex:1;" onclick="setTheme('purple')">Purple</button>
-          <button class="btn" style="flex:1;" onclick="setTheme('stealth')">Stealth</button>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;">
-          <div style="font-size:11.5px;color:var(--ink-dim);line-height:1.4;">Alert me when a staff member reviews my case</div>
-          <div class="switch on" id="notifSwitch" onclick="toggleNotif()"><i></i></div>
-        </div>
-
-        <button class="btn" style="width:100%;" onclick="syncSignature()"><i class="fa-solid fa-rotate"></i> Sync signature</button>
-        <button class="btn" style="width:100%;margin-top:8px;color:var(--crimson);border-color:color-mix(in srgb, var(--crimson) 35%, var(--hair-strong));" onclick="attemptLockedAction('Reset security keys')"><i class="fa-solid fa-key"></i> Reset security keys</button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<div id="reviewModal" style="display:none;position:fixed;inset:0;z-index:150;align-items:center;justify-content:center;background:rgba(3,5,9,.72);backdrop-filter:blur(4px);padding:16px;">
-  <div class="glass flow-fade" style="max-width:440px;width:100%;padding:24px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div>
-        <div style="font-size:14px;font-weight:700;">Submit case review</div>
-        <div class="mono" style="font-size:10.5px;color:var(--ink-faint);margin-top:2px;" id="reviewCaseId">CASE-000</div>
-      </div>
-      <button class="btn" style="padding:8px 10px;" onclick="closeReview()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div style="font-size:11.5px;color:var(--ink-dim);margin-bottom:8px;">Justification / evidence</div>
-    <textarea id="reviewText" rows="5" placeholder="Explain why this action should be reconsidered..." style="width:100%;background:rgba(255,255,255,.03);border:1px solid var(--hair-strong);border-radius:9px;color:var(--ink);font-family:var(--font-body);font-size:12.5px;padding:10px 12px;resize:vertical;outline:none;"></textarea>
-    <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="btn" style="flex:1;" onclick="closeReview()">Cancel</button>
-      <button class="btn btn-signal" style="flex:1;" onclick="submitReview()">Submit review</button>
-    </div>
-  </div>
-</div>
-
-<div id="toastWrap" style="position:fixed;bottom:18px;right:18px;z-index:300;display:flex;flex-direction:column;gap:8px;"></div>
-
-<script>
-  let bioVerified = false;
-  let notifOn = true;
-  const gateCode = 'TSUNAMI-' + (1000 + Math.floor(Math.random() * 8999));
-
-  const registry = [
-    { id: 'CASE-1042', ts: '2026-08-11 21:04', action: 'WARN', notes: 'Excessive caps in global chat', status: 'Expired' },
-    { id: 'CASE-1039', ts: '2026-07-29 03:41', action: 'KICK', notes: 'AFK during ranked wave event', status: 'Expired' },
-    { id: 'CASE-1021', ts: '2026-06-02 18:12', action: 'MUTE', notes: 'Repeated spam after staff warning', status: 'Active' },
-  ];
-
-  const staff = [
-    { name: 'Jackluke010798', role: 'Owner', online: true },
-    { name: 'UhAnnakin', role: 'Admin', online: true },
-    { name: 'Golddoggo9866', role: 'Admin', online: false },
-  ];
-
-  document.getElementById('gateCode').innerText = gateCode;
-
-  function showToast(msg, type){
-    const colors = { ok: 'var(--signal)', warn: 'var(--crimson)', info: 'var(--accent)' };
-    const icons = { ok: 'fa-circle-check', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
-    const wrap = document.getElementById('toastWrap');
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}" style="color:${colors[type] || colors.info};"></i><span>${msg}</span>`;
-    wrap.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .25s ease'; setTimeout(() => el.remove(), 260); }, 4200);
-  }
-
-  function linkDiscord(){
-    const btn = document.getElementById('discordBtn');
-    const label = document.getElementById('discordBtnLabel');
-    btn.setAttribute('disabled', 'true');
-    label.innerText = 'Establishing handshake...';
-    setTimeout(() => {
-      document.getElementById('identityGate').style.display = 'none';
-      document.getElementById('hub').style.display = 'block';
-      renderStaff();
-      renderRegistry();
-      renderHeatmap();
-      showToast('IDENTITY_SYNC_SUCCESSFUL', 'ok');
-    }, 1200);
-  }
-
-  function copyCode(){
-    navigator.clipboard?.writeText(gateCode).catch(() => {});
-    showToast('SIGNATURE_COPIED_TO_CLIPBOARD', 'info');
-  }
-
-  function syncSignature(){
-    if (bioVerified){ showToast('SIGNATURE_ALREADY_VERIFIED', 'info'); return; }
-    const btn = document.getElementById('syncBtn');
-    const label = document.getElementById('syncBtnLabel');
-    btn.setAttribute('disabled', 'true');
-    label.innerText = 'Querying Roblox API...';
-    setTimeout(() => {
-      label.innerText = 'Signature found';
-      setTimeout(() => {
-        bioVerified = true;
-        unlockPortal();
-        showToast('IDENTITY_SYNC_SUCCESSFUL', 'ok');
-      }, 650);
-    }, 2000);
-  }
-
-  function unlockPortal(){
-    document.getElementById('securityGateBanner').style.display = 'none';
-    ['bioBadge', 'bioBadgeMini'].forEach(id => {
-      const el = document.getElementById(id);
-      el.className = 'badge badge-on';
-      el.innerHTML = '<i class="fa-solid fa-check"></i> Bio Verified';
-    });
-    document.getElementById('registryVeil').style.display = 'none';
-    document.getElementById('classifiedStamp').style.opacity = '0';
-    renderRegistry();
-  }
-
-  function attemptLockedAction(label){
-    if (!bioVerified){
-      showToast('UNAUTHORIZED_ACTION_BLOCKED', 'warn');
-      document.getElementById('securityGateBanner').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return false;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape Tsunami - Member Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    .card-border { border: 1px solid rgba(255, 255, 255, 0.08); }
+    
+    /* Caution Stripe Background for Discord Roles */
+    .caution-stripe-bg {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(0, 0, 0, 0.3),
+        rgba(0, 0, 0, 0.3) 10px,
+        rgba(255, 255, 255, 0.02) 10px,
+        rgba(255, 255, 255, 0.02) 20px
+      );
     }
-    return true;
-  }
-
-  function renderRegistry(){
-    const body = document.getElementById('registryBody');
-    body.innerHTML = registry.map(r => {
-      const statusColor = r.status === 'Active' ? 'var(--crimson)' : 'var(--ink-faint)';
-      if (!bioVerified){
-        return `<tr style="border-top:1px solid var(--hair);">
-          <td style="padding:12px 20px;"><span class="redact-bar" style="width:90px;"></span></td>
-          <td style="padding:12px 12px;"><span class="redact-bar" style="width:50px;"></span></td>
-          <td style="padding:12px 12px;"><span class="redact-bar" style="width:140px;"></span></td>
-          <td style="padding:12px 12px;"><span class="redact-bar" style="width:60px;"></span></td>
-          <td style="padding:12px 20px;text-align:right;"><span class="redact-bar" style="width:80px;display:inline-block;"></span></td>
-        </tr>`;
-      }
-      return `<tr style="border-top:1px solid var(--hair);">
-        <td class="mono" style="padding:12px 20px;color:var(--ink-dim);font-size:11px;">${r.ts}</td>
-        <td class="mono" style="padding:12px 12px;font-weight:700;font-size:11px;">${r.action}</td>
-        <td style="padding:12px 12px;font-size:11.5px;color:var(--ink-dim);">${r.notes}</td>
-        <td style="padding:12px 12px;"><span class="mono" style="font-size:10.5px;color:${statusColor};">${r.status}</span></td>
-        <td style="padding:12px 20px;text-align:right;">
-          <button class="btn" style="padding:6px 10px;font-size:10px;" onclick="openReview('${r.id}')">Initiate review</button>
-        </td>
-      </tr>`;
-    }).join('');
-  }
-
-  let activeCase = null;
-  function openReview(caseId){
-    if (!attemptLockedAction('review')) return;
-    activeCase = caseId;
-    document.getElementById('reviewCaseId').innerText = caseId;
-    document.getElementById('reviewText').value = '';
-    document.getElementById('reviewModal').style.display = 'flex';
-  }
-  function closeReview(){ document.getElementById('reviewModal').style.display = 'none'; }
-  function submitReview(){
-    const text = document.getElementById('reviewText').value.trim();
-    if (!text){ showToast('JUSTIFICATION_REQUIRED', 'warn'); return; }
-    closeReview();
-    showToast('CASE_REVIEW_SUBMITTED', 'ok');
-  }
-
-  function renderStaff(){
-    document.getElementById('staffList').innerHTML = staff.map(s => `
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:9px;">
-          <span style="width:7px;height:7px;border-radius:50%;background:${s.online ? 'var(--signal)' : 'var(--ink-faint)'};flex-shrink:0;"></span>
-          <span style="font-size:12px;">${s.name}</span>
+  </style>
+</head>
+<body class="h-full bg-[#080b11] text-slate-100 p-4 sm:p-8">
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- HEADER -->
+    <header class="flex items-center justify-between bg-[#0e131f] card-border p-4 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-lg">ET</div>
+        <div>
+          <h1 class="text-sm font-extrabold tracking-wide uppercase">Escape Tsunami</h1>
+          <span class="text-[10px] text-blue-400 font-mono">OPS_CENTER // MEMBER PORTAL</span>
         </div>
-        <span class="mono" style="font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;">${s.role}</span>
       </div>
-    `).join('');
-  }
+      
+      <button onclick="openFeedbackModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg card-border flex items-center gap-2 transition-colors">
+        <i class="fa-regular fa-bug text-xs text-amber-400"></i> Feedback / Bug Report
+      </button>
+    </header>
 
-  function renderHeatmap(){
-    const canvas = document.getElementById('heatmapCanvas');
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width = canvas.offsetWidth;
-    const h = canvas.height = canvas.offsetHeight;
-    const points = [8, 14, 6, 22, 12, 30, 10, 5, 15, 26, 9, 7, 18, 4];
-    const step = w / (points.length - 1);
-    ctx.clearRect(0, 0, w, h);
+    <!-- BENTO GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      
+      <!-- PROFILE & COMPACT SEGMENTED ACCESS LEVEL CARD -->
+      <div class="md:col-span-8 bg-[#121722] card-border rounded-xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-mono text-blue-400 font-bold">[ USER PROFILE ]</span>
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">VERIFIED</span>
+        </div>
 
-    const cs = getComputedStyle(document.documentElement);
-    const signal = cs.getPropertyValue('--signal').trim() || '#2dd6bd';
+        <div id="userProfileDisplay" class="flex items-center gap-4">
+          <img id="userAvatar" src="/api/avatar/1" class="w-14 h-14 rounded-xl bg-slate-800 object-cover card-border" />
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <h2 id="userDisplayName" class="text-base font-bold text-white">Guest Account</h2>
+              <button onclick="openVerifyModal()" class="px-2.5 py-1 bg-indigo-600/80 hover:bg-indigo-500 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1">
+                <i class="fa-regular fa-circle-check"></i> Verify Now
+              </button>
+            </div>
+            <div id="userAccountDetails" class="text-xs text-slate-400 font-mono mt-0.5">Unlinked Identity — Please verify your profile below.</div>
+          </div>
+        </div>
 
-    ctx.beginPath();
-    points.forEach((p, i) => {
-      const x = i * step;
-      const y = h - (p / 32) * h;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        <!-- THIN SEGMENTED PROGRESS BAR -->
+        <div class="pt-2 space-y-1.5">
+          <div class="flex justify-between text-[10px] font-mono text-slate-400 uppercase">
+            <span>[ ACCESS LEVEL ]</span>
+            <span class="text-blue-400 font-bold">Stage 2 // Trusted Member</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
+            <div class="h-2 rounded bg-blue-500 flex items-center justify-center text-[8px] text-black font-bold">✓</div>
+            <div class="h-2 rounded bg-slate-800"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHRUNK DISCORD ROLES BENTO BOX -->
+      <div class="md:col-span-4 bg-[#121722] card-border rounded-xl p-4 space-y-2 caution-stripe-bg flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+            <span class="text-[10px] font-mono text-amber-400 font-bold">[ DISCORD ROLES ]</span>
+            <span class="text-[9px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">COMING SOON</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+            Role progress tracking is undergoing staging. Syncing for roles like <strong class="text-slate-200">Trusted Member</strong> and <strong class="text-slate-200">Veteran</strong> will launch next.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PLAY & TELEMETRY ROW -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      
+      <!-- PLAY CARD -->
+      <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-mono text-emerald-400 font-bold">[ PLAY ]</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          
+          <!-- ROBLOX GAME LAUNCH BUTTON WITH SVG ICON -->
+          <a href="https://www.roblox.com/games/103398581793479/Escape-Tsunami-For-Developers" target="_blank" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg">
+            <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm10.328 13.914l-5.328-1.422 1.422-5.328 5.328 1.422-1.422 5.328z"/>
+            </svg>
+            <span>JOIN GAME</span>
+          </a>
+        </div>
+
+        <!-- SHRUNKEN TELEMETRY ICONS WITH BOLDER NUMBERS -->
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/60 mt-4 text-center">
+          <div>
+            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+              <i class="fa-regular fa-user text-[9px] text-slate-400"></i> Playing
+            </span>
+            <span id="statPlaying" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">0</span>
+          </div>
+          <div>
+            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+              <i class="fa-regular fa-star text-[9px] text-amber-400"></i> Rating
+            </span>
+            <span id="statRating" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">88%</span>
+          </div>
+          <div>
+            <span class="text-[9px] text-slate-500 font-mono uppercase block flex items-center justify-center gap-1">
+              <i class="fa-regular fa-eye text-[9px] text-blue-400"></i> Visits
+            </span>
+            <span id="statVisits" class="text-sm font-mono font-extrabold text-slate-100 mt-0.5 block">1.2M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANGELOG BENTO CARD -->
+      <div class="md:col-span-6 bg-[#121722] card-border rounded-xl p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-mono text-purple-400 font-bold">[ CHANGELOG ]</span>
+          <span class="text-[10px] font-mono text-slate-500">v1.0.4 Patch</span>
+        </div>
+        <div class="space-y-2 text-xs font-mono">
+          <div class="flex items-start gap-2 text-slate-300">
+            <span class="text-emerald-400 font-bold">+</span>
+            <span>New Tsunami Type: "Acid Wave"</span>
+          </div>
+          <div class="flex items-start gap-2 text-slate-300">
+            <span class="text-emerald-400 font-bold">+</span>
+            <span>Buffed Speed Coil item velocity</span>
+          </div>
+          <div class="flex items-start gap-2 text-slate-300">
+            <span class="text-red-400 font-bold">-</span>
+            <span>Fixed shop item duplication glitch</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MOD LOGS & FULLY CLICKABLE ROW TABLE WITH HOVER HIGHLIGHTS -->
+    <div class="bg-[#121722] card-border rounded-xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="text-xs font-mono text-amber-400 font-bold">[ MOD LOGS & BAN APPEALS ]</h2>
+          <p class="text-[11px] text-slate-400 mt-0.5">Your record history and active appeal status — click any row to review</p>
+        </div>
+        <button onclick="openAppealModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
+          <i class="fa-regular fa-gavel"></i> Submit Appeal
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-[#0b0f17] text-slate-500 text-[10px] uppercase card-border">
+            <tr>
+              <th class="p-3">Case ID</th>
+              <th class="p-3">Action</th>
+              <th class="p-3">Reason</th>
+              <th class="p-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="myAppealsTableBody" class="divide-y divide-slate-800/60">
+            <!-- CLICKABLE ROW EXAMPLE -->
+            <tr onclick="openAppealModal()" class="hover:bg-slate-800/40 cursor-pointer transition-colors">
+              <td class="p-3 text-blue-400 font-bold">#CASE-1042</td>
+              <td class="p-3">WARN</td>
+              <td class="p-3 text-slate-400">Spamming in server chat channel</td>
+              <td class="p-3 text-right font-bold text-emerald-400">Expired</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchGameStats();
     });
-    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
-    ctx.fillStyle = signal + '18';
-    ctx.fill();
 
-    ctx.beginPath();
-    points.forEach((p, i) => {
-      const x = i * step;
-      const y = h - (p / 32) * h;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    });
-    ctx.strokeStyle = signal;
-    ctx.lineWidth = 1.4;
-    ctx.stroke();
-  }
+    async function fetchGameStats() {
+      try {
+        const res = await fetch('/api/public/game-stats');
+        const data = await res.json();
+        if (data.stats) {
+          document.getElementById('statPlaying').innerText = data.stats.playing;
+          document.getElementById('statRating').innerText = data.stats.rating + '%';
+        }
+      } catch (e) {}
+    }
 
-  function setTheme(name){
-    document.documentElement.setAttribute('data-theme', name);
-    setTimeout(renderHeatmap, 20);
-    showToast('THEME_SET_' + name.toUpperCase(), 'info');
-  }
-
-  function toggleNotif(){
-    notifOn = !notifOn;
-    const el = document.getElementById('notifSwitch');
-    el.classList.toggle('on', notifOn);
-    showToast(notifOn ? 'REVIEW_ALERTS_ENABLED' : 'REVIEW_ALERTS_DISABLED', 'info');
-  }
-</script>
+    function openAppealModal() { alert('Opening case review appeal panel...'); }
+    function openFeedbackModal() { alert('Feedback form coming soon.'); }
+    function openVerifyModal() { alert('Enter your Roblox Username to verify via bio code.'); }
+  </script>
 </body>
 </html>
