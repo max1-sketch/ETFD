@@ -1,271 +1,253 @@
 <!DOCTYPE html>
-<html lang="en" class="theme-slate">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tsunami Ops | Command Dossier</title>
+  <title>Escape Tsunami | Operations Hub</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --border: rgba(255, 255, 255, 0.05);
-      --bg: #05070a;
-      --card: #0a0d16;
       --accent: #00e599; 
+      --bg: #06080c;
+      --card: #0e121b;
+      --border: rgba(255, 255, 255, 0.05);
     }
-
-    .theme-purple { --bg: #0a0714; --card: #120b1f; --accent: #a855f7; }
-    .theme-stealth { --bg: #050505; --card: #0c0c0c; --accent: #64748b; }
-    .theme-slate { --bg: #05070a; --card: #0a0d16; --accent: #00e599; }
 
     body {
       background-color: var(--bg);
-      background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #94a3b8;
+      background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.005) 1px, transparent 0);
+      background-size: 32px 32px;
       margin: 0;
-      overflow-x: hidden;
     }
 
-    /* THE SCANLINE EFFECT */
-    body::before {
-      content: " ";
-      position: fixed;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-      z-index: 9999;
-      background-size: 100% 3px, 3px 100%;
-      pointer-events: none;
-    }
-
-    .glass-panel {
-      background: rgba(10, 13, 22, 0.8);
-      backdrop-filter: blur(25px);
+    .panel {
+      background: var(--card);
       border: 1px solid var(--border);
+      border-radius: 8px;
       position: relative;
     }
 
-    /* CORNER ACCENTS */
-    .glass-panel::after {
-      content: "";
-      position: absolute;
-      top: -1px; right: -1px;
-      width: 10px; height: 10px;
-      border-top: 2px solid var(--accent);
-      border-right: 2px solid var(--accent);
-      opacity: 0.5;
-    }
-
-    .mono { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; }
-    
-    .label {
-      font-size: 9px;
+    /* Professional Bento Box Header */
+    .panel-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 2.5px;
+      letter-spacing: 2px;
       color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* BTN DESIGN */
-    .btn-industrial {
-      background: rgba(255,255,255,0.03);
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
     }
-    .btn-industrial:hover { 
-      background: rgba(255,255,255,0.08); 
-      border-color: var(--accent); 
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--accent);
       color: var(--accent);
-      transform: translateY(-1px);
     }
-    
+
     .btn-primary {
       background: var(--accent);
       color: #000;
-      font-weight: 900;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
+      letter-spacing: 1px;
     }
 
-    /* STATUS BLINKER */
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    .blinker { animation: blink 1.5s infinite; }
+    .data-font { font-family: 'JetBrains Mono', monospace; }
 
-    /* SCROLLBAR */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 0; opacity: 0.3; }
+    /* Registry Lock Blur */
+    .registry-lock {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 8, 12, 0.8);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 0 0 8px 8px;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
   </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen w-full">
+<body class="antialiased flex h-screen w-full overflow-hidden">
 
-  <!-- TOP HEADER -->
-  <header class="h-16 border-b border-white/5 glass-panel flex items-center justify-between px-10 sticky top-0 z-[1000]">
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-white/5 border border-white/10 rounded flex items-center justify-center text-accent">
-          <i class="fa-solid fa-square-rss text-xs"></i>
+  <!-- SIDEBAR -->
+  <aside class="w-64 border-r border-white/5 flex flex-col bg-[#080b11]">
+    <div class="p-8 border-b border-white/5 flex items-center gap-3">
+      <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center text-black font-black text-xs">ET</div>
+      <div>
+        <h1 class="text-sm font-extrabold text-white tracking-tight">ESCAPE TSUNAMI</h1>
+        <div class="text-[9px] font-bold text-slate-600 uppercase">Operations Hub</div>
+      </div>
+    </div>
+
+    <nav class="flex-1 p-6 space-y-1">
+      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold text-white bg-white/5 border-l-2 border-emerald-500">
+        <i class="fa-solid fa-grid-2 text-xs"></i> Dashboard
+      </button>
+      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
+        <i class="fa-solid fa-file-lines text-xs opacity-30"></i> Applications
+      </button>
+      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
+        <i class="fa-solid fa-link text-xs opacity-30"></i> Identity Link
+      </button>
+    </nav>
+
+    <div class="p-6 border-t border-white/5">
+      <div class="panel p-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="https://www.roblox.com/headshot-thumbnail/image?userId=1&width=48&height=48&format=png" class="w-8 h-8 rounded-full border border-white/10" />
+          <div>
+            <div class="text-[11px] font-bold text-white">Guest User</div>
+            <div class="text-[9px] font-medium opacity-40 uppercase tracking-tighter">Level 01 Access</div>
+          </div>
         </div>
-        <h1 class="text-xs font-black tracking-[4px] text-white uppercase">Ops_Terminal</h1>
-      </div>
-      <div class="h-4 w-px bg-white/10"></div>
-      <div class="text-[9px] mono text-slate-500 flex items-center gap-4">
-        <span>STATION_ID: <span class="text-white">NODE_01</span></span>
-        <span>UPTIME: <span class="text-emerald-400" id="uptime">00:00:00</span></span>
       </div>
     </div>
-    
-    <div class="flex items-center gap-8">
-      <div class="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500">
-        <span class="blinker text-emerald-500">●</span> System_Live
-      </div>
-      <button onclick="toggleTheme()" class="text-slate-600 hover:text-white transition-colors"><i class="fa-solid fa-palette text-xs"></i></button>
-      <div class="flex items-center gap-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/5">
-         <span class="text-[10px] font-black text-white uppercase tracking-tight" id="navName">Guest</span>
-         <img id="navAvatar" src="/api/avatar/1" class="w-8 h-8 rounded-full border border-white/10" />
-      </div>
-    </div>
-  </header>
+  </aside>
 
   <!-- MAIN VIEW -->
-  <main class="flex-1 max-w-7xl mx-auto w-full p-8 space-y-8">
+  <main class="flex-1 flex flex-col overflow-hidden">
+    
+    <!-- HEADER -->
+    <header class="h-16 border-b border-white/5 flex items-center justify-between px-10 bg-[#080b11]/50 backdrop-blur-md">
+      <div class="flex items-center gap-4">
+        <h2 class="text-xs font-black uppercase tracking-[3px] text-white">Station Overview</h2>
+        <div class="h-4 w-px bg-white/10"></div>
+        <div class="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase">
+          Signal: <span class="text-emerald-500">Stable</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
+          <div class="status-dot"></div> Connected
+        </div>
+        <div class="text-[10px] font-mono text-slate-600">STATION_TIME: <span id="clock" class="text-white">00:00:00</span></div>
+      </div>
+    </header>
 
-    <!-- ROW 1: USER DATA -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="flex-1 overflow-y-auto p-10 space-y-6">
       
-      <!-- LARGE IDENTITY CARD -->
-      <div class="lg:col-span-2 glass-panel p-10 rounded-xl flex items-center justify-between border-t border-white/5 overflow-hidden">
-        <div class="flex items-center gap-10 relative z-10">
-          <div class="relative group">
-            <div class="absolute -inset-2 bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <img id="pAvatar" src="/api/avatar/1" class="w-28 h-24 rounded border border-white/10 grayscale shadow-2xl relative z-10 object-cover" />
-            <div class="absolute -bottom-2 -left-2 px-2 py-1 bg-black border border-white/10 text-[8px] font-black uppercase tracking-tighter text-slate-500">LINKED_OK</div>
-          </div>
-          <div class="space-y-4">
+      <!-- ROW 1: USER & SERVER -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 panel p-10 flex items-center justify-between">
+          <div class="flex items-center gap-8">
+            <div class="relative">
+              <img src="https://www.roblox.com/headshot-thumbnail/image?userId=1&width=150&height=150&format=png" class="w-24 h-24 rounded-2xl border border-white/10 grayscale" />
+              <div class="absolute -bottom-2 -right-2 px-3 py-1 bg-slate-800 text-[9px] font-black rounded border border-white/10">GUEST</div>
+            </div>
             <div>
-              <div class="label text-accent mb-1">Authenticated_Operator</div>
-              <h3 id="pName" class="text-5xl font-black text-white tracking-tighter uppercase leading-none">Guest_User</h3>
+              <h3 class="text-4xl font-black text-white tracking-tighter">Guest User</h3>
+              <div class="flex items-center gap-4 mt-2 text-[11px] font-medium text-slate-500">
+                <span>Account Verified: <i class="fa-solid fa-circle-xmark text-red-500 ml-1"></i></span>
+                <div class="h-3 w-px bg-white/10"></div>
+                <span class="data-font">UID: 00000</span>
+              </div>
             </div>
-            <div class="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mono">
-              <span>EST: <span class="text-white">MAR_2023</span></span>
-              <span>CLEARANCE: <span class="text-white">STAGE_01</span></span>
+          </div>
+          <button class="btn-glass px-6 py-2.5 rounded text-[10px]">Verify Account</button>
+        </div>
+
+        <div class="panel flex flex-col">
+          <div class="panel-header">Server Status</div>
+          <div class="flex-1 p-6 space-y-4 flex flex-col justify-center">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold opacity-40 uppercase tracking-widest">Instances</span>
+              <span class="text-white data-font text-lg">12 / 12</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold opacity-40 uppercase tracking-widest">Population</span>
+              <span class="text-white data-font text-lg">1,428</span>
+            </div>
+            <button class="btn-primary w-full py-4 rounded text-[11px] mt-2">Join Game</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: PRIMARY STATS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="panel p-8">
+          <div class="panel-header !p-0 !border-0 mb-4 uppercase text-blue-500">Survivals</div>
+          <div class="text-5xl font-black text-white data-font tracking-tighter">142</div>
+          <div class="text-[10px] font-bold text-slate-600 mt-2 uppercase tracking-widest">+12 this week</div>
+        </div>
+        <div class="panel p-8">
+          <div class="panel-header !p-0 !border-0 mb-4 uppercase text-amber-500">Credits</div>
+          <div class="text-5xl font-black text-white data-font tracking-tighter">4,920</div>
+          <div class="text-[10px] font-bold text-slate-600 mt-2 uppercase tracking-widest">Balance Stable</div>
+        </div>
+        <div class="panel p-8">
+          <div class="panel-header !p-0 !border-0 mb-4 uppercase text-emerald-500">Playtime</div>
+          <div class="text-5xl font-black text-white data-font tracking-tighter">18h</div>
+          <div class="text-[10px] font-bold text-slate-600 mt-2 uppercase tracking-widest">Active Duty</div>
+        </div>
+      </div>
+
+      <!-- ROW 3: REGISTRY & PATCHES -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- MOD HISTORY -->
+        <div class="lg:col-span-2 panel flex flex-col min-h-[300px]">
+          <div class="panel-header">
+            <span>Warning Registry</span>
+            <span class="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-tighter">Security Alert</span>
+          </div>
+          <div class="flex-1 relative">
+            <div class="registry-lock">
+               <i class="fa-solid fa-shield-lock text-3xl text-slate-700 mb-4"></i>
+               <p class="text-[10px] font-black uppercase tracking-[5px] text-white">ACCESS_RESTRICTED</p>
+               <p class="text-[9px] text-slate-600 mt-1 uppercase">Link Roblox account to decrypt records</p>
+               <button class="mt-6 px-8 py-2 border border-white/10 rounded-full text-[9px] font-black uppercase hover:bg-white/5 transition-all">Start Authentication</button>
             </div>
           </div>
         </div>
-        <div class="flex flex-col gap-2">
-           <button class="btn-industrial px-6 py-2 rounded text-[9px]">Edit_Profile</button>
-           <button class="btn-industrial px-6 py-2 rounded text-[9px] text-accent border-accent/20">Verify_Dossier</button>
-        </div>
-      </div>
 
-      <!-- SYSTEM STATUS BOX -->
-      <div class="glass-panel p-8 rounded-xl flex flex-col justify-between border-t border-white/5">
-        <div class="flex justify-between items-start">
-           <div class="label">Telemetry_Nodes</div>
-           <div class="w-2 h-2 rounded-full bg-emerald-500 blinker shadow-[0_0_10px_#00e599]"></div>
+        <!-- UPDATES -->
+        <div class="panel flex flex-col">
+          <div class="panel-header">Patch Notes v1.0.4</div>
+          <div class="p-8 space-y-6 flex-1">
+            <div class="flex items-start gap-4">
+              <i class="fa-solid fa-circle-plus text-[10px] text-emerald-500 mt-1"></i>
+              <div class="text-[11px] font-bold uppercase text-slate-300 tracking-tight leading-relaxed">Added "Acid Wave" Variant</div>
+            </div>
+            <div class="flex items-start gap-4">
+              <i class="fa-solid fa-arrow-up text-[10px] text-blue-500 mt-1"></i>
+              <div class="text-[11px] font-bold uppercase text-slate-300 tracking-tight leading-relaxed">Buffed Speed Coil base speed</div>
+            </div>
+            <div class="flex items-start gap-4">
+              <i class="fa-solid fa-circle-xmark text-[10px] text-red-500 mt-1"></i>
+              <div class="text-[11px] font-bold uppercase text-slate-300 tracking-tight leading-relaxed">Fixed Item duplication bug</div>
+            </div>
+          </div>
         </div>
-        <div class="space-y-4 my-6">
-           <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-600">CLIENTS_SYNCED</span><span class="text-white mono">1,428</span></div>
-           <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-600">DATA_REPLICAS</span><span class="text-white mono">12/12</span></div>
-        </div>
-        <a href="https://www.roblox.com/games/103398581793479" target="_blank" class="btn-primary w-full py-4 rounded flex items-center justify-center gap-3 text-xs">
-           <i class="fa-solid fa-link text-[10px]"></i> Link_Instance
-        </a>
+
       </div>
     </div>
-
-    <!-- ROW 2: DATA STRINGS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="glass-panel p-8 rounded group border-l-4 border-l-blue-600">
-         <div class="label mb-6 text-blue-500">Extraction_Metrics</div>
-         <div id="statWins" class="text-6xl font-black text-white mono leading-none tracking-tighter">000</div>
-         <div class="flex items-center gap-2 mt-4">
-            <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded mono">EFFICIENCY: 100%</span>
-         </div>
-      </div>
-      <div class="glass-panel p-8 rounded group border-l-4 border-l-amber-600">
-         <div class="label mb-6 text-amber-500">Hub_Currency</div>
-         <div id="statCoins" class="text-6xl font-black text-white mono leading-none tracking-tighter">000</div>
-         <div class="flex items-center gap-2 mt-4">
-            <span class="text-[9px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded mono">STABILITY: NOMINAL</span>
-         </div>
-      </div>
-      <div class="glass-panel p-8 rounded group border-l-4 border-l-emerald-600">
-         <div class="label mb-6 text-emerald-500">Active_Duty_Hours</div>
-         <div id="statTime" class="text-6xl font-black text-white mono leading-none tracking-tighter">00<span class="text-2xl text-slate-700 ml-1">h</span></div>
-         <div class="flex items-center gap-2 mt-4">
-            <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded mono">SESSION: CONNECTED</span>
-         </div>
-      </div>
-    </div>
-
-    <!-- ROW 3: LOGS & HISTORY -->
-    <div class="glass-panel rounded-xl overflow-hidden">
-      <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-         <div>
-            <h3 class="label text-white text-[11px]">Security_Registry_Audit</h3>
-            <p class="text-[9px] mono text-slate-600 mt-1">READING_ENCRYPTED_DATA_STREAM_0X00FF</p>
-         </div>
-         <div class="px-4 py-1.5 border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[9px] font-black uppercase rounded tracking-tighter">
-            <i class="fa-solid fa-lock mr-2"></i> Registry_Locked
-         </div>
-      </div>
-      <div class="p-24 text-center space-y-6 opacity-30">
-         <i class="fa-solid fa-shield-halved text-5xl"></i>
-         <div class="text-[11px] font-black uppercase tracking-[10px]">Verification_Required</div>
-         <button class="btn-industrial px-10 py-3 rounded text-[10px]">Initialize_Security_Handshake</button>
-      </div>
-    </div>
-
   </main>
 
   <script>
-    // CLOCK LOGIC
+    // System Clock
     setInterval(() => {
-      document.getElementById('uptime').innerText = new Date().toLocaleTimeString('en-GB');
+      document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
     }, 1000);
-
-    // THEME LOGIC
-    let cTheme = 0;
-    const themes = ['slate', 'purple', 'stealth'];
-    function toggleTheme() {
-      cTheme = (cTheme + 1) % themes.length;
-      document.documentElement.className = 'theme-' + themes[cTheme];
-      localStorage.setItem('hub_theme', themes[cTheme]);
-    }
-
-    // BOOT HANDSHAKE
-    window.onload = () => {
-      const bar = document.getElementById('gateBar');
-      setTimeout(() => bar.style.width = '100%', 200);
-      setTimeout(() => {
-        document.getElementById('identityGate').style.opacity = '0';
-        setTimeout(() => document.getElementById('identityGate').remove(), 1000);
-      }, 1500);
-
-      // Restore data
-      setTheme(localStorage.getItem('hub_theme') || 'slate');
-      fetchData();
-    };
-
-    function setTheme(t) { document.documentElement.className = 'theme-' + t; }
-
-    async function fetchData() {
-      // Mock data for preview
-      document.getElementById('statWins').innerText = "142";
-      document.getElementById('statCoins').innerText = "4,920";
-      document.getElementById('statTime').innerText = "18";
-    }
   </script>
-
 </body>
 </html>
