@@ -1,245 +1,231 @@
 <!DOCTYPE html>
-<html lang="en" class="theme-slate">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Escape Tsunami | Operations Hub</title>
   
-  <!-- EXTERNAL LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    /* INDUSTRIAL SLATE THEME CORE */
     :root {
-      --border: rgba(255, 255, 255, 0.05);
-      --bg: #06080c;
-      --card: #0a0d16;
       --accent: #00e599; 
+      --bg: #06080c;
+      --card: #0e121b;
+      --border: rgba(255, 255, 255, 0.05);
     }
-
-    .theme-purple { --bg: #0a0714; --card: #120b1f; --accent: #a855f7; }
-    .theme-stealth { --bg: #050505; --card: #0c0c0c; --accent: #64748b; }
-    .theme-slate { --bg: #06080c; --card: #0a0d16; --accent: #00e599; }
 
     body {
       background-color: var(--bg);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #94a3b8;
       background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.01) 1px, transparent 0);
       background-size: 32px 32px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      color: #cbd5e1;
-      margin: 0;
-      overflow-x: hidden;
     }
 
-    .glass-panel {
-      background: rgba(10, 13, 22, 0.6);
-      backdrop-filter: blur(20px);
+    .panel {
+      background: var(--card);
       border: 1px solid var(--border);
+      border-radius: 12px;
     }
 
-    .mono { font-family: 'JetBrains Mono', monospace; }
+    .nav-item-active {
+      color: white;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--accent);
+    }
 
-    /* SEGMENTED PROGRESS BAR */
-    .segmented-bar { display: flex; gap: 4px; height: 6px; }
-    .segment { flex: 1; background: rgba(255,255,255,0.05); border-radius: 1px; }
-    .segment-active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    /* Remove the "AI Glow" - use clean borders instead */
+    .stat-card {
+      transition: border-color 0.3s;
+    }
+    .stat-card:hover {
+      border-color: var(--accent);
+    }
 
-    /* REDACTION BLUR */
-    .redacted { filter: blur(8px); opacity: 0.2; pointer-events: none; }
-
-    /* BUTTONS */
-    .btn-industrial {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 2px;
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
       font-weight: 800;
-      font-size: 10px;
-      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: transform 0.2s, opacity 0.2s;
     }
-    .btn-industrial:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
 
-    /* ANIMATED GATE */
-    #identityGate { z-index: 9999; background: #000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #475569;
+    }
+
+    .data-font {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
   </style>
 </head>
-<body>
+<body class="antialiased">
 
-  <!-- SECURITY GATEWAY -->
-  <div id="identityGate">
-    <div class="max-w-xs w-full glass-panel p-10 rounded-2xl text-center space-y-6">
-      <i class="fa-solid fa-shield-halved text-2xl text-accent animate-pulse"></i>
-      <div class="text-[10px] font-black uppercase tracking-[5px] text-white">Ops_Check</div>
-      <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-        <div id="gateBar" class="h-full bg-accent w-0 transition-all duration-1000"></div>
+  <div class="flex h-screen w-full overflow-hidden">
+    
+    <!-- SIDEBAR -->
+    <aside class="w-64 border-r border-white/5 flex flex-col bg-[#080b11]">
+      <div class="p-6 border-b border-white/5 flex items-center gap-3">
+        <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center text-black font-black text-xs">ET</div>
+        <div>
+          <h1 class="text-sm font-extrabold text-white tracking-tight">ESCAPE TSUNAMI</h1>
+          <div class="text-[9px] font-bold text-emerald-500/50">STAFF PORTAL</div>
+        </div>
       </div>
-      <p class="text-[9px] mono text-slate-600 uppercase">Validating Link Integrity...</p>
-    </div>
+
+      <nav class="flex-1 p-4 space-y-1">
+        <div class="label px-3 py-4">Menu</div>
+        <button class="nav-item-active w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold">
+          <i class="fa-solid fa-grid-2 text-xs"></i> Dashboard
+        </button>
+        <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
+          <i class="fa-solid fa-file-lines text-xs"></i> Applications
+        </button>
+        
+        <div class="label px-3 py-4">Security</div>
+        <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
+          <i class="fa-solid fa-link text-xs"></i> Link Roblox
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-white/5">
+        <div class="panel p-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-800 border border-white/10"></div>
+            <div>
+              <div class="text-[11px] font-bold text-white">Guest User</div>
+              <div class="text-[9px] font-medium">Unlinked</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-right-from-bracket text-xs opacity-20"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col">
+      
+      <!-- HEADER -->
+      <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#080b11]/50 backdrop-blur-md">
+        <div class="flex items-center gap-4">
+          <h2 class="text-sm font-extrabold text-white">Dashboard</h2>
+          <div class="h-4 w-px bg-white/10"></div>
+          <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
+             Status: <span class="text-emerald-500">Live</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-[10px] font-bold">
+           <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connected</span>
+        </div>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-8 space-y-6">
+        
+        <!-- TOP SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- USER CARD -->
+          <div class="lg:col-span-2 panel p-8 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+              <div class="relative">
+                <img src="https://www.roblox.com/headshot-thumbnail/image?userId=1&width=150&height=150&format=png" class="w-20 h-20 rounded-2xl border border-white/10 grayscale" />
+                <div class="absolute -bottom-1 -right-1 px-2 py-0.5 bg-slate-800 text-[8px] font-bold rounded border border-white/5">GUEST</div>
+              </div>
+              <div>
+                <h3 class="text-2xl font-extrabold text-white tracking-tight">Guest User</h3>
+                <div class="flex items-center gap-3 mt-1 text-[11px] font-medium text-slate-500">
+                  <span>Joined: --</span>
+                  <div class="w-1 h-1 rounded-full bg-slate-700"></div>
+                  <span class="data-font">ID: 0</span>
+                </div>
+              </div>
+            </div>
+            <button class="px-4 py-2 border border-white/10 rounded-lg text-[10px] font-bold uppercase hover:bg-white/5 transition-all">Verify Bio</button>
+          </div>
+
+          <!-- SERVER STATUS -->
+          <div class="panel p-6 space-y-4">
+            <div class="label">Server Status</div>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold">Instances Online</span>
+                <span class="text-white data-font">12/12</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold">Total Players</span>
+                <span class="text-white data-font">1,428</span>
+              </div>
+            </div>
+            <button class="btn-primary w-full py-3 rounded-lg text-xs">Join Game</button>
+          </div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="panel p-6 stat-card">
+            <div class="label mb-4">Total Survivals</div>
+            <div class="text-3xl font-black text-white data-font">0</div>
+          </div>
+          <div class="panel p-6 stat-card">
+            <div class="label mb-4">In-Game Coins</div>
+            <div class="text-3xl font-black text-white data-font">0</div>
+          </div>
+          <div class="panel p-6 stat-card">
+            <div class="label mb-4">Total Playtime</div>
+            <div class="text-3xl font-black text-white data-font">0h</div>
+          </div>
+        </div>
+
+        <!-- LOWER SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- LOGS -->
+          <div class="lg:col-span-2 panel flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-white/5 flex items-center justify-between">
+              <div class="label">Warning History</div>
+              <span class="text-[10px] font-bold text-slate-500 uppercase">Registry Locked</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-3 opacity-30">
+               <i class="fa-solid fa-shield-lock text-3xl"></i>
+               <p class="text-xs font-bold uppercase tracking-widest">Link account to unlock history</p>
+            </div>
+          </div>
+
+          <!-- CHANGELOG -->
+          <div class="panel p-6 space-y-6">
+            <div class="label">Recent Updates</div>
+            <div class="space-y-4">
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-500 text-xs mt-0.5"><i class="fa-solid fa-plus-circle"></i></span>
+                <div class="text-[11px] font-bold text-slate-300 uppercase">Acid Tsunami Variant Active</div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-emerald-500 text-xs mt-0.5"><i class="fa-solid fa-arrow-up-circle"></i></span>
+                <div class="text-[11px] font-bold text-slate-300 uppercase">Speed Coil Buff v1.2</div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-red-500 text-xs mt-0.5"><i class="fa-solid fa-minus-circle"></i></span>
+                <div class="text-[11px] font-bold text-slate-300 uppercase">Fixed Item Duplication Bug</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
   </div>
 
-  <!-- HEADER -->
-  <header class="h-20 border-b border-white/5 glass-panel flex items-center justify-between px-10 sticky top-0 z-[100]">
-    <div class="flex items-center gap-4">
-      <div class="w-10 h-10 bg-accent/10 border border-accent/20 rounded flex items-center justify-center text-accent">
-        <i class="fa-solid fa-wind"></i>
-      </div>
-      <div>
-        <h1 class="text-sm font-black tracking-tighter text-white uppercase">Tsunami_Ops</h1>
-        <div class="text-[9px] mono text-slate-600">STATION_LINK: ACTIVE</div>
-      </div>
-    </div>
-    
-    <div class="flex items-center gap-6">
-      <nav class="hidden md:flex items-center gap-8">
-        <button class="text-[10px] font-black uppercase tracking-[2px] text-white border-b border-accent pb-1">Dossier</button>
-        <button class="text-[10px] font-black uppercase tracking-[2px] text-slate-500 hover:text-white">Protocol</button>
-        <button class="text-[10px] font-black uppercase tracking-[2px] text-slate-500 hover:text-white">Registry</button>
-      </nav>
-      <div class="h-8 w-px bg-white/10 mx-2"></div>
-      <button onclick="toggleTheme()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-palette"></i></button>
-    </div>
-  </header>
-
-  <!-- MAIN AREA -->
-  <main class="max-w-7xl mx-auto p-6 md:p-12 space-y-10">
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-      
-      <!-- LEFT: USER INFO -->
-      <div class="lg:col-span-2 space-y-10">
-        
-        <!-- PROFILE CARD -->
-        <div class="glass-panel p-10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-8 border-l-4 border-l-accent">
-          <div class="flex items-center gap-8">
-            <div class="relative">
-              <img id="pAvatar" src="/api/avatar/1" class="w-24 h-24 rounded-2xl border border-white/10 shadow-2xl object-cover" />
-              <div class="absolute -bottom-2 -right-2 px-3 py-1 bg-accent text-black text-[9px] font-black uppercase rounded">Linked</div>
-            </div>
-            <div>
-              <h2 id="pName" class="text-4xl font-black text-white tracking-tighter">Guest_User</h2>
-              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2">Authorization: <span class="text-white">Tier 1 Member</span></p>
-            </div>
-          </div>
-          <button onclick="openVerify()" class="btn-industrial px-6 py-3 rounded-lg text-accent border-accent/20">Verify_Bio</button>
-        </div>
-
-        <!-- STATS BENTO -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="glass-panel p-8 rounded-2xl border-b-2 border-blue-500/20">
-            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Survivals</div>
-            <div id="statWins" class="text-4xl font-black text-white mono">0</div>
-          </div>
-          <div class="glass-panel p-8 rounded-2xl border-b-2 border-amber-500/20">
-            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Credits</div>
-            <div id="statCoins" class="text-4xl font-black text-white mono">0</div>
-          </div>
-          <div class="glass-panel p-8 rounded-2xl border-b-2 border-emerald-500/20">
-            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Active_Time</div>
-            <div id="statTime" class="text-4xl font-black text-white mono">0h</div>
-          </div>
-        </div>
-
-        <!-- SECURITY LOGS -->
-        <div class="glass-panel rounded-2xl overflow-hidden relative">
-          <!-- REDACTION SHIELD -->
-          <div id="lock" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-xl transition-all">
-             <i class="fa-solid fa-lock text-3xl text-slate-600 mb-4"></i>
-             <div class="text-[10px] font-black uppercase tracking-[4px] text-white">Registry_Locked</div>
-             <p class="text-[9px] text-slate-500 mt-1 uppercase">Link Roblox Account to view history</p>
-          </div>
-
-          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-             <h3 class="text-[10px] font-black text-white uppercase tracking-[4px]">Security_Registry_Audit</h3>
-          </div>
-          <table class="w-full text-left">
-            <thead class="text-[9px] font-black uppercase text-slate-600 tracking-widest border-b border-white/5">
-              <tr><th class="p-6">Time</th><th class="p-6">Action</th><th class="p-6">Reason</th></tr>
-            </thead>
-            <tbody id="history" class="text-xs redacted">
-              <!-- Content hidden by parent redaction -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- RIGHT: SIDEBAR -->
-      <div class="space-y-6">
-        <div class="glass-panel p-8 rounded-2xl space-y-8">
-           <div class="flex items-center justify-between">
-             <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">Live_System</h3>
-             <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#00e599]"></div>
-           </div>
-           <div class="space-y-4">
-              <div class="flex justify-between items-center text-[11px] font-bold">
-                 <span class="text-slate-600 uppercase">Population</span>
-                 <span class="text-white mono">1,428 Clients</span>
-              </div>
-           </div>
-           <a href="https://www.roblox.com/games/103398581793479" target="_blank" class="w-full h-14 bg-accent text-black rounded-xl flex items-center justify-center font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] transition-all">
-              Launch Instance
-           </a>
-        </div>
-
-        <div class="glass-panel p-8 rounded-2xl space-y-6">
-           <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">Progression</h3>
-           <div class="segmented-bar" id="progBar"></div>
-           <p class="text-[9px] font-bold text-slate-600 uppercase">Next Authorization: Tier 2 Verified</p>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <script>
-    // THEME LOGIC
-    let cTheme = 0;
-    const themes = ['slate', 'purple', 'stealth'];
-    function toggleTheme() {
-      cTheme = (cTheme + 1) % themes.length;
-      document.documentElement.className = 'theme-' + themes[cTheme];
-    }
-
-    // BOOT HANDSHAKE
-    window.onload = () => {
-      const bar = document.getElementById('gateBar');
-      setTimeout(() => bar.style.width = '100%', 200);
-      setTimeout(() => {
-        document.getElementById('identityGate').style.opacity = '0';
-        setTimeout(() => document.getElementById('identityGate').remove(), 1000);
-      }, 1200);
-
-      // Create Progress Segments
-      const barCont = document.getElementById('progBar');
-      for(let i=0; i<10; i++) {
-        const d = document.createElement('div');
-        d.className = `segment ${i < 4 ? 'segment-active' : ''}`;
-        barCont.appendChild(d);
-      }
-
-      fetchData();
-    };
-
-    // FETCH LOGIC
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/member/stats');
-        const d = await res.json();
-        if(d.success) {
-          document.getElementById('statWins').innerText = d.stats.wins;
-          document.getElementById('statCoins').innerText = d.stats.coins;
-          document.getElementById('statTime').innerText = d.stats.playtime + "h";
-          document.getElementById('pName').innerText = d.username;
-          document.getElementById('pAvatar').src = `https://www.roblox.com/headshot-thumbnail/image?userId=${d.userId}&width=150&height=150&format=png`;
-        }
-      } catch(e) {
-        // Mock data if server isn't ready
-        document.getElementById('statWins').innerText = "142";
-        document.getElementById('statCoins').innerText = "4,920";
-        document.getElementById('statTime').innerText = "18h";
-      }
-    }
-  </script>
 </body>
 </html>
