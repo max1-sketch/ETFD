@@ -3,424 +3,242 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escape Tsunami | Community Operations Hub</title>
+  <title>Escape Tsunami | Operations Hub</title>
   
+  <!-- EXTERNAL LIBRARIES -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-
+    /* INDUSTRIAL SLATE THEME CORE */
     :root {
-      --industrial-border: rgba(255, 255, 255, 0.05);
-      --industrial-bg: #06080c;
-      --industrial-card: #0a0d16;
+      --border: rgba(255, 255, 255, 0.05);
+      --bg: #06080c;
+      --card: #0a0d16;
       --accent: #00e599; 
     }
 
-    /* THEME PROFILES */
-    .theme-purple { --industrial-bg: #0a0714; --industrial-card: #120b1f; --accent: #a855f7; }
-    .theme-stealth { --industrial-bg: #050505; --industrial-card: #0c0c0c; --accent: #64748b; }
-    .theme-slate { --industrial-bg: #06080c; --industrial-card: #0a0d16; --accent: #00e599; }
+    .theme-purple { --bg: #0a0714; --card: #120b1f; --accent: #a855f7; }
+    .theme-stealth { --bg: #050505; --card: #0c0c0c; --accent: #64748b; }
+    .theme-slate { --bg: #06080c; --card: #0a0d16; --accent: #00e599; }
 
     body {
-      background-color: var(--industrial-bg);
+      background-color: var(--bg);
       background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.01) 1px, transparent 0);
       background-size: 32px 32px;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #cbd5e1;
+      margin: 0;
+      overflow-x: hidden;
     }
 
     .glass-panel {
-      background: rgba(10, 13, 22, 0.5);
+      background: rgba(10, 13, 22, 0.6);
       backdrop-filter: blur(20px);
-      border: 1px solid var(--industrial-border);
+      border: 1px solid var(--border);
     }
 
-    .nav-active { border-left: 2px solid var(--accent); background: rgba(255,255,255,0.02); color: white; }
     .mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* SEGMENTED PROGRESS BARS */
-    .segmented-bar { display: flex; gap: 4px; }
-    .segment { flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 1px; transition: 0.3s; }
+    /* SEGMENTED PROGRESS BAR */
+    .segmented-bar { display: flex; gap: 4px; height: 6px; }
+    .segment { flex: 1; background: rgba(255,255,255,0.05); border-radius: 1px; }
     .segment-active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
-    /* REDACTION EFFECT */
-    .redacted-blur { filter: blur(8px); pointer-events: none; user-select: none; opacity: 0.3; }
+    /* REDACTION BLUR */
+    .redacted { filter: blur(8px); opacity: 0.2; pointer-events: none; }
 
-    /* CUSTOM ANIMATIONS */
-    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-    .scanline { position: absolute; width: 100%; height: 2px; background: rgba(255, 255, 255, 0.05); animation: scan 3s linear infinite; }
+    /* BUTTONS */
+    .btn-industrial {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 800;
+      font-size: 10px;
+      transition: all 0.3s;
+    }
+    .btn-industrial:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+
+    /* ANIMATED GATE */
+    #identityGate { z-index: 9999; background: #000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
-<body class="text-slate-300 antialiased overflow-hidden">
+<body>
 
-  <!-- 1. IDENTITY GATEWAY (Handshake) -->
-  <div id="identityGate" class="fixed inset-0 bg-black z-[9999] flex items-center justify-center p-6 transition-opacity duration-1000">
-    <div class="max-w-sm w-full glass-panel p-10 rounded-2xl text-center space-y-6 relative overflow-hidden">
-      <div class="scanline"></div>
-      <div class="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center mx-auto text-white bg-white/5">
-        <i class="fa-solid fa-id-card-clip text-2xl animate-pulse"></i>
+  <!-- SECURITY GATEWAY -->
+  <div id="identityGate">
+    <div class="max-w-xs w-full glass-panel p-10 rounded-2xl text-center space-y-6">
+      <i class="fa-solid fa-shield-halved text-2xl text-accent animate-pulse"></i>
+      <div class="text-[10px] font-black uppercase tracking-[5px] text-white">Ops_Check</div>
+      <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+        <div id="gateBar" class="h-full bg-accent w-0 transition-all duration-1000"></div>
+      </div>
+      <p class="text-[9px] mono text-slate-600 uppercase">Validating Link Integrity...</p>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="h-20 border-b border-white/5 glass-panel flex items-center justify-between px-10 sticky top-0 z-[100]">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 bg-accent/10 border border-accent/20 rounded flex items-center justify-center text-accent">
+        <i class="fa-solid fa-wind"></i>
       </div>
       <div>
-        <h2 class="text-sm font-black uppercase tracking-[4px] text-white">Identity Gateway</h2>
-        <p id="gateLog" class="text-[10px] text-slate-500 uppercase mt-2 mono">Initializing Secure Uplink...</p>
-      </div>
-      <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-        <div id="gateBar" class="h-full bg-accent w-0 transition-all duration-700"></div>
+        <h1 class="text-sm font-black tracking-tighter text-white uppercase">Tsunami_Ops</h1>
+        <div class="text-[9px] mono text-slate-600">STATION_LINK: ACTIVE</div>
       </div>
     </div>
-  </div>
-
-  <!-- 2. ANNOUNCEMENT OVERLAY -->
-  <div id="globalNotice" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[500] w-full max-w-xl">
-    <div class="glass-panel rounded-full px-6 py-2 flex items-center justify-between border-accent/20 shadow-2xl">
-      <div class="flex items-center gap-3">
-        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-        <span id="noticeMsg" class="text-xs font-bold text-slate-200 uppercase tracking-tight"></span>
-      </div>
-      <button onclick="hideNotice()" class="text-slate-600 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  </div>
-
-  <div class="flex h-screen w-full">
     
-    <!-- 3. SIDEBAR NAVIGATION -->
-    <aside class="w-64 border-r border-white/5 bg-[#0a0d16] flex flex-col">
-      <div class="p-8 flex items-center gap-4 border-b border-white/5">
-        <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
-          <i class="fa-solid fa-wind"></i>
-        </div>
-        <div>
-          <h1 class="text-sm font-black tracking-tighter text-white uppercase">Hub_Prime</h1>
-          <div class="text-[9px] font-mono text-slate-600">COMMS_LINK: ESTABLISHED</div>
-        </div>
-      </div>
-
-      <nav class="flex-1 p-6 space-y-10 overflow-y-auto">
-        <div>
-          <div class="text-[10px] font-black text-slate-700 uppercase tracking-[4px] mb-4 ml-2">Personal</div>
-          <div class="space-y-1">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-active w-full flex items-center gap-3 p-3 rounded text-xs font-bold transition-all">
-              <i class="fa-solid fa-house-user text-xs"></i> Dashboard
-            </button>
-            <button onclick="switchTab('apps')" id="nav-apps" class="w-full flex items-center gap-3 p-3 rounded text-xs font-bold hover:bg-white/5 transition-all">
-              <i class="fa-solid fa-file-lines text-xs"></i> Applications
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div class="text-[10px] font-black text-slate-700 uppercase tracking-[4px] mb-4 ml-2">Security</div>
-          <div class="space-y-1">
-            <button onclick="openVerifyModal()" class="w-full flex items-center gap-3 p-3 rounded text-xs font-bold hover:bg-white/5 transition-all text-accent">
-              <i class="fa-solid fa-shield-check text-xs"></i> Identity Link
-            </button>
-          </div>
-        </div>
+    <div class="flex items-center gap-6">
+      <nav class="hidden md:flex items-center gap-8">
+        <button class="text-[10px] font-black uppercase tracking-[2px] text-white border-b border-accent pb-1">Dossier</button>
+        <button class="text-[10px] font-black uppercase tracking-[2px] text-slate-500 hover:text-white">Protocol</button>
+        <button class="text-[10px] font-black uppercase tracking-[2px] text-slate-500 hover:text-white">Registry</button>
       </nav>
+      <div class="h-8 w-px bg-white/10 mx-2"></div>
+      <button onclick="toggleTheme()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-palette"></i></button>
+    </div>
+  </header>
 
-      <!-- SIDEBAR FOOTER -->
-      <div class="p-6 border-t border-white/5">
-        <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
-           <div class="flex items-center gap-3">
-              <img id="navAvatar" src="/api/avatar/1" class="w-8 h-8 rounded border border-white/10" />
-              <div>
-                 <div class="text-[11px] font-black text-white uppercase" id="navName">Guest_User</div>
-                 <div class="text-[9px] font-mono text-slate-600 uppercase">Tier 1 Access</div>
-              </div>
-           </div>
-           <button onclick="toggleThemeMenu()" class="text-slate-600 hover:text-white"><i class="fa-solid fa-palette text-xs"></i></button>
-        </div>
-      </div>
-    </aside>
+  <!-- MAIN AREA -->
+  <main class="max-w-7xl mx-auto p-6 md:p-12 space-y-10">
 
-    <!-- 4. MAIN WORKSPACE -->
-    <main class="flex-1 flex flex-col relative overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
       
-      <!-- HEADER -->
-      <header class="h-16 border-b border-white/5 glass-panel flex items-center justify-between px-10">
-        <div class="flex items-center gap-4">
-          <div class="text-[10px] font-black uppercase tracking-[5px] text-white" id="pageTitle">DASHBOARD_MAIN</div>
-          <div class="h-4 w-px bg-white/10"></div>
-          <div class="flex items-center gap-3 text-[9px] font-mono text-slate-500 uppercase">
-             Registry_Status: <span id="regStatus" class="text-emerald-400">Stable</span>
-          </div>
-        </div>
-        <div class="flex items-center gap-6">
-           <div id="livePulse" class="flex items-center gap-2 text-[10px] font-mono text-emerald-400 uppercase">
-             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Uplink_Sync
-           </div>
-        </div>
-      </header>
-
-      <div id="viewContainer" class="flex-1 overflow-y-auto p-10">
+      <!-- LEFT: USER INFO -->
+      <div class="lg:col-span-2 space-y-10">
         
-        <!-- DASHBOARD SECTION -->
-        <section id="tab-dashboard" class="tab-content space-y-10">
-          
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <div class="lg:col-span-2 space-y-10">
-              
-              <!-- USER IDENTITY BANNER -->
-              <div class="glass-panel p-10 rounded-2xl flex items-center justify-between group transition-all">
-                <div class="flex items-center gap-8">
-                  <div class="relative">
-                    <img id="mainAvatar" src="/api/avatar/1" class="w-24 h-24 rounded-2xl border-2 border-white/5 object-cover" />
-                    <div id="verifiedBadge" class="absolute -bottom-2 -right-2 px-3 py-1 bg-slate-800 text-slate-500 text-[9px] font-black uppercase rounded border border-white/5">Unlinked</div>
-                  </div>
-                  <div>
-                    <h2 class="text-4xl font-black text-white tracking-tighter" id="mainName">Guest User</h2>
-                    <div class="flex items-center gap-4 mt-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                       <span>Joined: <span class="text-white mono" id="joinDate">---</span></span>
-                       <div class="h-3 w-px bg-white/10"></div>
-                       <span>Account_ID: <span class="text-white mono" id="mainId">0</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- STATS BENTO -->
-              <div class="grid grid-cols-3 gap-6">
-                 <div class="glass-panel p-8 rounded-2xl border-b-2 border-blue-500/20">
-                    <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-6">Extraction_Data</div>
-                    <div class="text-4xl font-black text-white mono" id="stat-wins">0</div>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-2">Total Survivals</p>
-                 </div>
-                 <div class="glass-panel p-8 rounded-2xl border-b-2 border-amber-500/20">
-                    <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-6">Credits_Registry</div>
-                    <div class="text-4xl font-black text-white mono" id="stat-coins">0</div>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-2">In-Game Balance</p>
-                 </div>
-                 <div class="glass-panel p-8 rounded-2xl border-b-2 border-emerald-500/20">
-                    <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-6">Active_Duty_Time</div>
-                    <div class="text-4xl font-black text-white mono" id="stat-time">0h</div>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-2">Portal Playtime</p>
-                 </div>
-              </div>
-
-              <!-- SECURITY LOGS (With Lockdown Logic) -->
-              <div class="glass-panel rounded-2xl overflow-hidden relative">
-                <div id="logsLockOverlay" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md">
-                   <i class="fa-solid fa-shield-lock text-3xl text-slate-600 mb-4"></i>
-                   <h3 class="text-xs font-black text-white uppercase tracking-widest">Registry Locked</h3>
-                   <p class="text-[10px] text-slate-500 uppercase mt-1">Verify Roblox Bio to unlock history</p>
-                   <button onclick="openVerifyModal()" class="mt-4 px-6 py-2 bg-accent text-black text-[10px] font-black uppercase rounded-lg hover:scale-105 transition-all">Start Verification</button>
-                </div>
-
-                <div class="p-6 border-b border-white/5 flex items-center justify-between">
-                   <h3 class="text-xs font-black text-white uppercase tracking-[4px]">Historical_Infraction_Registry</h3>
-                </div>
-                <table class="w-full text-left redacted-blur" id="historyTable">
-                   <thead class="bg-white/2 text-[9px] font-black uppercase text-slate-600 tracking-widest">
-                      <tr><th class="p-6">Timestamp</th><th class="p-6">Action</th><th class="p-6">Incident_Context</th><th class="p-6 text-right">Action</th></tr>
-                   </thead>
-                   <tbody id="historyBody">
-                      <!-- Mock data rows -->
-                      <tr class="border-b border-white/5">
-                        <td class="p-6 mono text-slate-600">2026-08-21</td>
-                        <td class="p-6"><span class="px-3 py-1 bg-amber-500/10 text-amber-500 rounded text-[9px] font-black uppercase border border-amber-500/30">Warn</span></td>
-                        <td class="p-6 font-bold text-slate-300">Classified Content</td>
-                        <td class="p-6 text-right"><button class="px-4 py-1.5 border border-white/10 rounded text-[9px] font-black uppercase">Appeal</button></td>
-                      </tr>
-                   </tbody>
-                </table>
-              </div>
+        <!-- PROFILE CARD -->
+        <div class="glass-panel p-10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-8 border-l-4 border-l-accent">
+          <div class="flex items-center gap-8">
+            <div class="relative">
+              <img id="pAvatar" src="/api/avatar/1" class="w-24 h-24 rounded-2xl border border-white/10 shadow-2xl object-cover" />
+              <div class="absolute -bottom-2 -right-2 px-3 py-1 bg-accent text-black text-[9px] font-black uppercase rounded">Linked</div>
             </div>
-
-            <!-- RIGHT SIDEBAR: COMMUNITY STATS -->
-            <div class="space-y-8">
-               <div class="glass-panel p-8 rounded-2xl space-y-8">
-                  <div class="flex items-center justify-between">
-                     <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">System_Status</h3>
-                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  </div>
-                  <div class="space-y-4">
-                     <div class="flex justify-between items-center text-[11px] font-bold">
-                        <span class="text-slate-600 uppercase tracking-widest">Connected_Nodes</span>
-                        <span class="text-white mono">12/12 Stable</span>
-                     </div>
-                     <div class="flex justify-between items-center text-[11px] font-bold">
-                        <span class="text-slate-600 uppercase tracking-widest">Population</span>
-                        <span class="text-white mono" id="livePlayerCount">1,428 Clients</span>
-                     </div>
-                  </div>
-                  <a href="https://www.roblox.com/games/103398581793479" target="_blank" class="w-full h-14 bg-accent/10 border border-accent/30 text-accent rounded-xl flex items-center justify-center gap-3 text-xs font-black uppercase hover:bg-accent hover:text-black transition-all">
-                     Initialize Game Link
-                  </a>
-               </div>
-
-               <!-- CHANGELOG BENTO -->
-               <div class="glass-panel p-8 rounded-2xl space-y-6">
-                  <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">Global_Changelog</h3>
-                  <div class="space-y-4 text-[10px] font-bold text-slate-400 uppercase">
-                     <div class="flex gap-3"><span class="text-emerald-400">+</span> Acid Tsunami Variant Active</div>
-                     <div class="flex gap-3"><span class="text-emerald-400">+</span> Speed Coil Buff v1.2</div>
-                     <div class="flex gap-3"><span class="text-red-400">-</span> Fixed Item Duplication Bug</div>
-                  </div>
-               </div>
+            <div>
+              <h2 id="pName" class="text-4xl font-black text-white tracking-tighter">Guest_User</h2>
+              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2">Authorization: <span class="text-white">Tier 1 Member</span></p>
             </div>
           </div>
-        </section>
+          <button onclick="openVerify()" class="btn-industrial px-6 py-3 rounded-lg text-accent border-accent/20">Verify_Bio</button>
+        </div>
 
-        <!-- APPLICATIONS SECTION -->
-        <section id="tab-apps" class="tab-content hidden">
-           <div class="glass-panel p-10 rounded-2xl space-y-10 border-l-4 border-l-accent">
-              <div>
-                <h2 class="text-3xl font-black text-white tracking-tighter">Recruitment Dashboard</h2>
-                <p class="text-[10px] text-slate-500 uppercase tracking-[3px] mt-2">Active Staff Recruitment Protocols</p>
-              </div>
-              <div id="appsList" class="space-y-4">
-                 <!-- Populated by JS -->
-                 <div class="p-20 text-center opacity-30 uppercase tracking-[10px] font-black mono">No_Active_Protocols</div>
+        <!-- STATS BENTO -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="glass-panel p-8 rounded-2xl border-b-2 border-blue-500/20">
+            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Survivals</div>
+            <div id="statWins" class="text-4xl font-black text-white mono">0</div>
+          </div>
+          <div class="glass-panel p-8 rounded-2xl border-b-2 border-amber-500/20">
+            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Credits</div>
+            <div id="statCoins" class="text-4xl font-black text-white mono">0</div>
+          </div>
+          <div class="glass-panel p-8 rounded-2xl border-b-2 border-emerald-500/20">
+            <div class="text-[9px] font-black text-slate-600 uppercase tracking-[3px] mb-4">Active_Time</div>
+            <div id="statTime" class="text-4xl font-black text-white mono">0h</div>
+          </div>
+        </div>
+
+        <!-- SECURITY LOGS -->
+        <div class="glass-panel rounded-2xl overflow-hidden relative">
+          <!-- REDACTION SHIELD -->
+          <div id="lock" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-xl transition-all">
+             <i class="fa-solid fa-lock text-3xl text-slate-600 mb-4"></i>
+             <div class="text-[10px] font-black uppercase tracking-[4px] text-white">Registry_Locked</div>
+             <p class="text-[9px] text-slate-500 mt-1 uppercase">Link Roblox Account to view history</p>
+          </div>
+
+          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+             <h3 class="text-[10px] font-black text-white uppercase tracking-[4px]">Security_Registry_Audit</h3>
+          </div>
+          <table class="w-full text-left">
+            <thead class="text-[9px] font-black uppercase text-slate-600 tracking-widest border-b border-white/5">
+              <tr><th class="p-6">Time</th><th class="p-6">Action</th><th class="p-6">Reason</th></tr>
+            </thead>
+            <tbody id="history" class="text-xs redacted">
+              <!-- Content hidden by parent redaction -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: SIDEBAR -->
+      <div class="space-y-6">
+        <div class="glass-panel p-8 rounded-2xl space-y-8">
+           <div class="flex items-center justify-between">
+             <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">Live_System</h3>
+             <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#00e599]"></div>
+           </div>
+           <div class="space-y-4">
+              <div class="flex justify-between items-center text-[11px] font-bold">
+                 <span class="text-slate-600 uppercase">Population</span>
+                 <span class="text-white mono">1,428 Clients</span>
               </div>
            </div>
-        </section>
-
-      </div>
-    </main>
-  </div>
-
-  <!-- 5. VERIFICATION MODAL -->
-  <div id="verifyModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[2000] flex items-center justify-center p-6 hidden">
-    <div class="max-w-md w-full glass-panel p-10 rounded-[2rem] space-y-8 relative overflow-hidden">
-      <div class="absolute top-0 left-0 w-full h-1 bg-accent"></div>
-      <div class="flex items-center justify-between border-b border-white/5 pb-6">
-        <h3 class="text-xs font-black text-white uppercase tracking-[4px]">Identity Authorization</h3>
-        <button onclick="closeVerifyModal()" class="text-slate-600 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-6">
-        <p class="text-[11px] text-slate-500 font-bold uppercase leading-relaxed">Add the following security key to your Roblox "About" profile section to verify ownership.</p>
-        <div class="p-5 bg-black/40 border border-white/10 rounded-2xl flex items-center justify-between">
-           <span class="text-lg font-black text-accent mono tracking-wider" id="verifyCode">TSUNAMI-8821</span>
-           <button onclick="copyCode()" class="text-slate-600 hover:text-white transition-all"><i class="fa-solid fa-copy"></i></button>
+           <a href="https://www.roblox.com/games/103398581793479" target="_blank" class="w-full h-14 bg-accent text-black rounded-xl flex items-center justify-center font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] transition-all">
+              Launch Instance
+           </a>
         </div>
-        <div class="space-y-2">
-           <label class="text-[10px] font-black text-slate-600 uppercase ml-1">Roblox_Username</label>
-           <input type="text" id="verifyUsername" placeholder="e.g. Golddoggo9866" class="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-accent transition-all text-sm font-bold">
+
+        <div class="glass-panel p-8 rounded-2xl space-y-6">
+           <h3 class="text-[10px] font-black text-white uppercase tracking-[3px]">Progression</h3>
+           <div class="segmented-bar" id="progBar"></div>
+           <p class="text-[9px] font-bold text-slate-600 uppercase">Next Authorization: Tier 2 Verified</p>
         </div>
       </div>
 
-      <div class="pt-6 border-t border-white/5 flex gap-4">
-        <button onclick="closeVerifyModal()" class="flex-1 py-4 border border-white/10 rounded-xl text-[10px] font-black uppercase text-slate-500 hover:bg-white/5">Abort</button>
-        <button onclick="submitVerify()" class="flex-1 py-4 bg-accent text-black rounded-xl text-[10px] font-black uppercase shadow-2xl shadow-accent/20 hover:scale-105 transition-all">Verify Handshake</button>
-      </div>
     </div>
-  </div>
+  </main>
 
-  <!-- THEME SELECTOR -->
-  <div id="themeOverlay" class="fixed top-20 right-10 z-[1000] hidden">
-    <div class="glass-panel p-5 rounded-2xl space-y-4 shadow-2xl w-48 border-white/10">
-      <div class="text-[9px] font-black text-slate-700 uppercase tracking-widest mb-4">Interface Profile</div>
-      <button onclick="setTheme('slate')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-[10px] font-black uppercase text-emerald-400">
-         <span class="w-2 h-2 rounded-full bg-[#00e599]"></span> Slate_Mint
-      </button>
-      <button onclick="setTheme('purple')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-[10px] font-black uppercase text-purple-400">
-         <span class="w-2 h-2 rounded-full bg-[#a855f7]"></span> Cyber_Violet
-      </button>
-      <button onclick="setTheme('stealth')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-[10px] font-black uppercase text-slate-500">
-         <span class="w-2 h-2 rounded-full bg-[#64748b]"></span> Stealth_Grey
-      </button>
-    </div>
-  </div>
-
-  <div id="toastLayer" class="fixed bottom-10 right-10 z-[3000] flex flex-col items-end gap-4"></div>
-
-  <!-- 6. HUB STATE LOGIC -->
   <script>
-    let isVerified = false;
-    let currentTheme = 'slate';
+    // THEME LOGIC
+    let cTheme = 0;
+    const themes = ['slate', 'purple', 'stealth'];
+    function toggleTheme() {
+      cTheme = (cTheme + 1) % themes.length;
+      document.documentElement.className = 'theme-' + themes[cTheme];
+    }
 
-    // 1. BOOTSTRAP HANDSHAKE
-    window.onload = async () => {
-      const gate = document.getElementById('identityGate');
+    // BOOT HANDSHAKE
+    window.onload = () => {
       const bar = document.getElementById('gateBar');
-      const log = document.getElementById('gateLog');
-      
-      const sequence = ["Querying Database...", "Parsing Tokens...", "Building Dossier...", "Access Ready"];
-      
-      for(let i=0; i<sequence.length; i++){
-        log.innerText = sequence[i];
-        bar.style.width = ((i+1)*25) + '%';
-        await new Promise(r => setTimeout(r, 400));
+      setTimeout(() => bar.style.width = '100%', 200);
+      setTimeout(() => {
+        document.getElementById('identityGate').style.opacity = '0';
+        setTimeout(() => document.getElementById('identityGate').remove(), 1000);
+      }, 1200);
+
+      // Create Progress Segments
+      const barCont = document.getElementById('progBar');
+      for(let i=0; i<10; i++) {
+        const d = document.createElement('div');
+        d.className = `segment ${i < 4 ? 'segment-active' : ''}`;
+        barCont.appendChild(d);
       }
 
-      gate.style.opacity = '0';
-      setTimeout(() => gate.remove(), 1000);
-
-      // Check Verification State
-      checkVerification();
-      setTheme(localStorage.getItem('hub_theme') || 'slate');
+      fetchData();
     };
 
-    // 2. THEME ENGINE
-    function setTheme(t) {
-      document.documentElement.className = 'theme-' + t;
-      localStorage.setItem('hub_theme', t);
-      toast("Interface Profile Synced: " + t.toUpperCase());
-    }
-
-    function toggleThemeMenu() {
-      document.getElementById('themeOverlay').classList.toggle('hidden');
-    }
-
-    // 3. TAB NAVIGATION
-    function switchTab(id) {
-      document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
-      
-      document.getElementById('tab-' + id).classList.remove('hidden');
-      document.getElementById('nav-' + id).classList.add('nav-active');
-      document.getElementById('pageTitle').innerText = id.toUpperCase() + '_MODULE';
-    }
-
-    // 4. VERIFICATION LOGIC
-    function openVerifyModal() {
-      document.getElementById('verifyModal').classList.remove('hidden');
-    }
-
-    function closeVerifyModal() {
-      document.getElementById('verifyModal').classList.add('hidden');
-    }
-
-    async function checkVerification() {
-       // In your real backend: fetch('/api/user/status')
-       // If data.verified is true:
-       // isVerified = true;
-       // document.getElementById('logsLockOverlay').remove();
-       // document.getElementById('historyTable').classList.remove('redacted-blur');
-       // document.getElementById('verifiedBadge').innerText = "Verified_Node";
-    }
-
-    // 5. DATA SIMULATION & STATS
-    async function updateStats() {
-       try {
-         const res = await fetch('/api/member/stats');
-         const d = await res.json();
-         if(d.success) {
-            document.getElementById('stat-wins').innerText = d.stats.wins;
-            document.getElementById('stat-coins').innerText = d.stats.coins;
-            document.getElementById('stat-time').innerText = d.stats.playtime + "h";
-         }
-       } catch(e) {}
-    }
-
-    // 6. UTILS
-    function toast(m) {
-      const cont = document.getElementById('toastLayer');
-      const d = document.createElement('div');
-      d.className = "glass-panel p-5 rounded-2xl border-l-4 border-l-accent shadow-2xl animate-in slide-in-from-right duration-300";
-      d.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest text-white">${m}</span>`;
-      cont.appendChild(d);
-      setTimeout(() => d.remove(), 4000);
-    }
-
-    function copyCode() {
-      const code = document.getElementById('verifyCode').innerText;
-      navigator.clipboard.writeText(code);
-      toast("Security Key Copied to Clipboard");
+    // FETCH LOGIC
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/member/stats');
+        const d = await res.json();
+        if(d.success) {
+          document.getElementById('statWins').innerText = d.stats.wins;
+          document.getElementById('statCoins').innerText = d.stats.coins;
+          document.getElementById('statTime').innerText = d.stats.playtime + "h";
+          document.getElementById('pName').innerText = d.username;
+          document.getElementById('pAvatar').src = `https://www.roblox.com/headshot-thumbnail/image?userId=${d.userId}&width=150&height=150&format=png`;
+        }
+      } catch(e) {
+        // Mock data if server isn't ready
+        document.getElementById('statWins').innerText = "142";
+        document.getElementById('statCoins').innerText = "4,920";
+        document.getElementById('statTime').innerText = "18h";
+      }
     }
   </script>
 </body>
