@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tsunami Ops | Command Center</title>
+  <title>Tsunami Ops | Command Dossier</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,32 +12,56 @@
   <style>
     :root {
       --border: rgba(255, 255, 255, 0.05);
-      --bg: #06080c;
+      --bg: #05070a;
       --card: #0a0d16;
       --accent: #00e599; 
     }
 
     .theme-purple { --bg: #0a0714; --card: #120b1f; --accent: #a855f7; }
     .theme-stealth { --bg: #050505; --card: #0c0c0c; --accent: #64748b; }
-    .theme-slate { --bg: #06080c; --card: #0a0d16; --accent: #00e599; }
+    .theme-slate { --bg: #05070a; --card: #0a0d16; --accent: #00e599; }
 
     body {
       background-color: var(--bg);
-      background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.01) 1px, transparent 0);
-      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #94a3b8;
       margin: 0;
       overflow-x: hidden;
     }
 
-    .glass-panel {
-      background: rgba(10, 13, 22, 0.6);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
-      transition: border-color 0.3s;
+    /* THE SCANLINE EFFECT */
+    body::before {
+      content: " ";
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 9999;
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
     }
-    .glass-panel:hover { border-color: rgba(255,255,255,0.1); }
+
+    .glass-panel {
+      background: rgba(10, 13, 22, 0.8);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* CORNER ACCENTS */
+    .glass-panel::after {
+      content: "";
+      position: absolute;
+      top: -1px; right: -1px;
+      width: 10px; height: 10px;
+      border-top: 2px solid var(--accent);
+      border-right: 2px solid var(--accent);
+      opacity: 0.5;
+    }
 
     .mono { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; }
     
@@ -45,210 +69,169 @@
       font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       color: #475569;
     }
 
-    /* BUTTONS */
-    .btn-glass {
+    /* BTN DESIGN */
+    .btn-industrial {
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
-      backdrop-filter: blur(8px);
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
-    .btn-glass:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+    .btn-industrial:hover { 
+      background: rgba(255,255,255,0.08); 
+      border-color: var(--accent); 
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
     
     .btn-primary {
       background: var(--accent);
       color: #000;
-      font-weight: 800;
+      font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 20px rgba(0, 229, 153, 0.2);
     }
 
-    /* ANIMATIONS */
-    @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .pulse { animation: pulse-fast 2s infinite; }
+    /* STATUS BLINKER */
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .blinker { animation: blink 1.5s infinite; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 0; opacity: 0.3; }
   </style>
 </head>
-<body class="antialiased flex h-screen w-full">
+<body class="antialiased flex flex-col min-h-screen w-full">
 
-  <!-- SIDEBAR -->
-  <aside class="w-64 border-r border-white/5 bg-[#080b11] flex flex-col hidden md:flex">
-    <div class="p-8 border-b border-white/5 flex items-center gap-3">
-      <div class="w-8 h-8 bg-accent rounded flex items-center justify-center text-black font-black text-xs">ET</div>
-      <div>
-        <h1 class="text-xs font-black text-white tracking-widest uppercase">Tsunami_Hub</h1>
-        <div class="text-[9px] font-bold text-slate-600">STATION_01 // ACTIVE</div>
-      </div>
-    </div>
-
-    <nav class="flex-1 p-6 space-y-1">
-      <div class="label pb-4 px-2">Operator_Menu</div>
-      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold text-white bg-white/5 border-l-2 border-accent">
-        <i class="fa-solid fa-layer-group text-accent"></i> Dashboard
-      </button>
-      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
-        <i class="fa-solid fa-file-signature opacity-40"></i> Applications
-      </button>
-      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
-        <i class="fa-solid fa-shield-halved opacity-40"></i> Staff Directory
-      </button>
-      
-      <div class="label py-6 px-2">Security</div>
-      <button class="w-full flex items-center gap-3 p-3 rounded-lg text-xs font-bold hover:text-white transition-all">
-        <i class="fa-solid fa-fingerprint opacity-40"></i> Verification
-      </button>
-    </nav>
-
-    <div class="p-6 border-t border-white/5">
-      <div class="glass-panel p-3 rounded-xl flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-slate-800 border border-white/10"></div>
-          <div>
-            <div class="text-[10px] font-bold text-white uppercase">Guest_User</div>
-            <div class="text-[8px] font-mono opacity-40 uppercase tracking-tighter">Level_01</div>
-          </div>
+  <!-- TOP HEADER -->
+  <header class="h-16 border-b border-white/5 glass-panel flex items-center justify-between px-10 sticky top-0 z-[1000]">
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/5 border border-white/10 rounded flex items-center justify-center text-accent">
+          <i class="fa-solid fa-square-rss text-xs"></i>
         </div>
-        <button onclick="toggleTheme()" class="text-slate-600 hover:text-accent transition-colors"><i class="fa-solid fa-palette"></i></button>
+        <h1 class="text-xs font-black tracking-[4px] text-white uppercase">Ops_Terminal</h1>
+      </div>
+      <div class="h-4 w-px bg-white/10"></div>
+      <div class="text-[9px] mono text-slate-500 flex items-center gap-4">
+        <span>STATION_ID: <span class="text-white">NODE_01</span></span>
+        <span>UPTIME: <span class="text-emerald-400" id="uptime">00:00:00</span></span>
       </div>
     </div>
-  </aside>
+    
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500">
+        <span class="blinker text-emerald-500">●</span> System_Live
+      </div>
+      <button onclick="toggleTheme()" class="text-slate-600 hover:text-white transition-colors"><i class="fa-solid fa-palette text-xs"></i></button>
+      <div class="flex items-center gap-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/5">
+         <span class="text-[10px] font-black text-white uppercase tracking-tight" id="navName">Guest</span>
+         <img id="navAvatar" src="/api/avatar/1" class="w-8 h-8 rounded-full border border-white/10" />
+      </div>
+    </div>
+  </header>
 
   <!-- MAIN VIEW -->
-  <main class="flex-1 overflow-y-auto bg-[#06080c] relative">
-    
-    <!-- HEADER -->
-    <header class="h-16 border-b border-white/5 flex items-center justify-between px-10 sticky top-0 bg-[#06080c]/80 backdrop-blur-xl z-50">
-      <div class="flex items-center gap-4">
-        <h2 class="text-xs font-black uppercase tracking-[4px] text-white">Dossier_Overview</h2>
-        <div class="h-4 w-px bg-white/10"></div>
-        <div class="flex items-center gap-2 text-[9px] font-mono text-slate-500 uppercase">
-          Status: <span class="text-emerald-500 pulse">Uplink_Established</span>
-        </div>
-      </div>
-      <div class="text-[10px] font-bold text-slate-600 uppercase">
-        Station_Time: <span class="text-white mono" id="clock">00:00:00</span>
-      </div>
-    </header>
+  <main class="flex-1 max-w-7xl mx-auto w-full p-8 space-y-8">
 
-    <div class="p-10 space-y-6 max-w-7xl">
+    <!-- ROW 1: USER DATA -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- ROW 1: IDENTITY & GAME STATE -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 glass-panel p-10 rounded-2xl flex items-center justify-between border-t border-white/5">
-          <div class="flex items-center gap-8">
-            <div class="relative">
-              <img src="/api/avatar/1" class="w-24 h-24 rounded-2xl border border-white/10 grayscale shadow-2xl" />
-              <div class="absolute -bottom-2 -right-2 px-3 py-1 bg-slate-800 text-slate-400 text-[9px] font-black uppercase rounded border border-white/5">Unlinked</div>
-            </div>
+      <!-- LARGE IDENTITY CARD -->
+      <div class="lg:col-span-2 glass-panel p-10 rounded-xl flex items-center justify-between border-t border-white/5 overflow-hidden">
+        <div class="flex items-center gap-10 relative z-10">
+          <div class="relative group">
+            <div class="absolute -inset-2 bg-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <img id="pAvatar" src="/api/avatar/1" class="w-28 h-24 rounded border border-white/10 grayscale shadow-2xl relative z-10 object-cover" />
+            <div class="absolute -bottom-2 -left-2 px-2 py-1 bg-black border border-white/10 text-[8px] font-black uppercase tracking-tighter text-slate-500">LINKED_OK</div>
+          </div>
+          <div class="space-y-4">
             <div>
-              <h3 class="text-3xl font-black text-white tracking-tighter uppercase">Operator_Guest</h3>
-              <div class="flex items-center gap-4 mt-2">
-                <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Entry_Date: <span class="text-slate-400">---</span></span>
-                <div class="h-3 w-px bg-white/10"></div>
-                <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Global_ID: <span class="text-slate-400 mono">#00000</span></span>
-              </div>
-              <button class="mt-4 px-4 py-2 border border-accent/30 text-accent rounded text-[10px] font-black uppercase hover:bg-accent/10 transition-all">Verify_Identity</button>
+              <div class="label text-accent mb-1">Authenticated_Operator</div>
+              <h3 id="pName" class="text-5xl font-black text-white tracking-tighter uppercase leading-none">Guest_User</h3>
+            </div>
+            <div class="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mono">
+              <span>EST: <span class="text-white">MAR_2023</span></span>
+              <span>CLEARANCE: <span class="text-white">STAGE_01</span></span>
             </div>
           </div>
         </div>
-
-        <div class="glass-panel p-8 rounded-2xl flex flex-col justify-between border-t border-white/5">
-          <div class="flex justify-between items-start">
-             <div class="label">System_Status</div>
-             <div class="w-2 h-2 rounded-full bg-emerald-500 pulse shadow-[0_0_10px_#00e599]"></div>
-          </div>
-          <div class="space-y-2 my-4">
-             <div class="flex justify-between text-[11px] font-bold"><span class="opacity-40">NODES_ONLINE</span><span class="text-white mono">12/12</span></div>
-             <div class="flex justify-between text-[11px] font-bold"><span class="opacity-40">POPULATION</span><span class="text-white mono">1,428</span></div>
-          </div>
-          <button class="btn-primary w-full py-4 rounded-xl text-[11px] shadow-2xl shadow-accent/20">Initialize_Link</button>
+        <div class="flex flex-col gap-2">
+           <button class="btn-industrial px-6 py-2 rounded text-[9px]">Edit_Profile</button>
+           <button class="btn-industrial px-6 py-2 rounded text-[9px] text-accent border-accent/20">Verify_Dossier</button>
         </div>
       </div>
 
-      <!-- ROW 2: PRIMARY TELEMETRY (STATS) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="glass-panel p-8 rounded-2xl group border-l-2 border-l-blue-500">
-           <div class="label mb-4 text-blue-500">Extraction_Count</div>
-           <div class="text-5xl font-black text-white mono tracking-tighter">000</div>
-           <div class="text-[9px] font-mono text-slate-600 mt-2 uppercase tracking-widest">+0.0% Efficiency</div>
+      <!-- SYSTEM STATUS BOX -->
+      <div class="glass-panel p-8 rounded-xl flex flex-col justify-between border-t border-white/5">
+        <div class="flex justify-between items-start">
+           <div class="label">Telemetry_Nodes</div>
+           <div class="w-2 h-2 rounded-full bg-emerald-500 blinker shadow-[0_0_10px_#00e599]"></div>
         </div>
-        <div class="glass-panel p-8 rounded-2xl group border-l-2 border-l-amber-500">
-           <div class="label mb-4 text-amber-500">Hub_Credits</div>
-           <div class="text-5xl font-black text-white mono tracking-tighter">000</div>
-           <div class="text-[9px] font-mono text-slate-600 mt-2 uppercase tracking-widest">Balance: Optimal</div>
+        <div class="space-y-4 my-6">
+           <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-600">CLIENTS_SYNCED</span><span class="text-white mono">1,428</span></div>
+           <div class="flex justify-between text-[11px] font-bold"><span class="text-slate-600">DATA_REPLICAS</span><span class="text-white mono">12/12</span></div>
         </div>
-        <div class="glass-panel p-8 rounded-2xl group border-l-2 border-l-emerald-500">
-           <div class="label mb-4 text-emerald-500">Active_Duty</div>
-           <div class="text-5xl font-black text-white mono tracking-tighter">0<span class="text-xl ml-1 text-slate-500 font-bold">h</span></div>
-           <div class="text-[9px] font-mono text-slate-600 mt-2 uppercase tracking-widest">Session: Active</div>
-        </div>
+        <a href="https://www.roblox.com/games/103398581793479" target="_blank" class="btn-primary w-full py-4 rounded flex items-center justify-center gap-3 text-xs">
+           <i class="fa-solid fa-link text-[10px]"></i> Link_Instance
+        </a>
       </div>
-
-      <!-- ROW 3: EQUIPMENT & NEWS (THE "LONG" EXPANSION) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-panel p-8 rounded-2xl space-y-6 border-t border-white/5">
-           <div class="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 class="label">Current_Loadout</h3>
-              <span class="text-[9px] font-mono opacity-30 uppercase">Synced_via_DataStore</span>
-           </div>
-           <div class="grid grid-cols-4 gap-4 opacity-20">
-              <div class="aspect-square bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></div>
-              <div class="aspect-square bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></div>
-              <div class="aspect-square bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></div>
-              <div class="aspect-square bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></div>
-           </div>
-           <p class="text-[10px] font-bold text-center uppercase tracking-widest opacity-40">Awaiting_Inventory_Handshake...</p>
-        </div>
-
-        <div class="glass-panel p-8 rounded-2xl space-y-6 border-t border-white/5">
-           <div class="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 class="label">Patch_Notes_v1.0.4</h3>
-              <span class="text-[9px] font-mono text-emerald-500 uppercase">Live_Updates</span>
-           </div>
-           <div class="space-y-4">
-              <div class="flex gap-4"><i class="fa-solid fa-circle-plus text-[10px] text-emerald-500 mt-1"></i><div class="text-[11px] font-bold uppercase text-slate-300">New Tsunami Type: "Acid Wave" deployed</div></div>
-              <div class="flex gap-4"><i class="fa-solid fa-arrow-up text-[10px] text-blue-500 mt-1"></i><div class="text-[11px] font-bold uppercase text-slate-300">Buffed Speed Coil base velocity by 12%</div></div>
-              <div class="flex gap-4"><i class="fa-solid fa-circle-xmark text-[10px] text-red-500 mt-1"></i><div class="text-[11px] font-bold uppercase text-slate-300">Fixed shop item duplication exploit</div></div>
-           </div>
-        </div>
-      </div>
-
-      <!-- ROW 4: ACCESS LOGS -->
-      <div class="glass-panel p-8 rounded-2xl space-y-6 border-t border-white/5">
-         <div class="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 class="label">Portal_Access_Logs</h3>
-            <div class="text-[9px] font-mono text-slate-600 uppercase">Last_10_Sessions</div>
-         </div>
-         <div class="space-y-2 opacity-50">
-            <div class="flex justify-between p-3 bg-white/2 border-l-2 border-accent text-[10px] font-mono"><span class="text-white">[08:21:44]</span> Authenticated cleanly via Session_ID_X99<span class="text-slate-500">192.XXX.X.1</span></div>
-            <div class="flex justify-between p-3 bg-white/2 border-l-2 border-slate-700 text-[10px] font-mono"><span class="text-white">[08:20:01]</span> Connection initiated... Awaiting handshake</div>
-         </div>
-      </div>
-
-      <!-- ROW 5: SECURITY REGISTRY (BIG MOD LOGS) -->
-      <div class="glass-panel rounded-2xl overflow-hidden border-t border-white/5">
-         <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/2">
-            <div>
-               <h3 class="label text-white">Security_Registry_Audit</h3>
-               <p class="text-[10px] font-bold opacity-40 uppercase mt-1">Historical infraction and enforcement log</p>
-            </div>
-            <div class="px-4 py-1 border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[9px] font-black uppercase rounded-full tracking-tighter">Registry_Locked // Verify_to_View</div>
-         </div>
-         <div class="p-20 text-center space-y-4 opacity-20">
-            <i class="fa-solid fa-shield-lock text-4xl text-slate-600"></i>
-            <p class="text-[10px] font-black uppercase tracking-[5px]">Restricted_Access_Only</p>
-         </div>
-      </div>
-
     </div>
+
+    <!-- ROW 2: DATA STRINGS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="glass-panel p-8 rounded group border-l-4 border-l-blue-600">
+         <div class="label mb-6 text-blue-500">Extraction_Metrics</div>
+         <div id="statWins" class="text-6xl font-black text-white mono leading-none tracking-tighter">000</div>
+         <div class="flex items-center gap-2 mt-4">
+            <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded mono">EFFICIENCY: 100%</span>
+         </div>
+      </div>
+      <div class="glass-panel p-8 rounded group border-l-4 border-l-amber-600">
+         <div class="label mb-6 text-amber-500">Hub_Currency</div>
+         <div id="statCoins" class="text-6xl font-black text-white mono leading-none tracking-tighter">000</div>
+         <div class="flex items-center gap-2 mt-4">
+            <span class="text-[9px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded mono">STABILITY: NOMINAL</span>
+         </div>
+      </div>
+      <div class="glass-panel p-8 rounded group border-l-4 border-l-emerald-600">
+         <div class="label mb-6 text-emerald-500">Active_Duty_Hours</div>
+         <div id="statTime" class="text-6xl font-black text-white mono leading-none tracking-tighter">00<span class="text-2xl text-slate-700 ml-1">h</span></div>
+         <div class="flex items-center gap-2 mt-4">
+            <span class="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded mono">SESSION: CONNECTED</span>
+         </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: LOGS & HISTORY -->
+    <div class="glass-panel rounded-xl overflow-hidden">
+      <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+         <div>
+            <h3 class="label text-white text-[11px]">Security_Registry_Audit</h3>
+            <p class="text-[9px] mono text-slate-600 mt-1">READING_ENCRYPTED_DATA_STREAM_0X00FF</p>
+         </div>
+         <div class="px-4 py-1.5 border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[9px] font-black uppercase rounded tracking-tighter">
+            <i class="fa-solid fa-lock mr-2"></i> Registry_Locked
+         </div>
+      </div>
+      <div class="p-24 text-center space-y-6 opacity-30">
+         <i class="fa-solid fa-shield-halved text-5xl"></i>
+         <div class="text-[11px] font-black uppercase tracking-[10px]">Verification_Required</div>
+         <button class="btn-industrial px-10 py-3 rounded text-[10px]">Initialize_Security_Handshake</button>
+      </div>
+    </div>
+
   </main>
 
   <script>
-    // CLOCK SCRIPT
+    // CLOCK LOGIC
     setInterval(() => {
-      document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
+      document.getElementById('uptime').innerText = new Date().toLocaleTimeString('en-GB');
     }, 1000);
 
     // THEME LOGIC
@@ -257,7 +240,32 @@
     function toggleTheme() {
       cTheme = (cTheme + 1) % themes.length;
       document.documentElement.className = 'theme-' + themes[cTheme];
+      localStorage.setItem('hub_theme', themes[cTheme]);
+    }
+
+    // BOOT HANDSHAKE
+    window.onload = () => {
+      const bar = document.getElementById('gateBar');
+      setTimeout(() => bar.style.width = '100%', 200);
+      setTimeout(() => {
+        document.getElementById('identityGate').style.opacity = '0';
+        setTimeout(() => document.getElementById('identityGate').remove(), 1000);
+      }, 1500);
+
+      // Restore data
+      setTheme(localStorage.getItem('hub_theme') || 'slate');
+      fetchData();
+    };
+
+    function setTheme(t) { document.documentElement.className = 'theme-' + t; }
+
+    async function fetchData() {
+      // Mock data for preview
+      document.getElementById('statWins').innerText = "142";
+      document.getElementById('statCoins').innerText = "4,920";
+      document.getElementById('statTime').innerText = "18";
     }
   </script>
+
 </body>
 </html>
